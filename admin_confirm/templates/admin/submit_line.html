@@ -1,0 +1,7 @@
+{% extends 'admin/submit_line.html'  %}
+{% load i18n admin_urls %}
+
+{% block submit-row %}
+    <input hidden name="_change_needs_confirmation" value="{{ change_needs_confirmation }}" />
+    {{ block.super }}
+{% endblock %}

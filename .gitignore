@@ -29,3 +29,6 @@ docs/_build/
 
 # pycharm
 .idea/
+
+# Database
+db.sqlite3
