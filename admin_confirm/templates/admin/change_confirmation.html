@@ -26,7 +26,6 @@
     {% for key, value in form_data.items %}
         <input type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
-{#  <input type="hidden" name="post" value="yes">#}
   {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
   {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
   <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">

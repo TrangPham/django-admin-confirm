@@ -1,10 +1,10 @@
 
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
-from django.contrib.admin.utils import flatten_fieldsets, quote, unquote
+from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
-from django.template.response import SimpleTemplateResponse, TemplateResponse
-from django.contrib.admin.options import TO_FIELD_VAR, IS_POPUP_VAR
-from django.utils.translation import gettext as _, ngettext
+from django.template.response import TemplateResponse
+from django.contrib.admin.options import TO_FIELD_VAR
+from django.utils.translation import gettext as _
 
 
 class AdminConfirmMixin(object):
@@ -38,9 +38,8 @@ class AdminConfirmMixin(object):
         )
 
     def change_view(self, request, object_id=None, form_url="", extra_context=None):
-        self.message_user(request, f"{request.POST}")
+        # self.message_user(request, f"{request.POST}")
         if request.method == "POST" and request.POST.get("_change_needs_confirmation"):
-            self.message_user(request, "Needs confirmation was inside the request")
             return self._change_confirmation_view(
                 request, object_id, form_url, extra_context
             )
@@ -80,7 +79,6 @@ class AdminConfirmMixin(object):
         )
 
         # Should we be validating the data here? Or just pass it to super?
-
         form = ModelForm(request.POST, request.FILES, obj)
         form_validated = form.is_valid()
         if form_validated:
@@ -88,7 +86,6 @@ class AdminConfirmMixin(object):
         else:
             new_object = form.instance
 
-        # End code copied from Django sourcecode
         if add:
             title = _("Add %s")
         elif self.has_change_permission(request, obj):
@@ -101,13 +98,13 @@ class AdminConfirmMixin(object):
                 save_action = action
                 break
 
+        # Parse raw form data from POST
         form_data = {}
         for key in request.POST:
             if key.startswith("_") or key == 'csrfmiddlewaretoken':
                 continue
 
             form_data[key] = request.POST.get(key)
-        # { k: v for k, v in request.POST.\\ if not(k.startswith('_') or k == 'csrfmiddlewaretoken')}
 
         context = {
             **self.admin_site.each_context(request),
