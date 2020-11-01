@@ -10,10 +10,20 @@ from django.utils.translation import gettext as _
 class AdminConfirmMixin(object):
     """Generic AdminConfirm Mixin"""
 
-    change_needs_confirmation = False
+    confirm_change = None
+    confirmation_fields = None
 
     # Custom templates (designed to be over-ridden in subclasses)
     change_confirmation_template = None
+
+    def get_confirmation_fields(self, request, obj=None):
+        """
+        Hook for specifying confirmation fields
+        """
+        if self.confirmation_fields:
+            return self.confirmation_fields
+
+        return flatten_fieldsets(self.get_fieldsets(request, obj))
 
     def render_change_confirmation(self, request, context):
         opts = self.model._meta
@@ -38,20 +48,19 @@ class AdminConfirmMixin(object):
         )
 
     def change_view(self, request, object_id=None, form_url="", extra_context=None):
-        # self.message_user(request, f"{request.POST}")
-        if request.method == "POST" and request.POST.get("_change_needs_confirmation"):
+        if request.method == "POST" and request.POST.get("_confirm_change"):
             return self._change_confirmation_view(
                 request, object_id, form_url, extra_context
             )
 
         extra_context = {
             **(extra_context or {}),
-            'change_needs_confirmation': self.change_needs_confirmation
+            'confirm_change': self.confirm_change
         }
         return super().change_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
-        # Do we need any of this code?
+        # This code is taken from __changeform_view
         to_field = request.POST.get(
             TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR)
         )
@@ -78,7 +87,6 @@ class AdminConfirmMixin(object):
             request, obj, change=not add, fields=flatten_fieldsets(fieldsets)
         )
 
-        # Should we be validating the data here? Or just pass it to super?
         form = ModelForm(request.POST, request.FILES, obj)
         form_validated = form.is_valid()
         if form_validated:
@@ -86,10 +94,17 @@ class AdminConfirmMixin(object):
         else:
             new_object = form.instance
 
-        if add:
-            title = _("Add %s")
-        elif self.has_change_permission(request, obj):
-            title = _("Change %s")
+        # Parse the changed data - Note that using form.changed_data would not work as initial is not set
+        changed_data = {}
+        for name, field in form.fields.items():
+            initial_value = obj.__getattribute__(name)
+            new_value = new_object.__getattribute__(name)
+            if field.has_changed(initial_value, new_value):
+                changed_data[name] = [initial_value, new_value]
+
+        if not bool(set(self.get_confirmation_fields(request, obj)) & set(changed_data.keys())):
+            # No confirmation required for changed fields, continue to save
+            return super().change_view(request, object_id, form_url, extra_context)
 
         # Parse the original save action from request
         save_action = None
@@ -103,22 +118,25 @@ class AdminConfirmMixin(object):
         for key in request.POST:
             if key.startswith("_") or key == 'csrfmiddlewaretoken':
                 continue
-
             form_data[key] = request.POST.get(key)
+
+        if add:
+            title_action = _('adding')
+        else:
+            title_action = _('changing')
 
         context = {
             **self.admin_site.each_context(request),
-            "title": title % opts.verbose_name,
+            "preserved_filters": self.get_preserved_filters(request),
+            "title": f"{_('Confirm')} {title_action} {opts.verbose_name}",
             "subtitle": str(obj),
             "object_name": str(obj),
             "object_id": object_id,
-            "original": obj,
-            "new_object": new_object,
             "app_label": opts.app_label,
             "model_name": opts.model_name,
             "opts": opts,
-            "preserved_filters": self.get_preserved_filters(request),
             "form_data": form_data,
+            "changed_data": changed_data,
             "submit_name": save_action,
             **(extra_context or {}),
         }

@@ -7,11 +7,14 @@ from .models import Item, Inventory, Shop
 
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ('name', 'price', 'currency')
-    change_needs_confirmation = True
+    require_change_confirmation = True
 
 
-class InventoryAdmin(admin.ModelAdmin):
+class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ('shop', 'item', 'quantity')
+    requires_change_confirmation = {
+        'fields': ['shop']
+    }
 
 
 class ShopAdmin(admin.ModelAdmin):

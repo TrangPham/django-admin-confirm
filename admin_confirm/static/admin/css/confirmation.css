@@ -1,0 +1,24 @@
+.submit-row a.cancel-link {
+    display: block;
+    background: #ba2121;
+    border-radius: 4px;
+    padding: 10px 15px;
+    height: 15px;
+    line-height: 15px;
+    color: #fff;
+}
+
+.submit-row a.cancel-link:focus,
+.submit-row a.cancel-link:hover,
+.submit-row a.cancel-link:active {
+    background: #a41515;
+}
+
+.changed-data table {
+    width: 100%;
+}
+.changed-data th,
+.changed-data td {
+    width: 30%;
+    white-space: nowrap;
+}

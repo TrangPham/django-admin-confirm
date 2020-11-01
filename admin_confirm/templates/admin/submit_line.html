@@ -2,6 +2,6 @@
 {% load i18n admin_urls %}
 
 {% block submit-row %}
-    <input hidden name="_change_needs_confirmation" value="{{ change_needs_confirmation }}" />
+    <input hidden name="_confirm_change" value="{{ confirm_change }}" />
     {{ block.super }}
 {% endblock %}
