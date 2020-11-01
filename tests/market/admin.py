@@ -7,18 +7,17 @@ from .models import Item, Inventory, Shop
 
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ('name', 'price', 'currency')
-    require_change_confirmation = True
+    confirm_change = True
 
 
 class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ('shop', 'item', 'quantity')
-    requires_change_confirmation = {
-        'fields': ['shop']
-    }
+    confirm_change = True
+    confirmation_fields = ['shop']
 
 
-class ShopAdmin(admin.ModelAdmin):
-    pass
+class ShopAdmin(AdminConfirmMixin, admin.ModelAdmin):
+    confirmation_fields = ['name']
 
 
 admin.site.register(Item, ItemAdmin)

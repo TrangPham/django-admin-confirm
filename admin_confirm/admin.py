@@ -10,7 +10,10 @@ from django.utils.translation import gettext as _
 class AdminConfirmMixin(object):
     """Generic AdminConfirm Mixin"""
 
+    # Should we ask for confirmation for changes?
     confirm_change = None
+
+    # if confirm_change, which fields should we confirm for?
     confirmation_fields = None
 
     # Custom templates (designed to be over-ridden in subclasses)
@@ -20,7 +23,7 @@ class AdminConfirmMixin(object):
         """
         Hook for specifying confirmation fields
         """
-        if self.confirmation_fields:
+        if self.confirmation_fields is not None:
             return self.confirmation_fields
 
         return flatten_fieldsets(self.get_fieldsets(request, obj))
@@ -99,7 +102,7 @@ class AdminConfirmMixin(object):
         for name, field in form.fields.items():
             initial_value = obj.__getattribute__(name)
             new_value = new_object.__getattribute__(name)
-            if field.has_changed(initial_value, new_value):
+            if field.has_changed(initial_value, new_value) and initial_value != new_value:
                 changed_data[name] = [initial_value, new_value]
 
         if not bool(set(self.get_confirmation_fields(request, obj)) & set(changed_data.keys())):

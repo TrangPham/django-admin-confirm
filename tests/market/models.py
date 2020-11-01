@@ -25,6 +25,7 @@ class Inventory(models.Model):
     class Meta:
         unique_together = ['shop', 'item']
         ordering = ['shop', 'item__name']
+        verbose_name_plural = 'Inventory'
 
     shop = models.ForeignKey(to=Shop, on_delete=models.CASCADE, related_name='inventory')
     item = models.ForeignKey(to=Item, on_delete=models.CASCADE)
