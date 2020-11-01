@@ -13,6 +13,7 @@ class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
 class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ('shop', 'item', 'quantity')
     confirm_change = True
+    confirm_add = True
     confirmation_fields = ['shop']
 
 
