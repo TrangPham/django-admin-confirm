@@ -13,7 +13,10 @@ class AdminConfirmMixin(object):
     # Should we ask for confirmation for changes?
     confirm_change = None
 
-    # if confirm_change, which fields should we confirm for?
+    # Should we ask for confirmation for additions?
+    confirm_add = None
+
+    # If asking for confirmation, which fields should we confirm for?
     confirmation_fields = None
 
     # Custom templates (designed to be over-ridden in subclasses)
@@ -50,20 +53,20 @@ class AdminConfirmMixin(object):
             context,
         )
 
-    def change_view(self, request, object_id=None, form_url="", extra_context=None):
-        if request.method == "POST" and request.POST.get("_confirm_change"):
-            return self._change_confirmation_view(
-                request, object_id, form_url, extra_context
-            )
+    def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        if request.method == "POST":
+            if (not object_id and "_confirm_add" in request.POST) or (object_id and "_confirm_change"):
+                return self._change_confirmation_view(request, object_id, form_url, extra_context)
 
         extra_context = {
             **(extra_context or {}),
+            'confirm_add': self.confirm_add,
             'confirm_change': self.confirm_change
         }
-        return super().change_view(request, object_id, form_url, extra_context)
+        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
-        # This code is taken from __changeform_view
+        # This code is taken from super()._changeform_view
         to_field = request.POST.get(
             TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR)
         )
@@ -76,14 +79,20 @@ class AdminConfirmMixin(object):
         opts = model._meta
 
         add = object_id is None
+        if add:
+            if not self.has_add_permission(request):
+                raise PermissionDenied
 
-        obj = self.get_object(request, unquote(object_id), to_field)
+            obj = None
+        else:
+            self.message_user(request, add)
+            obj = self.get_object(request, unquote(object_id), to_field)
 
-        if obj is None:
-            return self._get_obj_does_not_exist_redirect(request, opts, object_id)
+            if obj is None:
+                return self._get_obj_does_not_exist_redirect(request, opts, object_id)
 
-        if not self.has_view_or_change_permission(request, obj):
-            raise PermissionDenied
+            if not self.has_view_or_change_permission(request, obj):
+                raise PermissionDenied
 
         fieldsets = self.get_fieldsets(request, obj)
         ModelForm = self.get_form(
@@ -97,17 +106,23 @@ class AdminConfirmMixin(object):
         else:
             new_object = form.instance
 
-        # Parse the changed data - Note that using form.changed_data would not work as initial is not set
         changed_data = {}
-        for name, field in form.fields.items():
-            initial_value = obj.__getattribute__(name)
-            new_value = new_object.__getattribute__(name)
-            if field.has_changed(initial_value, new_value) and initial_value != new_value:
-                changed_data[name] = [initial_value, new_value]
+        if add:
+            for name in form.changed_data:
+                changed_data[name] = [None, new_object.__getattribute__(name)]
+        else:
+            # Parse the changed data - Note that using form.changed_data would not work as initial is not set
+            for name, field in form.fields.items():
+                initial_value = obj.__getattribute__(name)
+                new_value = new_object.__getattribute__(name)
+                if field.has_changed(initial_value, new_value) and initial_value != new_value:
+                    changed_data[name] = [initial_value, new_value]
 
-        if not bool(set(self.get_confirmation_fields(request, obj)) & set(changed_data.keys())):
+        changed_confirmation_fields = set(self.get_confirmation_fields(request, obj)) & set(changed_data.keys())
+        self.message_user(request, changed_confirmation_fields)
+        if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
-            return super().change_view(request, object_id, form_url, extra_context)
+            return super()._changeform_view(request, object_id, form_url, extra_context)
 
         # Parse the original save action from request
         save_action = None
@@ -140,6 +155,7 @@ class AdminConfirmMixin(object):
             "opts": opts,
             "form_data": form_data,
             "changed_data": changed_data,
+            "add": add,
             "submit_name": save_action,
             **(extra_context or {}),
         }
