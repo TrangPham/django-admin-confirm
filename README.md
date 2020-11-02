@@ -7,7 +7,7 @@ It can be configured to add a confirmation page upon saving changes and/or addit
 
 Typical Usage:
     
-    from admin_confirm.admin import AdminConfirmMixin
+    from admin_confirm import AdminConfirmMixin
     
     class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
         confirm_change = True

@@ -5,7 +5,8 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 
-class AdminConfirmMixin(object):
+
+class AdminConfirmMixin:
     # Should we ask for confirmation for changes?
     confirm_change = None
 
@@ -16,7 +17,7 @@ class AdminConfirmMixin(object):
     confirmation_fields = None
 
     # Custom templates (designed to be over-ridden in subclasses)
-    change_confirmation_template = None
+    confirmation_template = None
 
     def get_confirmation_fields(self, request, obj=None):
         """
@@ -38,7 +39,7 @@ class AdminConfirmMixin(object):
 
         return TemplateResponse(
             request,
-            self.change_confirmation_template
+            self.confirmation_template
             or [
                 "admin/{}/{}/change_confirmation.html".format(
                     app_label, opts.model_name
