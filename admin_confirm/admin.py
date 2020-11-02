@@ -1,4 +1,3 @@
-
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
@@ -6,10 +5,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 
-
 class AdminConfirmMixin(object):
-    """Generic AdminConfirm Mixin"""
-
     # Should we ask for confirmation for changes?
     confirm_change = None
 
