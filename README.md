@@ -57,6 +57,18 @@ Your appreciation is also very welcome :) Feel free to:
 - star the project
 - open an issue just to share your thanks
 
+Feature List
+-------
+
+This is a list of features which could potentially be added in the future.
+
+- global actions on changelist page
+- instance actions on change/view page
+- confirmations on changelist actions
+- run scripts from admin
+- completed action summary page
+- action logs (adding actions to history of instances)
+
 Support
 -------
 
