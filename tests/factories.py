@@ -1,6 +1,6 @@
 import factory
 
-from random import choice
+from random import choice, randint
 
 from tests.market.models import Item, Shop, Inventory
 
@@ -10,7 +10,7 @@ class ItemFactory(factory.django.DjangoModelFactory):
         model = Item
 
     name = factory.Faker('name')
-    price = factory.Faker('price')
+    price = factory.LazyAttribute(lambda _: randint(5, 500))
     currency = factory.LazyAttribute(lambda _: choice(Item.VALID_CURRENCIES))
 
 

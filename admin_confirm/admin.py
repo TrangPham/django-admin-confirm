@@ -52,7 +52,7 @@ class AdminConfirmMixin:
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            if (not object_id and "_confirm_add" in request.POST) or (object_id and "_confirm_change"):
+            if (not object_id and "_confirm_add" in request.POST) or (object_id and "_confirm_change" in request.POST):
                 return self._change_confirmation_view(request, object_id, form_url, extra_context)
 
         extra_context = {
@@ -68,6 +68,7 @@ class AdminConfirmMixin:
             TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR)
         )
         if to_field and not self.to_field_allowed(request, to_field):
+            print("OKAY WHAT")
             raise DisallowedModelAdminToField(
                 "The field %s cannot be referenced." % to_field
             )
@@ -115,8 +116,8 @@ class AdminConfirmMixin:
                 if field.has_changed(initial_value, new_value) and initial_value != new_value:
                     changed_data[name] = [initial_value, new_value]
 
-        changed_confirmation_fields = set(self.get_confirmation_fields(request, obj)) & set(changed_data.keys())
-        self.message_user(request, changed_confirmation_fields)
+        changed_confirmation_fields = set(self.get_confirmation_fields(
+            request, obj)) & set(changed_data.keys())
         if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
