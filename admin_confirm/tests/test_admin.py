@@ -127,9 +127,10 @@ class TestAdminConfirmMixin(TestCase):
         self.assertEqual(expected_fields, actual_fields)
 
     def test_custom_template(self):
-        expected_template = 'my_custom_template.html'
+        expected_template = 'market/admin/my_custom_template.html'
         ItemAdmin.confirmation_template = expected_template
         admin = ItemAdmin(Item, AdminSite())
         actual_template = admin.render_change_confirmation(
             self.factory.request(), context={}).template_name
         self.assertEqual(expected_template, actual_template)
+        ItemAdmin.confirmation_template = None

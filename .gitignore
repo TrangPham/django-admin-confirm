@@ -6,7 +6,7 @@ dist/
 sdist/
 .eggs/
 *.egg-info/
-
+.DS_Store
 
 # Unit test / coverage reports
 htmlcov/
