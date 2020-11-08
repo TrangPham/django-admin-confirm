@@ -105,7 +105,6 @@ class TestAdminConfirmMixin(TestCase):
         response = self.client.post(
             f'/admin/market/shop/{shop.id}/change/', data)
         # Redirects to changelist
-        print(response)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, '/admin/market/shop/')
         # Shop has changed

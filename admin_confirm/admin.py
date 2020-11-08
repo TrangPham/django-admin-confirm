@@ -68,7 +68,6 @@ class AdminConfirmMixin:
             TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR)
         )
         if to_field and not self.to_field_allowed(request, to_field):
-            print("OKAY WHAT")
             raise DisallowedModelAdminToField(
                 "The field %s cannot be referenced." % to_field
             )
@@ -83,7 +82,6 @@ class AdminConfirmMixin:
 
             obj = None
         else:
-            self.message_user(request, add)
             obj = self.get_object(request, unquote(object_id), to_field)
 
             if obj is None:
@@ -104,12 +102,16 @@ class AdminConfirmMixin:
         else:
             new_object = form.instance
 
+        # End code from super()._changeform_view
+
         changed_data = {}
         if add:
             for name in form.changed_data:
-                changed_data[name] = [None, new_object.__getattribute__(name)]
+                new_value = new_object.__getattribute__(name)
+                if new_value is not None:
+                    changed_data[name] = [None, new_value]
         else:
-            # Parse the changed data - Note that using form.changed_data would not work as initial is not set
+            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
             for name, field in form.fields.items():
                 initial_value = obj.__getattribute__(name)
                 new_value = new_object.__getattribute__(name)
@@ -122,16 +124,14 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
-        # Parse the original save action from request
-        save_action = None
-        for action in ["_save", "_saveasnew", "_addanother", "_continue"]:
-            if action in request.POST:
-                save_action = action
-                break
-
         # Parse raw form data from POST
         form_data = {}
+        # Parse the original save action from request
+        save_action = None
         for key in request.POST:
+            if key in ["_save", "_saveasnew", "_addanother", "_continue"]:
+                save_action = key
+
             if key.startswith("_") or key == 'csrfmiddlewaretoken':
                 continue
             form_data[key] = request.POST.get(key)
