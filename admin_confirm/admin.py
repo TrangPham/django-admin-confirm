@@ -52,21 +52,23 @@ class AdminConfirmMixin:
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            if (not object_id and "_confirm_add" in request.POST) or (object_id and "_confirm_change" in request.POST):
-                return self._change_confirmation_view(request, object_id, form_url, extra_context)
+            if (not object_id and "_confirm_add" in request.POST) or (
+                object_id and "_confirm_change" in request.POST
+            ):
+                return self._change_confirmation_view(
+                    request, object_id, form_url, extra_context
+                )
 
         extra_context = {
             **(extra_context or {}),
-            'confirm_add': self.confirm_add,
-            'confirm_change': self.confirm_change
+            "confirm_add": self.confirm_add,
+            "confirm_change": self.confirm_change,
         }
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
-        to_field = request.POST.get(
-            TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR)
-        )
+        to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
         if to_field and not self.to_field_allowed(request, to_field):
             raise DisallowedModelAdminToField(
                 "The field %s cannot be referenced." % to_field
@@ -83,7 +85,6 @@ class AdminConfirmMixin:
             obj = None
         else:
             obj = self.get_object(request, unquote(object_id), to_field)
-
             if obj is None:
                 return self._get_obj_does_not_exist_redirect(request, opts, object_id)
 
@@ -105,21 +106,30 @@ class AdminConfirmMixin:
         # End code from super()._changeform_view
 
         changed_data = {}
-        if add:
-            for name in form.changed_data:
-                new_value = new_object.__getattribute__(name)
-                if new_value is not None:
-                    changed_data[name] = [None, new_value]
-        else:
-            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-            for name, field in form.fields.items():
-                initial_value = obj.__getattribute__(name)
-                new_value = new_object.__getattribute__(name)
-                if field.has_changed(initial_value, new_value) and initial_value != new_value:
-                    changed_data[name] = [initial_value, new_value]
+        if form_validated:
+            if add:
+                for name in form.changed_data:
+                    new_value = getattr(new_object, name)
+                    # Don't consider default values as changed for adding
+                    if (
+                        new_value is not None
+                        and new_value != model._meta.get_field(name).default
+                    ):
+                        changed_data[name] = [None, new_value]
+            else:
+                # Parse the changed data - Note that using form.changed_data would not work because initial is not set
+                for name, field in form.fields.items():
+                    initial_value = getattr(obj, name)
+                    new_value = getattr(new_object, name)
+                    if (
+                        field.has_changed(initial_value, new_value)
+                        and initial_value != new_value
+                    ):
+                        changed_data[name] = [initial_value, new_value]
 
-        changed_confirmation_fields = set(self.get_confirmation_fields(
-            request, obj)) & set(changed_data.keys())
+        changed_confirmation_fields = set(
+            self.get_confirmation_fields(request, obj)
+        ) & set(changed_data.keys())
         if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
@@ -132,14 +142,14 @@ class AdminConfirmMixin:
             if key in ["_save", "_saveasnew", "_addanother", "_continue"]:
                 save_action = key
 
-            if key.startswith("_") or key == 'csrfmiddlewaretoken':
+            if key.startswith("_") or key == "csrfmiddlewaretoken":
                 continue
             form_data[key] = request.POST.get(key)
 
         if add:
-            title_action = _('adding')
+            title_action = _("adding")
         else:
-            title_action = _('changing')
+            title_action = _("changing")
 
         context = {
             **self.admin_site.each_context(request),

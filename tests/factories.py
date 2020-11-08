@@ -9,7 +9,7 @@ class ItemFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Item
 
-    name = factory.Faker('name')
+    name = factory.Faker("name")
     price = factory.LazyAttribute(lambda _: randint(5, 500))
     currency = factory.LazyAttribute(lambda _: choice(Item.VALID_CURRENCIES))
 
@@ -18,7 +18,7 @@ class ShopFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Shop
 
-    name = factory.Faker('name')
+    name = factory.Faker("name")
 
 
 class InventoryFactory(factory.django.DjangoModelFactory):
@@ -28,4 +28,3 @@ class InventoryFactory(factory.django.DjangoModelFactory):
     shop = factory.SubFactory(ShopFactory)
     item = factory.SubFactory(ItemFactory)
     quantity = factory.Sequence(lambda n: n)
-
