@@ -9,6 +9,7 @@ setup(
     version="0.1",
     packages=["admin_confirm"],
     description="Adds confirmation to Django Admin changes and additions",
+    long_description_content_type="text/markdown",
     long_description=README,
     author="Thu Trang Pham",
     author_email="thuutrangpham@gmail.com",
@@ -17,4 +18,5 @@ setup(
     install_requires=[
         "Django>=1.7",
     ],
+    python_requires='>=3',
 )

@@ -1,10 +1,10 @@
 # Django Admin Confirm
 
-![coverage](/coverage.svg)
+![coverage](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/coverage.svg)
 
 AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to changes and additions.
 
-![Screenshot of Confirmation Page](/screenshot.png)
+![Screenshot of Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot.png)
 
 It can be configured to add a confirmation page upon saving changes and/or additions on ModelAdmin.
 
