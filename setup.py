@@ -8,7 +8,7 @@ setup(
     name="django-admin-confirm",
     version="0.2.dev1",
     packages=["admin_confirm"],
-    description="Adds confirmation to Django Admin changes and additions",
+    description="Adds confirmation to Django Admin changes, additions and actions",
     long_description_content_type="text/markdown",
     long_description=README,
     author="Thu Trang Pham",
