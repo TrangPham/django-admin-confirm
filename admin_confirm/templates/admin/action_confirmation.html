@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load i18n l10n admin_urls static %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {{ media }}
+    <script src="{% static 'admin/js/cancel.js' %}" async></script>
+{% endblock %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/confirmation.css" %}">
+{% endblock %}
+
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-confirmation{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
+&rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+&rsaquo; {% trans 'Confirm Action' %}
+</div>
+{% endblock %}
+
+{% block content %}
+{% if has_perm %}
+  <p>{% trans 'Are you sure you want to perform action' %} {{ action_display_name }} {% trans 'on the following' %} {{ opts.verbose_name_plural|capfirst }}?</p>
+  <ul>
+    {% for obj in queryset %}
+      <li>{{ obj }}</li>
+    {% endfor %}
+  </ul>
+  <form method="post">{% csrf_token %}
+  {% for obj in queryset %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk|unlocalize }}">
+  {% endfor %}
+  <input type="hidden" name="action" value="{{ action }}">
+  <div class="submit-row">
+      <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="_confirm_action">
+      <p class="deletelink-box">
+          <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "No, go back" %}</a>
+      </p>
+  </div>
+  </form>
+{% else %}
+  <p>{% trans "You don't have permissions to perform action" %} {{ action_display_name }} {% trans 'on' %} {{ opts.verbose_name_plural|capfirst }}</p>
+  <br/>
+  <div class="submit-row">
+      <p class="deletelink-box">
+          <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "Go back" %}</a>
+      </p>
+  </div>
+{% endif %}
+{% endblock %}
