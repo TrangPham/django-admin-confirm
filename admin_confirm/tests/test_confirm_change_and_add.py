@@ -11,7 +11,7 @@ from tests.market.models import Item, Inventory
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
-class TestAdminConfirmMixin(TestCase):
+class TestConfirmChangeAndAdd(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.superuser = User.objects.create_superuser(
@@ -138,13 +138,15 @@ class TestAdminConfirmMixin(TestCase):
 
     def test_custom_template(self):
         expected_template = "market/admin/my_custom_template.html"
-        ItemAdmin.confirmation_template = expected_template
+        ItemAdmin.change_confirmation_template = expected_template
         admin = ItemAdmin(Item, AdminSite())
         actual_template = admin.render_change_confirmation(
             self.factory.request(), context={}
         ).template_name
         self.assertEqual(expected_template, actual_template)
-        ItemAdmin.confirmation_template = None
+        # Clear our setting to not affect other tests
+        ItemAdmin.change_confirmation_template = None
+
 
     def test_form_invalid(self):
         self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
@@ -162,7 +164,7 @@ class TestAdminConfirmMixin(TestCase):
             f"/admin/market/inventory/{inventory.id}/change/", data
         )
 
-        # Form invalid should show erros on form
+        # Form invalid should show errors on form
         self.assertEqual(response.status_code, 200)
         print(response.rendered_content)
         self.assertIsNotNone(response.context_data.get("errors"))

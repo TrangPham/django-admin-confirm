@@ -38,7 +38,7 @@
   {% endfor %}
   <input type="hidden" name="action" value="{{ action }}">
   <div class="submit-row">
-      <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">
+      <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="_confirm_action">
       <p class="deletelink-box">
           <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "No, go back" %}</a>
       </p>

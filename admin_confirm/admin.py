@@ -207,7 +207,7 @@ def confirm_action(func):
 
     def func_wrapper(modeladmin, request, queryset):
         # First called by `Go` which would not have confirm_action in params
-        if request.POST.get("confirm_action"):
+        if request.POST.get("_confirm_action"):
             return func(modeladmin, request, queryset)
 
         # get_actions will only return the actions that are allowed

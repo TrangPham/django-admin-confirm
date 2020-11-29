@@ -11,6 +11,9 @@ migrate:
 	./tests/manage.py makemigrations
 	./tests/manage.py migrate
 
+shell:
+	./tests/manage.py shell
+
 package:
 	python3 setup.py sdist bdist_wheel
 

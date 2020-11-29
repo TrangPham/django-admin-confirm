@@ -110,10 +110,7 @@ This would confirm `action2` but not `action1`.
 
 ![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_action.png)
 
-Action confirmation will respect `allowed_permissions`.
-
-![Screenshot of Action Confirmation Page Without Permissions](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_action_no_perm.png)
-
+Action confirmation will respect `allowed_permissions` and the `has_xxx_permission` methods.
 
 ## Contribution & Appreciation
 
