@@ -1,15 +1,12 @@
-from django.http import request
 from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import Permission, User
 from django.contrib.admin.sites import AdminSite
+from django.contrib.auth.models import Permission, User
 from django.contrib.admin.options import TO_FIELD_VAR
-from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
 
-from tests.market.admin import ItemAdmin, InventoryAdmin, ShopAdmin
-from tests.market.models import Item, Inventory, Shop
-from tests.factories import ItemFactory, ShopFactory, InventoryFactory
+from tests.market.admin import ShopAdmin
+from tests.market.models import Shop
 
 
 class TestConfirmActions(TestCase):
@@ -271,3 +268,14 @@ class TestConfirmActions(TestCase):
 
         # The action was to show user a message, and should happen
         self.assertIn("You selected", response.rendered_content)
+
+    def test_should_use_action_confirmation_template_if_set(self):
+        expected_template = "market/admin/my_custom_template.html"
+        ShopAdmin.action_confirmation_template = expected_template
+        admin = ShopAdmin(Shop, AdminSite())
+        actual_template = admin.render_action_confirmation(
+            self.factory.request(), context={}
+        ).template_name
+        self.assertEqual(expected_template, actual_template)
+        # Clear our setting to not affect other tests
+        ShopAdmin.action_confirmation_template = None

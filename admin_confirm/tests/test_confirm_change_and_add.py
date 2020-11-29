@@ -147,7 +147,6 @@ class TestConfirmChangeAndAdd(TestCase):
         # Clear our setting to not affect other tests
         ItemAdmin.change_confirmation_template = None
 
-
     def test_form_invalid(self):
         self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
 
