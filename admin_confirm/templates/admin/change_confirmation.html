@@ -13,7 +13,7 @@
     <link rel="stylesheet" type="text/css" href="{% static "admin/css/confirmation.css" %}">
 {% endblock %}
 
-{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} change-confirmation{% endblock %}
+{% block bodyclass %}{{ block.super }} app-{{ opts.app_label }} model-{{ opts.model_name }} action-confirmation{% endblock %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">

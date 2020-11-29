@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from admin_confirm.admin import AdminConfirmMixin
+from admin_confirm.admin import AdminConfirmMixin, confirm_action
 
 from .models import Item, Inventory, Shop
 
@@ -19,6 +19,14 @@ class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):
 
 class ShopAdmin(AdminConfirmMixin, admin.ModelAdmin):
     confirmation_fields = ["name"]
+
+    actions = ["show_message"]
+
+    @confirm_action
+    def show_message(modeladmin, request, queryset):
+        shops = ", ".join(shop.name for shop in queryset)
+        modeladmin.message_user(request, f"You selected: {shops}")
+
 
 
 admin.site.register(Item, ItemAdmin)
