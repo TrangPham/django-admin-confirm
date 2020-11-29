@@ -25,6 +25,7 @@
 {% endblock %}
 
 {% block content %}
+{% if has_perm %}
   <p>{% trans 'Are you sure you want to perform action' %} {{ action_display_name }} {% trans 'on the following' %} {{ opts.verbose_name_plural|capfirst }}?</p>
   <ul>
     {% for obj in queryset %}
@@ -36,13 +37,20 @@
     <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk|unlocalize }}">
   {% endfor %}
   <input type="hidden" name="action" value="{{ action }}">
-  <div>
-    <div class="submit-row">
-        <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">
-        <p class="deletelink-box">
-            <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "No, go back" %}</a>
-        </p>
-    </div>
+  <div class="submit-row">
+      <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">
+      <p class="deletelink-box">
+          <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "No, go back" %}</a>
+      </p>
   </div>
   </form>
+{% else %}
+  <p>{% trans "You don't have permissions to perform action" %} {{ action_display_name }} {% trans 'on' %} {{ opts.verbose_name_plural|capfirst }}</p>
+  <br/>
+  <div class="submit-row">
+      <p class="deletelink-box">
+          <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% trans "Go back" %}</a>
+      </p>
+  </div>
+{% endif %}
 {% endblock %}

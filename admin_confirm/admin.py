@@ -210,15 +210,17 @@ def confirm_action(func):
         if request.POST.get("confirm_action"):
             return func(modeladmin, request, queryset)
 
-        # TODO: Check the permissions for the action
-        perms_needed = None
+        # get_actions will only return the actions that are allowed
+        has_perm = modeladmin.get_actions(request).get(func.__name__) is not None
+
         action_display_name = snake_to_title_case(func.__name__)
         title = f"Confirm Action: {action_display_name}"
+
         context = {
             **modeladmin.admin_site.each_context(request),
             "title": title,
             "queryset": queryset,
-            "perms_lacking": perms_needed,
+            "has_perm": has_perm,
             "action": func.__name__,
             "action_display_name": action_display_name,
             "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,

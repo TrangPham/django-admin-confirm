@@ -27,6 +27,7 @@ class ShopAdmin(AdminConfirmMixin, admin.ModelAdmin):
         shops = ", ".join(shop.name for shop in queryset)
         modeladmin.message_user(request, f"You selected: {shops}")
 
+    show_message.allowed_permissions = ('delete',)
 
 
 admin.site.register(Item, ItemAdmin)
