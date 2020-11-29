@@ -30,35 +30,19 @@
 {% endblock %}
 
 {% block content %}
-{% if add %}
-    <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
-    {% if changed_data %}
-      <div class="changed-data">
-          <p><b>Confirm Values:</b></p>
-          <table>
-    {% for field, values in changed_data.items %}
-        <tr><th style="text-align: right">{{ field }}:</th><td>{{ values.1 }}</td></tr>
-    {% endfor %}
-    </table>
-      </div>
-    <form method="post" action="{% url opts|admin_urlname:'add'%}">{% csrf_token %}
+
+  {% if add %}
+      <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
+      {% include "admin/change_data.html" %}
+      <form method="post" action="{% url opts|admin_urlname:'add'%}">{% csrf_token %}
+
+  {% else %}
+
+    <p>{% blocktrans with escaped_object=object %}Are you sure you want to change the {{ model_name }} "{{ object_name }}"?{% endblocktrans %}</p>
+    {% include "admin/change_data.html" %}
+    <form method="post" action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}">{% csrf_token %}
   {% endif %}
-{% else %}
-  <p>{% blocktrans with escaped_object=object %}Are you sure you want to change the {{ model_name }} "{{ object_name }}"?{% endblocktrans %}</p>
-  {% if changed_data %}
-      <div class="changed-data">
-    <p><b>Confirm Values:</b></p>
-    <table>
-    <tr><th>Field</th><th>Current Value</th><th>New Value</th></tr>
-    {% for field, values in changed_data.items %}
-        <tr><td>{{ field }}</td><td>{{ values.0 }}</td><td>{{ values.1 }}</td></tr>
-    {% endfor %}
-    </table>
-      </div>
-  {% endif %}
-  <form method="post" action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}">{% csrf_token %}
-{% endif %}
-  <div>
+
     {% for key, value in form_data.items %}
         <input type="hidden" name="{{ key }}" value="{{ value }}">
     {% endfor %}
@@ -70,6 +54,5 @@
             <a href="#" class="button cancel-link">{% trans "No, continue to edit" %}</a>
         </p>
     </div>
-  </div>
   </form>
 {% endblock %}

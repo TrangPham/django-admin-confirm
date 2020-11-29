@@ -1,0 +1,11 @@
+{% if changed_data %}
+    <div class="changed-data">
+    <p><b>Confirm Values:</b></p>
+    <table>
+        <tr><th>Field</th><th>Current Value</th><th>New Value</th></tr>
+        {% for field, values in changed_data.items %}
+            <tr><td>{{ field }}</td><td>{{ values.0 }}</td><td>{{ values.1 }}</td></tr>
+        {% endfor %}
+    </table>
+    </div>
+{% endif %}
