@@ -30,52 +30,50 @@ class TestConfirmActions(TestCase):
 
     def test_action_without_confirmation(self):
         post_params = {
-            'action': ['show_message_no_confirmation'],
-            'select_across': ['0'],
-            'index': ['0'],
-            '_selected_action': ['3', '2', '1']
+            "action": ["show_message_no_confirmation"],
+            "select_across": ["0"],
+            "index": ["0"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should not use confirmaiton page
-        self.assertNotIn('action_confirmation', response.template_name)
+        self.assertNotIn("action_confirmation", response.template_name)
 
         # The action was to show user a message
-        self.assertIn('You selected without confirmation', response.rendered_content)
+        self.assertIn("You selected without confirmation", response.rendered_content)
 
     def test_action_with_confirmation_should_show_confirmation_page(self):
         post_params = {
-            'action': ['show_message'],
-            'select_across': ['0'],
-            'index': ['0'],
-            '_selected_action': ['3', '2', '1']
+            "action": ["show_message"],
+            "select_across": ["0"],
+            "index": ["0"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should use confirmaiton page
-        self.assertEqual(response.template_name,
-            ['admin/market/shop/action_confirmation.html',
-            'admin/market/action_confirmation.html',
-            'admin/action_confirmation.html']
+        self.assertEqual(
+            response.template_name,
+            [
+                "admin/market/shop/action_confirmation.html",
+                "admin/market/action_confirmation.html",
+                "admin/action_confirmation.html",
+            ],
         )
 
         # The action was to show user a message, and should not happen yet
-        self.assertNotIn('You selected', response.rendered_content)
-
-        # Should show which objects are selected
-        objects = Shop.objects.filter(id__in=post_params['_selected_action'])
-        for object in objects:
-            self.assertIn(str(object), response.rendered_content)
+        self.assertNotIn("You selected", response.rendered_content)
 
     def test_no_permissions_in_database_for_action_with_confirmation(self):
         """
@@ -93,42 +91,44 @@ class TestConfirmActions(TestCase):
             password="pass",
             is_active=True,
             is_staff=True,
-            is_superuser=False
+            is_superuser=False,
         )
         # Give user permissions to ShopAdmin change, add, view but not delete
         for permission in Permission.objects.filter(
-            codename__in=['change_shop', 'view_shop', 'add_shop']
+            codename__in=["change_shop", "view_shop", "add_shop"]
         ):
             user.user_permissions.add(permission)
 
         self.client.force_login(user)
 
         post_params = {
-            'action': ['show_message'],
-            'select_across': ['0'],
-            'index': ['0'],
-            '_selected_action': ['3', '2', '1']
+            "action": ["show_message"],
+            "select_across": ["0"],
+            "index": ["0"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should not use confirmaiton page
-        self.assertEqual(response.template_name,
-            ['admin/market/shop/change_list.html',
-            'admin/market/change_list.html',
-            'admin/change_list.html']
+        self.assertEqual(
+            response.template_name,
+            [
+                "admin/market/shop/change_list.html",
+                "admin/market/change_list.html",
+                "admin/change_list.html",
+            ],
         )
 
         # The action was to show user a message, and should not happen
-        self.assertNotIn('You selected', response.rendered_content)
+        self.assertNotIn("You selected", response.rendered_content)
 
         # Django won't show the action as an option to you
-        self.assertIn('No action selected', response.rendered_content)
-
+        self.assertIn("No action selected", response.rendered_content)
 
     def test_no_permissions_in_code_non_superuser_for_action_with_confirmation(self):
         """
@@ -148,11 +148,11 @@ class TestConfirmActions(TestCase):
             password="pass",
             is_active=True,
             is_staff=True,
-            is_superuser=False
+            is_superuser=False,
         )
         # Give user permissions to ShopAdmin change, add, view and delete
         for permission in Permission.objects.filter(
-            codename__in=['change_shop', 'view_shop', 'add_shop', 'delete_shop']
+            codename__in=["change_shop", "view_shop", "add_shop", "delete_shop"]
         ):
             user.user_permissions.add(permission)
 
@@ -163,31 +163,33 @@ class TestConfirmActions(TestCase):
         #       return request.user.is_superuser
 
         post_params = {
-            'action': ['show_message'],
-            'select_across': ['0'],
-            'index': ['0'],
-            '_selected_action': ['3', '2', '1']
+            "action": ["show_message"],
+            "select_across": ["0"],
+            "index": ["0"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should not use confirmaiton page
-        self.assertEqual(response.template_name,
-            ['admin/market/shop/change_list.html',
-            'admin/market/change_list.html',
-            'admin/change_list.html']
+        self.assertEqual(
+            response.template_name,
+            [
+                "admin/market/shop/change_list.html",
+                "admin/market/change_list.html",
+                "admin/change_list.html",
+            ],
         )
 
         # The action was to show user a message, and should not happen yet
-        self.assertNotIn('You selected', response.rendered_content)
+        self.assertNotIn("You selected", response.rendered_content)
 
         # Django won't show the action as an option to you
-        self.assertIn('No action selected', response.rendered_content)
-
+        self.assertIn("No action selected", response.rendered_content)
 
     def test_no_permissions_in_code_superuser_for_action_with_confirmation(self):
         """
@@ -206,34 +208,38 @@ class TestConfirmActions(TestCase):
 
         ShopAdmin.has_delete_permission = lambda self, request, obj=None: False
         post_params = {
-            'action': ['show_message'],
-            'select_across': ['0'],
-            'index': ['0'],
-            '_selected_action': ['3', '2', '1']
+            "action": ["show_message"],
+            "select_across": ["0"],
+            "index": ["0"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should not use confirmaiton page
-        self.assertEqual(response.template_name,
-            ['admin/market/shop/change_list.html',
-            'admin/market/change_list.html',
-            'admin/change_list.html']
+        self.assertEqual(
+            response.template_name,
+            [
+                "admin/market/shop/change_list.html",
+                "admin/market/change_list.html",
+                "admin/change_list.html",
+            ],
         )
 
         # The action was to show user a message, and should not happen yet
-        self.assertNotIn('You selected', response.rendered_content)
+        self.assertNotIn("You selected", response.rendered_content)
 
         # Django won't show the action as an option to you
-        self.assertIn('No action selected', response.rendered_content)
+        self.assertIn("No action selected", response.rendered_content)
 
         # Remove our modification for ShopAdmin
-        ShopAdmin.has_delete_permission = lambda self, request, obj=None: request.user.is_superuser
-
+        ShopAdmin.has_delete_permission = (
+            lambda self, request, obj=None: request.user.is_superuser
+        )
 
     def test_confirm_action_submit_button_should_perform_action(self):
         """
@@ -242,23 +248,26 @@ class TestConfirmActions(TestCase):
         Simulate calling the post request that the button would
         """
         post_params = {
-            '_confirm_action': ["Yes, I'm sure"],
-            'action': ['show_message'],
-            '_selected_action': ['3', '2', '1']
+            "_confirm_action": ["Yes, I'm sure"],
+            "action": ["show_message"],
+            "_selected_action": ["3", "2", "1"],
         }
         response = self.client.post(
             reverse("admin:market_shop_changelist"),
             data=post_params,
-            follow=True # Follow the redirect to get content
+            follow=True,  # Follow the redirect to get content
         )
         self.assertIsNotNone(response)
         self.assertEqual(response.status_code, 200)
         # Should not use confirmaiton page, since we clicked Yes, I'm sure
-        self.assertEqual(response.template_name,
-            ['admin/market/shop/change_list.html',
-            'admin/market/change_list.html',
-            'admin/change_list.html']
+        self.assertEqual(
+            response.template_name,
+            [
+                "admin/market/shop/change_list.html",
+                "admin/market/change_list.html",
+                "admin/change_list.html",
+            ],
         )
 
         # The action was to show user a message, and should happen
-        self.assertIn('You selected', response.rendered_content)
+        self.assertIn("You selected", response.rendered_content)
