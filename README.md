@@ -9,7 +9,7 @@ AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add 
 It can be configured to add a confirmation page on ModelAdmin upon:
 - saving changes
 - adding new instances
-- actions
+- performing actions
 
 Typical Usage:
 
@@ -45,11 +45,11 @@ To override a template, your app should be listed before `admin_confirm` in INST
 **Attributes:**
 - `confirm_change` _Optional[bool]_ - decides if changes should trigger confirmation
 - `confirm_add` _Optional[bool]_ - decides if additions should trigger confirmation
-- `confirmation_fields` _Optional[Array[string]]_ - sets which fields changes should trigger confirmation
+- `confirmation_fields` _Optional[Array[string]]_ - sets which fields should trigger confirmation for add/change. For adding new instances, the field would only trigger a confirmation if it's set to a value that's not its default.
 - `change_confirmation_template` _Optional[string]_ - path to custom html template to use for change/add
 - `action_confirmation_template` _Optional[string]_ - path to custom html template to use for actions
 
-Note that setting `confirmation_fields` without setting `confirm_change` or `confirm_add` would not trigger confirmation.
+Note that setting `confirmation_fields` without setting `confirm_change` or `confirm_add` would not trigger confirmation for change/add. Confirmations for actions does not use the `confirmation_fields` option.
 
 **Method Overrides:**
 If you want even more control over the confirmation, these methods can be overridden:
