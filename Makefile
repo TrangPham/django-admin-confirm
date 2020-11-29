@@ -21,4 +21,4 @@ package:
 	python3 setup.py sdist bdist_wheel
 
 upload-testpypi:
-	python3 -m twine upload --repository testpypi dist/*
+	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
