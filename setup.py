@@ -6,7 +6,7 @@ README = open(os.path.join(here, "README.md")).read()
 
 setup(
     name="django-admin-confirm",
-    version="0.2.dev1",
+    version="0.2.dev2",
     packages=["admin_confirm"],
     description="Adds confirmation to Django Admin changes, additions and actions",
     long_description_content_type="text/markdown",
@@ -19,4 +19,7 @@ setup(
         "Django>=1.7",
     ],
     python_requires=">=3",
+    project_urls={
+        "Release Notes": "https://github.com/TrangPham/django-admin-confirm/releases",
+    },
 )

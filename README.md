@@ -4,9 +4,9 @@
 
 AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add and actions.
 
-![Screenshot of Change Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_change.png)
+![Screenshot of Change Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/32192d3988a9bd44c734a66baff91f02dd28136b/screenshot.png)
 
-![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_action.png)
+![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/264900a21658cc979dd2026038db73f8a1b73c64/screenshot_confirm_action.png)
 
 It can be configured to add a confirmation page on ModelAdmin upon:
 
