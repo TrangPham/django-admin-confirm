@@ -32,3 +32,4 @@ class Inventory(models.Model):
     )
     item = models.ForeignKey(to=Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0, null=True, blank=True)
+    notes = models.TextField(default="This is the default", null=True, blank=True)

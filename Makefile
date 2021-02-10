@@ -5,7 +5,6 @@ test:
 	coverage run --branch -m pytest
 	coverage html
 	coverage-badge -f -o coverage.svg
-	python -m readme_renderer README.md -o /tmp/README.html
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html

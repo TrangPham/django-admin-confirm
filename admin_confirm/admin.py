@@ -134,14 +134,16 @@ class AdminConfirmMixin:
         changed_data = {}
         if form_validated:
             if add:
-                for name in form.changed_data:
+                for name in form.cleaned_data:
                     new_value = getattr(new_object, name)
                     # Don't consider default values as changed for adding
+                    default_value = model._meta.get_field(name).get_default()
                     if (
                         new_value is not None
-                        and new_value != model._meta.get_field(name).default
+                        and new_value != default_value
                     ):
-                        changed_data[name] = [None, new_value]
+                        # Show what the default value is
+                        changed_data[name] = [str(default_value), new_value]
             else:
                 # Parse the changed data - Note that using form.changed_data would not work because initial is not set
                 for name, field in form.fields.items():
