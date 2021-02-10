@@ -24,3 +24,6 @@ upload-testpypi:
 
 i-have-tested-with-testpypi-and-am-ready-to-release:
 	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)*
+
+install-testpypi:
+	python -m pip install --index-url https://test.pypi.org/simple/ django_admin_confirm

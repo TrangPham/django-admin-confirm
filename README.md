@@ -165,6 +165,42 @@ pip install -e .
 make run
 ```
 
+### Release process
+
+Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.
+
+Run tests, check coverage, check readme, run tox
+
+```
+make test
+make check-readme
+tox
+```
+
+Update version in `setup.py`
+
+```
+make package
+make upload-testpypi
+```
+
+Install new version locally
+First you have to uninstall if you used `pip install -e` earlier
+
+```
+pip uninstall django_admin_confirm
+make install-testpypi
+```
+
+Update version in `requirements.txt`
+Add test locally
+
+```
+make run
+```
+
+Go on github and make a release in UI
+
 ## Feature List
 
 This is a list of features which could potentially be added in the future. Some of which might make more sense in their own package.
