@@ -160,6 +160,11 @@ tox
 
 Testing new changes on test project:
 
+```
+pip install -e .
+make run
+```
+
 ## Feature List
 
 This is a list of features which could potentially be added in the future. Some of which might make more sense in their own package.

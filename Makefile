@@ -2,7 +2,7 @@ run:
 	./tests/manage.py runserver
 
 test:
-	coverage run --branch -m pytest
+	coverage run --source admin_confirm --branch -m pytest
 	coverage html
 	coverage-badge -f -o coverage.svg
 
