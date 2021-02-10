@@ -20,9 +20,15 @@ package:
 	python3 setup.py sdist bdist_wheel
 
 upload-testpypi:
+	ifndef VERSION
+		$(error VERSION is not set)
+	endif
 	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
 
 i-have-tested-with-testpypi-and-am-ready-to-release:
+	ifndef VERSION
+		$(error VERSION is not set)
+	endif
 	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)*
 
 install-testpypi:
