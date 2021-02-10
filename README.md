@@ -6,6 +6,8 @@ AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add 
 
 ![Screenshot of Change Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/32192d3988a9bd44c734a66baff91f02dd28136b/screenshot.png)
 
+![Screenshot of Add Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/32192d3988a9bd44c734a66baff91f02dd28136b/screenshot_confirm_add.png)
+
 ![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/264900a21658cc979dd2026038db73f8a1b73c64/screenshot_confirm_action.png)
 
 It can be configured to add a confirmation page on ModelAdmin upon:
@@ -125,6 +127,38 @@ Your appreciation is also very welcome :) Feel free to:
 
 - star the project
 - open an issue just to share your thanks
+
+### Local Development Setup
+
+Install pyenv
+Install python 3.8
+
+Create virtualenv via pyenv
+
+```
+pyenv vituralenv 3.8 django-admin-confirm-3.8
+```
+
+Now your terminal should have `(django-admin-confirm-3.8)` prefix, because `.python-version` should have auto switch your virtual env
+
+Run migrations and create a superuser and run the server
+
+```
+./tests/manage.py migrate
+./tests/manage.py createsuperuser
+./tests/manage.py runserver
+```
+
+You should be able to see the test app at `localhost:8000/admin`
+
+Running tests:
+
+```
+make test
+tox
+```
+
+Testing new changes on test project:
 
 ## Feature List
 

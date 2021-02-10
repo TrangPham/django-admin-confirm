@@ -25,5 +25,4 @@ setup(
     # ISSUE-4: Ensure that package includes template and css folders
     # list files in MANIFEST.in
     include_package_data=True,
-
 )

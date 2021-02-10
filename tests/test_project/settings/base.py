@@ -37,7 +37,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "market",
 ]
 
 MIDDLEWARE = [
@@ -49,8 +48,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-ROOT_URLCONF = "test_project.urls"
 
 TEMPLATES = [
     {
@@ -67,9 +64,6 @@ TEMPLATES = [
         },
     },
 ]
-
-WSGI_APPLICATION = "test_project.wsgi.application"
-
 
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
