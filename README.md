@@ -114,6 +114,8 @@ This would confirm `action2` but not `action1`.
 
 Action confirmation will respect `allowed_permissions` and the `has_xxx_permission` methods.
 
+> Note: AdminConfirmMixin does not confirm any changes on inlines
+
 ## Contribution & Appreciation
 
 Contributions are most welcome :) Feel free to:
@@ -206,6 +208,7 @@ Go on github and make a release in UI
 This is a list of features which could potentially be added in the future. Some of which might make more sense in their own package.
 
 - [x] confirmations on changelist actions
+- [ ] confirmations on inlines
 - [ ] global actions on changelist page
 - [ ] instance actions on change/view page
 - [ ] action logs (adding actions to history of instances)

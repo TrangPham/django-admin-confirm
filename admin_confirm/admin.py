@@ -78,7 +78,6 @@ class AdminConfirmMixin:
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            print(request.POST)
             if (not object_id and "_confirm_add" in request.POST) or (
                 object_id and "_confirm_change" in request.POST
             ):
