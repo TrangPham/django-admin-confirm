@@ -78,6 +78,7 @@ class AdminConfirmMixin:
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
+            print(request.POST)
             if (not object_id and "_confirm_add" in request.POST) or (
                 object_id and "_confirm_change" in request.POST
             ):
@@ -123,39 +124,25 @@ class AdminConfirmMixin:
         )
 
         form = ModelForm(request.POST, request.FILES, obj)
-        form_validated = form.is_valid()
-        if form_validated:
-            new_object = self.save_form(request, form, change=not add)
-        else:
-            new_object = form.instance
-
         # End code from super()._changeform_view
 
         changed_data = {}
-        if form_validated:
+        if form.is_valid():
             if add:
-                for name in form.cleaned_data:
-                    new_value = getattr(new_object, name)
+                for name, new_value in form.cleaned_data.items():
                     # Don't consider default values as changed for adding
                     default_value = model._meta.get_field(name).get_default()
-                    if (
-                        new_value is not None
-                        and new_value != default_value
-                    ):
+                    if new_value is not None and new_value != default_value:
                         # Show what the default value is
                         changed_data[name] = [str(default_value), new_value]
             else:
                 # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-                for name, field in form.fields.items():
+                for name, new_value in form.cleaned_data.items():
                     # Since the form considers initial as the value first shown in the form
                     # It could be incorrect when user hits save, and then hits "No, go back to edit"
                     obj.refresh_from_db()
                     initial_value = getattr(obj, name)
-                    new_value = getattr(new_object, name)
-                    if (
-                        field.has_changed(initial_value, new_value)
-                        and initial_value != new_value
-                    ):
+                    if initial_value != new_value:
                         changed_data[name] = [initial_value, new_value]
 
         changed_confirmation_fields = set(
