@@ -1,3 +1,4 @@
+from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
@@ -5,6 +6,8 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
+from django.db.models import Model
+from django.forms import ModelForm
 from admin_confirm.utils import snake_to_title_case
 
 
@@ -92,6 +95,40 @@ class AdminConfirmMixin:
         }
         return super().changeform_view(request, object_id, form_url, extra_context)
 
+    def _get_changed_data(
+        self, form: ModelForm, model: Model, obj: object, add: bool
+    ) -> Dict:
+        """
+        Given a form, detect the changes on the form from the default values (if add) or
+        from the database values of the object (model instance)
+
+        form - Submitted form that is attempting to alter the obj
+        model - the model class of the obj
+        obj - instance of model which is being altered
+        add - are we attempting to add the obj or does it already exist in the database
+
+        Returns a dictionary of the fields and their changed values if any
+        """
+        changed_data = {}
+        if form.is_valid():
+            if add:
+                for name, new_value in form.cleaned_data.items():
+                    # Don't consider default values as changed for adding
+                    default_value = model._meta.get_field(name).get_default()
+                    if new_value is not None and new_value != default_value:
+                        # Show what the default value is
+                        changed_data[name] = [str(default_value), new_value]
+            else:
+                # Parse the changed data - Note that using form.changed_data would not work because initial is not set
+                for name, new_value in form.cleaned_data.items():
+                    # Since the form considers initial as the value first shown in the form
+                    # It could be incorrect when user hits save, and then hits "No, go back to edit"
+                    obj.refresh_from_db()
+                    initial_value = getattr(obj, name)
+                    if initial_value != new_value:
+                        changed_data[name] = [initial_value, new_value]
+        return changed_data
+
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
@@ -125,24 +162,7 @@ class AdminConfirmMixin:
         form = ModelForm(request.POST, request.FILES, obj)
         # End code from super()._changeform_view
 
-        changed_data = {}
-        if form.is_valid():
-            if add:
-                for name, new_value in form.cleaned_data.items():
-                    # Don't consider default values as changed for adding
-                    default_value = model._meta.get_field(name).get_default()
-                    if new_value is not None and new_value != default_value:
-                        # Show what the default value is
-                        changed_data[name] = [str(default_value), new_value]
-            else:
-                # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-                for name, new_value in form.cleaned_data.items():
-                    # Since the form considers initial as the value first shown in the form
-                    # It could be incorrect when user hits save, and then hits "No, go back to edit"
-                    obj.refresh_from_db()
-                    initial_value = getattr(obj, name)
-                    if initial_value != new_value:
-                        changed_data[name] = [initial_value, new_value]
+        changed_data = self._get_changed_data(form, model, obj, add)
 
         changed_confirmation_fields = set(
             self.get_confirmation_fields(request, obj)

@@ -1,6 +1,7 @@
 # Django Admin Confirm
 
-![coverage](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/coverage.svg)
+![Tests Status](https://github.com/TrangPham/django-admin-confirm/actions/workflows/.github/workflows/test.yml/badge.svg)
+[![Coverage Status](https://coveralls.io/repos/github/TrangPham/django-admin-confirm/badge.svg)](https://coveralls.io/github/TrangPham/django-admin-confirm)
 
 AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add and actions.
 
