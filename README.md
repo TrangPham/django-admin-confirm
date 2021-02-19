@@ -157,7 +157,6 @@ Running tests:
 
 ```
 make test
-tox
 ```
 
 Testing new changes on test project:
@@ -171,12 +170,11 @@ make run
 
 Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.
 
-Run tests, check coverage, check readme, run tox
+Run tests, check coverage, check readme
 
 ```
 make test
 make check-readme
-tox
 ```
 
 Update version in `setup.py`
