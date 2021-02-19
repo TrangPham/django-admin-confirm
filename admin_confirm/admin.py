@@ -176,7 +176,7 @@ class AdminConfirmMixin:
         # Parse raw form data from POST
         form_data = {
             k: v
-            for (k, v) in request.POST
+            for (k, v) in request.POST.items()
             if not k.startsWith("_") or k == "csrfmiddlewaretoken"
         }
         # Parse the original save action from request
