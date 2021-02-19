@@ -174,13 +174,18 @@ class AdminConfirmMixin:
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         # Parse raw form data from POST
-        form_data = {
-            k: v
-            for (k, v) in request.POST.items()
-            if not k.startsWith("_") or k == "csrfmiddlewaretoken"
-        }
+        form_data = {}
         # Parse the original save action from request
-        save_action = next(k for k in request.POST.keys() if k in SAVE_ACTIONS)
+        save_action = None
+        for key, value in request.POST.items():
+            if key in SAVE_ACTIONS:
+                save_action = key
+                continue
+
+            if key.startswith("_") or key == "csrfmiddlewaretoken":
+                continue
+
+            form_data[key] = value
 
         title_action = _("adding") if add else _("changing")
 
