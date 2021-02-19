@@ -10,6 +10,8 @@ from django.db.models import Model
 from django.forms import ModelForm
 from admin_confirm.utils import snake_to_title_case
 
+SAVE_ACTIONS = ["_save", "_saveasnew", "_addanother", "_continue"]
+
 
 class AdminConfirmMixin:
     # Should we ask for confirmation for changes?
@@ -172,21 +174,15 @@ class AdminConfirmMixin:
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         # Parse raw form data from POST
-        form_data = {}
+        form_data = {
+            k: v
+            for (k, v) in request.POST
+            if not k.startsWith("_") or k == "csrfmiddlewaretoken"
+        }
         # Parse the original save action from request
-        save_action = None
-        for key in request.POST:
-            if key in ["_save", "_saveasnew", "_addanother", "_continue"]:
-                save_action = key
+        save_action = next(k for k in request.POST.keys() if k in SAVE_ACTIONS)
 
-            if key.startswith("_") or key == "csrfmiddlewaretoken":
-                continue
-            form_data[key] = request.POST.get(key)
-
-        if add:
-            title_action = _("adding")
-        else:
-            title_action = _("changing")
+        title_action = _("adding") if add else _("changing")
 
         context = {
             **self.admin_site.each_context(request),
