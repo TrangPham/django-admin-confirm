@@ -34,7 +34,12 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         ShoppingMallAdmin.confirmation_fields = ["shops"]
         shops = [ShopFactory() for i in range(3)]
 
-        data = {"name": "name", "shops": [s.id for s in shops], "_confirm_add": True}
+        data = {
+            "name": "name",
+            "shops": [s.id for s in shops],
+            "_confirm_add": True,
+            "_save": True,
+        }
         response = self.client.post(reverse("admin:market_shoppingmall_add"), data)
 
         # Ensure not redirected (confirmation page does not redirect)
@@ -51,9 +56,26 @@ class TestConfirmChangeAndAddM2MField(TestCase):
                 f'<input type="hidden" name="{ k }" value="{ v }">',
                 response.rendered_content,
             )
+        # Submit should conserve the save action
+        self.assertIn(
+            '<input type="submit" value="Yes, I’m sure" name="_save">',
+            response.rendered_content,
+        )
+        # There should not be _confirm_add sent in the form on confirmaiton page
+        self.assertNotIn("_confirm_add", response.rendered_content)
 
         # Should not have been added yet
         self.assertEqual(ShoppingMall.objects.count(), 0)
+
+        # Confirmation page would not have the _confirm_add sent on submit
+        del data["_confirm_add"]
+        # Selecting to "Yes, I'm sure" on the confirmation page
+        # Would post to the same endpoint
+        response = self.client.post(reverse("admin:market_shoppingmall_add"), data)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/market/shoppingmall/")
+        self.assertEqual(ShoppingMall.objects.count(), 1)
+        self.assertEqual(ShoppingMall.objects.all().first().shops.count(), 3)
 
     def test_m2m_field_post_change_with_confirm_change(self):
         shops = [ShopFactory() for i in range(10)]
@@ -62,11 +84,11 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         # Currently ShoppingMall configured with confirmation_fields = ['name']
         data = {
             "name": "Not My Mall",
-            "shops": "1",
+            "shops": ["1", "2"],
             "id": shopping_mall.id,
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
-            "_save": True,
+            "_continue": True,
         }
         response = self.client.post(
             f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
@@ -82,6 +104,7 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         form_data = {
             "name": "Not My Mall",
             "shops": "1",
+            "shops": "2",
             "id": str(shopping_mall.id),
         }
 
@@ -90,10 +113,33 @@ class TestConfirmChangeAndAddM2MField(TestCase):
                 f'<input type="hidden" name="{ k }" value="{ v }">',
                 response.rendered_content,
             )
+        # Submit should conserve the save action
+        self.assertIn(
+            '<input type="submit" value="Yes, I’m sure" name="_continue">',
+            response.rendered_content,
+        )
+        # There should not be _confirm_change sent in the form on confirmaiton page
+        self.assertNotIn("_confirm_change", response.rendered_content)
 
         # Hasn't changed item yet
         shopping_mall.refresh_from_db()
         self.assertEqual(shopping_mall.name, "My Mall")
+
+        # Selecting to "Yes, I'm sure" on the confirmation page
+        # Would post to the same endpoint
+        del data["_confirm_change"]
+        response = self.client.post(
+            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
+        )
+        # will show the change page for this shopping_mall
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url, f"/admin/market/shoppingmall/{shopping_mall.id}/change/"
+        )
+        # Should not be the confirmation page, we already confirmed change
+        self.assertNotEqual(response.templates, expected_templates)
+        self.assertEqual(ShoppingMall.objects.count(), 1)
+        self.assertEqual(ShoppingMall.objects.all().first().shops.count(), 2)
 
     def test_m2m_field_post_change_with_confirm_change_multiple_selected(self):
         shops = [ShopFactory() for i in range(10)]
