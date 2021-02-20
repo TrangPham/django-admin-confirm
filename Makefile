@@ -3,8 +3,6 @@ run:
 
 test:
 	coverage run --source admin_confirm --branch -m pytest
-	coverage html
-	coverage-badge -f -o coverage.svg
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html

@@ -6,7 +6,7 @@ README = open(os.path.join(here, "README.md")).read()
 
 setup(
     name="django-admin-confirm",
-    version="0.2.3.dev1",
+    version="0.2.3.dev2",
     packages=["admin_confirm"],
     description="Adds confirmation to Django Admin changes, additions and actions",
     long_description_content_type="text/markdown",
@@ -16,7 +16,7 @@ setup(
     url="https://github.com/trangpham/django-admin-confirm/",
     license="Apache 2.0",
     install_requires=[
-        "Django>=1.7",
+        "Django>=2.2",
     ],
     python_requires=">=3",
     project_urls={
@@ -25,4 +25,13 @@ setup(
     # ISSUE-4: Ensure that package includes template and css folders
     # list files in MANIFEST.in
     include_package_data=True,
+    classifiers=[
+        "Framework :: Django :: 2.2",
+        "Framework :: Django :: 3.0",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3 :: Only",
+    ],
 )
