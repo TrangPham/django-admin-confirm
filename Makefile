@@ -18,10 +18,10 @@ package:
 	python3 setup.py sdist bdist_wheel
 
 upload-testpypi:
-	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
+	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)
 
 i-have-tested-with-testpypi-and-am-ready-to-release:
-	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)*
+	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)
 
 install-testpypi:
-	python -m pip install --index-url https://test.pypi.org/simple/ django_admin_confirm
+	python -m pip install --index-url https://test.pypi.org/simple/ django_admin_confirm==${VERSION}

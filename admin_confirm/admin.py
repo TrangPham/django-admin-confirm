@@ -130,7 +130,7 @@ class AdminConfirmMixin:
                     field_object = model._meta.get_field(name)
                     initial_value = getattr(obj, name)
                     if isinstance(field_object, ManyToManyField):
-                        initial_value = field_object.value_to_string(obj)
+                        initial_value = field_object.value_from_object(obj)
 
                     if initial_value != new_value:
                         changed_data[name] = [initial_value, new_value]
