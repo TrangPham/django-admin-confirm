@@ -135,7 +135,6 @@ class AdminConfirmMixin:
                     if initial_value != new_value:
                         changed_data[name] = [initial_value, new_value]
 
-        print(changed_data)
         return changed_data
 
     def _get_form_data(self, request):
