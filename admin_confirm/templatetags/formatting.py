@@ -18,8 +18,3 @@ def format_change_data_field_value(field_value):
         return mark_safe(output)
     except:
         return field_value
-
-    # if isinstance(field_value, QuerySet):
-    #     return list(field_value)
-
-    # return field_value
