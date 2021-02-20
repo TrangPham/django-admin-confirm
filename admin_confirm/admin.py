@@ -7,7 +7,6 @@ from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField
-
 from django.forms import ModelForm
 from admin_confirm.utils import snake_to_title_case
 
@@ -207,7 +206,6 @@ class AdminConfirmMixin:
             if key in SAVE_ACTIONS:
                 save_action = key
                 break
-
 
         title_action = _("adding") if add else _("changing")
 
