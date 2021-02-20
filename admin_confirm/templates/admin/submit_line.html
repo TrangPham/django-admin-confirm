@@ -3,10 +3,10 @@
 
 {% block submit-row %}
     {% if confirm_change %}
-        <input hidden name="_confirm_change" />
+        <input hidden name="_confirm_change" value=True />
     {% endif %}
     {% if confirm_add %}
-        <input hidden name="_confirm_add" />
+        <input hidden name="_confirm_add" value=True />
     {% endif %}
     {{ block.super }}
 {% endblock %}

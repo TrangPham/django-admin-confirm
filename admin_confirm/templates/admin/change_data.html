@@ -1,4 +1,4 @@
-{% if changed_data %}
+{% load formatting %} {% if changed_data %}
 <div class="changed-data">
   <p><b>Confirm Values:</b></p>
   <table>
@@ -10,8 +10,8 @@
     {% for field, values in changed_data.items %}
     <tr>
       <td>{{ field }}</td>
-      <td>{{ values.0 }}</td>
-      <td>{{ values.1 }}</td>
+      <td>{{ values.0|format_field_value }}</td>
+      <td>{{ values.1|format_field_value }}</td>
     </tr>
     {% endfor %}
   </table>

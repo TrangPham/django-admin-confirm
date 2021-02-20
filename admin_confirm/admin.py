@@ -6,7 +6,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model
+from django.db.models import Model, ManyToManyField
 from django.forms import ModelForm
 from admin_confirm.utils import snake_to_title_case
 
@@ -119,17 +119,42 @@ class AdminConfirmMixin:
                     default_value = model._meta.get_field(name).get_default()
                     if new_value is not None and new_value != default_value:
                         # Show what the default value is
-                        changed_data[name] = [str(default_value), new_value]
+                        changed_data[name] = [default_value, new_value]
             else:
                 # Parse the changed data - Note that using form.changed_data would not work because initial is not set
                 for name, new_value in form.cleaned_data.items():
                     # Since the form considers initial as the value first shown in the form
                     # It could be incorrect when user hits save, and then hits "No, go back to edit"
                     obj.refresh_from_db()
+                    # Note: getattr does not work on ManyToManyFields
+                    field_object = model._meta.get_field(name)
                     initial_value = getattr(obj, name)
+                    if isinstance(field_object, ManyToManyField):
+                        initial_value = field_object.value_to_string(obj)
+
                     if initial_value != new_value:
                         changed_data[name] = [initial_value, new_value]
+
+        print(changed_data)
         return changed_data
+
+    def _get_form_data(self, request):
+        """
+        Parses the request post params into a format that can be used for the hidden form on the
+        change confirmation page.
+        """
+        form_data = request.POST.copy()
+
+        for key in SAVE_ACTIONS + [
+            "_confirm_change",
+            "_confirm_add",
+            "csrfmiddlewaretoken",
+        ]:
+            if form_data.get(key):
+                form_data.pop(key)
+
+        form_data = [(k, list(v)) for k, v in form_data.lists()]
+        return form_data
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
@@ -174,18 +199,13 @@ class AdminConfirmMixin:
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         # Parse raw form data from POST
-        form_data = {}
+        form_data = self._get_form_data(request)
         # Parse the original save action from request
         save_action = None
-        for key, value in request.POST.items():
+        for key in request.POST.keys():
             if key in SAVE_ACTIONS:
                 save_action = key
-                continue
-
-            if key.startswith("_") or key == "csrfmiddlewaretoken":
-                continue
-
-            form_data[key] = value
+                break
 
         title_action = _("adding") if add else _("changing")
 
