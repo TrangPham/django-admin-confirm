@@ -8,6 +8,9 @@ sdist/
 *.egg-info/
 .DS_Store
 
+# Editor settings
+.vscode/
+
 # Unit test / coverage reports
 htmlcov/
 .tox/
