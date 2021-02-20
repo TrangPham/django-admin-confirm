@@ -64,7 +64,6 @@ class TestConfirmChangeAndAdd(TestCase):
         ]
         self.assertEqual(response.template_name, expected_templates)
         form_data = {"shop": str(shop.id), "item": str(item.id), "quantity": str(5)}
-        self.assertEqual(response.context_data["form_data"], form_data)
         for k, v in form_data.items():
             self.assertIn(
                 f'<input type="hidden" name="{ k }" value="{ v }">',
@@ -100,7 +99,6 @@ class TestConfirmChangeAndAdd(TestCase):
             "id": str(item.id),
             "currency": Item.VALID_CURRENCIES[0][0],
         }
-        self.assertEqual(response.context_data["form_data"], form_data)
         for k, v in form_data.items():
             self.assertIn(
                 f'<input type="hidden" name="{ k }" value="{ v }">',
