@@ -3,9 +3,9 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 
 
-from tests.market.admin import InventoryAdmin, ShoppingMallAdmin
-from tests.market.models import Item, Inventory, ShoppingMall
-from tests.factories import ItemFactory, ShopFactory, InventoryFactory
+from tests.market.admin import ShoppingMallAdmin
+from tests.market.models import ShoppingMall
+from tests.factories import ShopFactory
 
 
 class TestConfirmChangeAndAddM2MField(TestCase):
@@ -28,6 +28,7 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/market/shoppingmall/")
         self.assertEqual(ShoppingMall.objects.count(), 1)
+        self.assertEqual(ShoppingMall.objects.all().first().shops.count(), 3)
 
     def test_post_add_with_confirm_add_m2m(self):
         ShoppingMallAdmin.confirmation_fields = ["shops"]
