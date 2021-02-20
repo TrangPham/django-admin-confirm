@@ -165,7 +165,6 @@ class TestConfirmChangeAndAdd(TestCase):
 
         # Form invalid should show errors on form
         self.assertEqual(response.status_code, 200)
-        print(response.rendered_content)
         self.assertIsNotNone(response.context_data.get("errors"))
         self.assertEqual(
             response.context_data["errors"][0],
