@@ -1,4 +1,7 @@
 {
-    "python.formatting.provider": "black",
-    "editor.formatOnSave": true
+  "python.formatting.provider": "black",
+  "editor.formatOnSave": true,
+  "python.linting.flake8Enabled": true,
+  "python.analysis.extraPaths": [],
+  "python.languageServer": "Pylance" // use MS's fast new Python language server,
 }

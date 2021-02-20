@@ -1,7 +1,6 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Permission, User
-from django.contrib.admin.options import TO_FIELD_VAR
 from django.urls import reverse
 
 
