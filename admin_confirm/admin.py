@@ -142,17 +142,26 @@ class AdminConfirmMixin:
         Parses the request post params into a format that can be used for the hidden form on the
         change confirmation page.
         """
-        form_data = request.POST.copy()
+        query_dict = request.POST.copy()
+        # Note: Do not use QueryDict.get(), it returns only the last value for multivalues
 
         for key in SAVE_ACTIONS + [
             "_confirm_change",
             "_confirm_add",
             "csrfmiddlewaretoken",
         ]:
-            if form_data.get(key):
-                form_data.pop(key)
+            if query_dict.get(key):
+                query_dict.pop(key)
 
-        form_data = [(k, list(v)) for k, v in form_data.lists()]
+        form_data = []
+        for k, v in query_dict.lists():
+            if isinstance(v, list):
+                for value in v:
+                    form_data.append((k, value))
+            else:
+                form_data.append((k, v))
+
+        # form_data = [(k, v) for k, v in form_data.lists()]
         return form_data
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
