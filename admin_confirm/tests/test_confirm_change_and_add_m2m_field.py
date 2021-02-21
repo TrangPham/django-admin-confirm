@@ -1,24 +1,12 @@
-from django.test import TestCase, RequestFactory
-from django.contrib.auth.models import User
 from django.urls import reverse
 
-
+from admin_confirm.tests.helpers import ConfirmAdminTestCase
 from tests.market.admin import ShoppingMallAdmin
 from tests.market.models import ShoppingMall
 from tests.factories import ShopFactory
 
 
-class TestConfirmChangeAndAddM2MField(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.superuser = User.objects.create_superuser(
-            username="super", email="super@email.org", password="pass"
-        )
-
-    def setUp(self):
-        self.client.force_login(self.superuser)
-        self.factory = RequestFactory()
-
+class TestConfirmChangeAndAddM2MField(ConfirmAdminTestCase):
     def test_post_add_without_confirm_add_m2m(self):
         shops = [ShopFactory() for i in range(3)]
 
@@ -50,19 +38,13 @@ class TestConfirmChangeAndAddM2MField(TestCase):
             "admin/change_confirmation.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-        form_data = [("name", "name")] + [("shops", s.id) for s in shops]
-        for k, v in form_data:
-            self.assertIn(
-                f'<input type="hidden" name="{ k }" value="{ v }">',
-                response.rendered_content,
-            )
-        # Submit should conserve the save action
-        self.assertIn(
-            '<input type="submit" value="Yes, I’m sure" name="_save">',
-            response.rendered_content,
+
+        self._assertManyToManyFormHtml(
+            rendered_content=response.rendered_content,
+            options=shops,
+            selected_ids=data["shops"],
         )
-        # There should not be _confirm_add sent in the form on confirmaiton page
-        self.assertNotIn("_confirm_add", response.rendered_content)
+        self._assertSubmitHtml(rendered_content=response.rendered_content)
 
         # Should not have been added yet
         self.assertEqual(ShoppingMall.objects.count(), 0)
@@ -84,7 +66,7 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         # Currently ShoppingMall configured with confirmation_fields = ['name']
         data = {
             "name": "Not My Mall",
-            "shops": ["1", "2"],
+            "shops": [1, 2],
             "id": shopping_mall.id,
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
@@ -101,25 +83,15 @@ class TestConfirmChangeAndAddM2MField(TestCase):
             "admin/change_confirmation.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-        form_data = {
-            "name": "Not My Mall",
-            "shops": "1",
-            "shops": "2",
-            "id": str(shopping_mall.id),
-        }
 
-        for k, v in form_data.items():
-            self.assertIn(
-                f'<input type="hidden" name="{ k }" value="{ v }">',
-                response.rendered_content,
-            )
-        # Submit should conserve the save action
-        self.assertIn(
-            '<input type="submit" value="Yes, I’m sure" name="_continue">',
-            response.rendered_content,
+        self._assertManyToManyFormHtml(
+            rendered_content=response.rendered_content,
+            options=shops,
+            selected_ids=data["shops"],
         )
-        # There should not be _confirm_change sent in the form on confirmaiton page
-        self.assertNotIn("_confirm_change", response.rendered_content)
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, save_action="_continue"
+        )
 
         # Hasn't changed item yet
         shopping_mall.refresh_from_db()
@@ -148,7 +120,7 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         # Currently ShoppingMall configured with confirmation_fields = ['name']
         data = {
             "name": "Not My Mall",
-            "shops": ["1", "2", "3"],
+            "shops": [1, 2, 3],
             "id": shopping_mall.id,
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
@@ -165,19 +137,6 @@ class TestConfirmChangeAndAddM2MField(TestCase):
             "admin/change_confirmation.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-        form_data = [
-            ("name", "Not My Mall"),
-            ("shops", "1"),
-            ("shops", "2"),
-            ("shops", "3"),
-            ("id", str(shopping_mall.id)),
-        ]
-
-        for k, v in form_data:
-            self.assertIn(
-                f'<input type="hidden" name="{ k }" value="{ v }">',
-                response.rendered_content,
-            )
 
         # Hasn't changed item yet
         shopping_mall.refresh_from_db()
@@ -209,7 +168,7 @@ class TestConfirmChangeAndAddM2MField(TestCase):
         data = {
             "id": shopping_mall.id,
             "name": "name",
-            "shops": ["1", "2", "3"],  # These shops don't exist
+            "shops": [1, 2, 3],  # These shops don't exist
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
         }

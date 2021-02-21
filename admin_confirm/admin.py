@@ -137,35 +137,9 @@ class AdminConfirmMixin:
 
         return changed_data
 
-    def _get_form_data(self, request):
-        """
-        Parses the request post params into a format that can be used for the hidden form on the
-        change confirmation page.
-        """
-        query_dict = request.POST.copy()
-        # Note: Do not use QueryDict.get(), it returns only the last value for multivalues
-
-        for key in SAVE_ACTIONS + [
-            "_confirm_change",
-            "_confirm_add",
-            "csrfmiddlewaretoken",
-        ]:
-            if query_dict.get(key):
-                query_dict.pop(key)
-
-        form_data = []
-        for k, v in query_dict.lists():
-            if isinstance(v, list):
-                for value in v:
-                    form_data.append((k, value))
-            else:
-                form_data.append((k, v))
-
-        # form_data = [(k, v) for k, v in form_data.lists()]
-        return form_data
-
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
+        # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1575-L1592
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
         if to_field and not self.to_field_allowed(request, to_field):
             raise DisallowedModelAdminToField(
@@ -195,8 +169,12 @@ class AdminConfirmMixin:
         )
 
         form = ModelForm(request.POST, request.FILES, obj)
+        # Note to self: For inline instances see:
+        # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1582
+
         # End code from super()._changeform_view
 
+        # Get changed data to show on confirmation
         changed_data = self._get_changed_data(form, model, obj, add)
 
         changed_confirmation_fields = set(
@@ -206,8 +184,6 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
-        # Parse raw form data from POST
-        form_data = self._get_form_data(request)
         # Parse the original save action from request
         save_action = None
         for key in request.POST.keys():
@@ -227,10 +203,10 @@ class AdminConfirmMixin:
             "app_label": opts.app_label,
             "model_name": opts.model_name,
             "opts": opts,
-            "form_data": form_data,
             "changed_data": changed_data,
             "add": add,
             "submit_name": save_action,
+            "form": form,
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)
