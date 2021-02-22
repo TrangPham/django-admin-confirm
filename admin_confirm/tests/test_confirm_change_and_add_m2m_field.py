@@ -84,6 +84,9 @@ class TestConfirmChangeAndAddM2MField(ConfirmAdminTestCase):
         ]
         self.assertEqual(response.template_name, expected_templates)
 
+        # Should show two lists for the m2m current and modified values
+        self.assertEqual(response.rendered_content.count("<ul>"), 2)
+
         self._assertManyToManyFormHtml(
             rendered_content=response.rendered_content,
             options=shops,

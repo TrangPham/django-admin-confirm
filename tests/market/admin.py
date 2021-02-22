@@ -8,6 +8,7 @@ from .models import Item, Inventory, Shop, ShoppingMall
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
     list_display = ("name", "price", "currency")
     confirm_change = True
+    confirmation_fields = ["price"]
 
 
 class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):
