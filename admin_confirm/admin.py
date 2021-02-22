@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -6,11 +7,12 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model, ManyToManyField
+from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
 from admin_confirm.utils import snake_to_title_case
-
-SAVE_ACTIONS = ["_save", "_saveasnew", "_addanother", "_continue"]
+from django.core.cache import cache
+from django.forms.formsets import all_valid
+from admin_confirm.constants import SAVE_ACTIONS, CACHE_KEYS
 
 
 class AdminConfirmMixin:
@@ -89,6 +91,10 @@ class AdminConfirmMixin:
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
                 )
+            elif "_confirmation_received" in request.POST:
+                return self._confirmation_received_view(
+                    request, object_id, form_url, extra_context
+                )
 
         extra_context = {
             **(extra_context or {}),
@@ -98,7 +104,7 @@ class AdminConfirmMixin:
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _get_changed_data(
-        self, form: ModelForm, model: Model, obj: object, add: bool
+        self, form: ModelForm, model: Model, obj: object, new_object: object, add: bool
     ) -> Dict:
         """
         Given a form, detect the changes on the form from the default values (if add) or
@@ -111,31 +117,98 @@ class AdminConfirmMixin:
 
         Returns a dictionary of the fields and their changed values if any
         """
-        changed_data = {}
-        if form.is_valid():
-            if add:
-                for name, new_value in form.cleaned_data.items():
-                    # Don't consider default values as changed for adding
-                    default_value = model._meta.get_field(name).get_default()
-                    if new_value is not None and new_value != default_value:
-                        # Show what the default value is
-                        changed_data[name] = [default_value, new_value]
-            else:
-                # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-                for name, new_value in form.cleaned_data.items():
-                    # Since the form considers initial as the value first shown in the form
-                    # It could be incorrect when user hits save, and then hits "No, go back to edit"
-                    obj.refresh_from_db()
-                    # Note: getattr does not work on ManyToManyFields
-                    field_object = model._meta.get_field(name)
-                    initial_value = getattr(obj, name)
-                    if isinstance(field_object, ManyToManyField):
-                        initial_value = field_object.value_from_object(obj)
 
-                    if initial_value != new_value:
-                        changed_data[name] = [initial_value, new_value]
+        def _display_for_field(value, field):
+            if value is None:
+                return ""
+
+            if isinstance(field, FileField) or isinstance(field, ImageField):
+                return value.name
+
+            return value
+
+        changed_data = {}
+        if add:
+            for name, new_value in form.cleaned_data.items():
+                # Don't consider default values as changed for adding
+                field_object = model._meta.get_field(name)
+                default_value = field_object.get_default()
+                if new_value is not None and new_value != default_value:
+                    # Show what the default value is
+                    changed_data[name] = [
+                        _display_for_field(default_value, field_object),
+                        _display_for_field(new_value, field_object),
+                    ]
+        else:
+            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
+            for name, new_value in form.cleaned_data.items():
+
+                # Since the form considers initial as the value first shown in the form
+                # It could be incorrect when user hits save, and then hits "No, go back to edit"
+                obj.refresh_from_db()
+
+                field_object = model._meta.get_field(name)
+                initial_value = getattr(obj, name)
+
+                # Note: getattr does not work on ManyToManyFields
+                if isinstance(field_object, ManyToManyField):
+                    initial_value = field_object.value_from_object(obj)
+
+                if initial_value != new_value:
+                    changed_data[name] = [
+                        _display_for_field(initial_value, field_object),
+                        _display_for_field(new_value, field_object),
+                    ]
 
         return changed_data
+
+    def _confirmation_received_view(self, request, object_id, form_url, extra_context):
+        """
+        Save the cached object from the confirmation page. This is used because
+        FileField and ImageField data cannot be passed through a form.
+        """
+        add = object_id is None
+        new_object = cache.get(CACHE_KEYS["object"])
+        change_message = cache.get(CACHE_KEYS["change_message"])
+
+        new_object.id = object_id
+        new_object.save()
+
+        """
+        Saves the m2m values from request.POST since the cached object would not have
+        these stored on it
+        """
+        # Can't use QueryDict.get() because it only returns the last value for multiselect
+        query_dict = {k: v for k, v in request.POST.lists()}
+
+        # Taken from _save_m2m with slight modification
+        # https://github.com/django/django/blob/master/django/forms/models.py#L430-L449
+        exclude = self.exclude
+        fields = self.fields
+        opts = new_object._meta
+        # Note that for historical reasons we want to include also
+        # private_fields here. (GenericRelation was previously a fake
+        # m2m field).
+        for f in chain(opts.many_to_many, opts.private_fields):
+            if not hasattr(f, "save_form_data"):
+                continue
+            if fields and f.name not in fields:
+                continue
+            if exclude and f.name in exclude:
+                continue
+            if f.name in query_dict.keys():
+                f.save_form_data(new_object, query_dict[f.name])
+        # End code from _save_m2m
+
+        # Clear the cache
+        cache.delete_many(CACHE_KEYS.values())
+
+        if add:
+            self.log_addition(request, new_object, change_message)
+            return self.response_add(request, new_object)
+        else:
+            self.log_change(request, new_object, change_message)
+            return self.response_change(request, new_object)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
@@ -169,13 +242,27 @@ class AdminConfirmMixin:
         )
 
         form = ModelForm(request.POST, request.FILES, obj)
+        form_validated = form.is_valid()
+        if form_validated:
+            new_object = self.save_form(request, form, change=not add)
+        else:
+            new_object = form.instance
+        formsets, inline_instances = self._create_formsets(
+            request, new_object, change=not add
+        )
+
+        change_message = self.construct_change_message(request, form, formsets, add)
         # Note to self: For inline instances see:
         # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1582
 
         # End code from super()._changeform_view
 
+        if not (form_validated and all_valid(formsets)):
+            # Form not valid, cannot confirm
+            return super()._changeform_view(request, object_id, form_url, extra_context)
+
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, add)
+        changed_data = self._get_changed_data(form, model, obj, new_object, add)
 
         changed_confirmation_fields = set(
             self.get_confirmation_fields(request, obj)
@@ -183,6 +270,9 @@ class AdminConfirmMixin:
         if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
+
+        cache.set(CACHE_KEYS["object"], new_object)
+        cache.set(CACHE_KEYS["change_message"], change_message)
 
         # Parse the original save action from request
         save_action = None
