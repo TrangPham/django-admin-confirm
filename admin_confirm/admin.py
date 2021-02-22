@@ -1,3 +1,4 @@
+from itertools import chain
 from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -120,7 +121,7 @@ class AdminConfirmMixin:
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _get_changed_data(
-        self, form: ModelForm, model: Model, obj: object, add: bool
+        self, form: ModelForm, model: Model, obj: object, new_object: object, add: bool
     ) -> Dict:
         """
         Given a form, detect the changes on the form from the default values (if add) or
@@ -339,6 +340,8 @@ class AdminConfirmMixin:
         if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
+
+        cache.set(CACHE_KEYS["object"], new_object)
 
         # Parse the original save action from request
         save_action = None
