@@ -171,20 +171,36 @@ class AdminConfirmMixin:
         these stored on it
         """
         add = object_id is None
+        obj = None
         new_object = cache.get(CACHE_KEYS["object"])
         change_message = cache.get(CACHE_KEYS["change_message"])
 
-        new_object.id = object_id
-        new_object.save()
+        exclude = self.exclude
+        fields = self.fields
+        opts = new_object._meta
+
+        # Must respect fields and exclude, the new_object would only have values for
+        # fields that are in the post form. Thus, we must only save those values.
+        if not add:
+            obj = type(new_object).objects.get(id=object_id)
+            if fields:
+                for field in fields:
+                    setattr(obj, field, getattr(new_object, field))
+                obj.save()
+                new_object = obj
+            else:
+                new_object.id = object_id
+                new_object.save()
+        else:
+            new_object.id = object_id
+            new_object.save()
 
         # Can't use QueryDict.get() because it only returns the last value for multiselect
         query_dict = {k: v for k, v in request.POST.lists()}
 
         # Taken from _save_m2m with slight modification
         # https://github.com/django/django/blob/master/django/forms/models.py#L430-L449
-        exclude = self.exclude
-        fields = self.fields
-        opts = new_object._meta
+
         # Note that for historical reasons we want to include also
         # private_fields here. (GenericRelation was previously a fake
         # m2m field).
@@ -255,7 +271,6 @@ class AdminConfirmMixin:
         # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1582
 
         # End code from super()._changeform_view
-
         if not (form_validated and all_valid(formsets)):
             # Form not valid, cannot confirm
             return super()._changeform_view(request, object_id, form_url, extra_context)
@@ -281,7 +296,6 @@ class AdminConfirmMixin:
                 break
 
         title_action = _("adding") if add else _("changing")
-
         context = {
             **self.admin_site.each_context(request),
             "preserved_filters": self.get_preserved_filters(request),
