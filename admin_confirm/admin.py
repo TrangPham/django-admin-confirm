@@ -104,7 +104,7 @@ class AdminConfirmMixin:
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _get_changed_data(
-        self, form: ModelForm, model: Model, obj: object, new_object: object, add: bool
+        self, form: ModelForm, model: Model, obj: object, add: bool
     ) -> Dict:
         """
         Given a form, detect the changes on the form from the default values (if add) or
@@ -166,6 +166,9 @@ class AdminConfirmMixin:
         """
         Save the cached object from the confirmation page. This is used because
         FileField and ImageField data cannot be passed through a form.
+
+        Saves the m2m values from request.POST since the cached object would not have
+        these stored on it
         """
         add = object_id is None
         new_object = cache.get(CACHE_KEYS["object"])
@@ -174,10 +177,6 @@ class AdminConfirmMixin:
         new_object.id = object_id
         new_object.save()
 
-        """
-        Saves the m2m values from request.POST since the cached object would not have
-        these stored on it
-        """
         # Can't use QueryDict.get() because it only returns the last value for multiselect
         query_dict = {k: v for k, v in request.POST.lists()}
 
@@ -262,7 +261,7 @@ class AdminConfirmMixin:
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, new_object, add)
+        changed_data = self._get_changed_data(form, model, obj, add)
 
         changed_confirmation_fields = set(
             self.get_confirmation_fields(request, obj)

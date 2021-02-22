@@ -34,7 +34,7 @@
   {% if add %}
       <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
       {% include "admin/change_data.html" %}
-      <form {% if files %}enctype="multipart/form-data"{% endif %} method="post" action="{% url opts|admin_urlname:'add'%}">{% csrf_token %}
+      <form method="post" action="{% url opts|admin_urlname:'add'%}">{% csrf_token %}
 
   {% else %}
 
