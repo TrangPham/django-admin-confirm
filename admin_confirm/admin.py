@@ -121,7 +121,7 @@ class AdminConfirmMixin:
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _get_changed_data(
-        self, form: ModelForm, model: Model, obj: object, new_object: object, add: bool
+        self, form: ModelForm, model: Model, obj: object, add: bool
     ) -> Dict:
         """
         Given a form, detect the changes on the form from the default values (if add) or
