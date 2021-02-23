@@ -12,6 +12,7 @@ from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
     def test_get_add_without_confirm_add(self):
+        ItemAdmin.confirm_add = False
         response = self.client.get(reverse("admin:market_item_add"))
         self.assertFalse(response.context_data.get("confirm_add"))
         self.assertNotIn("_confirm_add", response.rendered_content)
@@ -122,7 +123,8 @@ class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
         ItemAdmin.confirmation_fields = None
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
-        self.assertEqual(expected_fields, actual_fields)
+        for field in expected_fields:
+            self.assertIn(field, actual_fields)
 
     def test_get_confirmation_fields_if_set(self):
         expected_fields = ["name", "currency"]

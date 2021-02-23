@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
+
 
 from admin_confirm.admin import AdminConfirmMixin, confirm_action
 
@@ -6,9 +8,18 @@ from .models import Item, Inventory, Shop, ShoppingMall
 
 
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
-    list_display = ("name", "price", "currency")
     confirm_change = True
     confirmation_fields = ["price"]
+
+    list_display = ("name", "price", "currency")
+    readonly_fields = ["image_preview"]
+
+    def get_fields(self, request, obj=None):
+        return super().get_fields(request, obj) + ["image_preview"]
+
+    def image_preview(self, obj):
+        if obj.image:
+            return mark_safe('<img src="{obj.image.url}" />')
 
 
 class InventoryAdmin(AdminConfirmMixin, admin.ModelAdmin):

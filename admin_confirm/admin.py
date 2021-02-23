@@ -36,7 +36,9 @@ class AdminConfirmMixin:
         if self.confirmation_fields is not None:
             return self.confirmation_fields
 
-        return flatten_fieldsets(self.get_fieldsets(request, obj))
+        model_fields = set([field.name for field in self.model._meta.fields])
+        admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
         opts = self.model._meta
