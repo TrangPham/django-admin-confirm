@@ -1,4 +1,3 @@
-from itertools import chain
 from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -341,6 +340,7 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
+        cache.set(CACHE_KEYS["post"], request.POST)
         cache.set(CACHE_KEYS["object"], new_object)
 
         # Parse the original save action from request

@@ -9,13 +9,11 @@ from .models import Item, Inventory, Shop, ShoppingMall
 
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
     confirm_change = True
+    confirm_add = True
     confirmation_fields = ["price"]
 
     list_display = ("name", "price", "currency")
     readonly_fields = ["image_preview"]
-
-    def get_fields(self, request, obj=None):
-        return super().get_fields(request, obj) + ["image_preview"]
 
     def image_preview(self, obj):
         if obj.image:
