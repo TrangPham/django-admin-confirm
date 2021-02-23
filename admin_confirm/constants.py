@@ -6,5 +6,5 @@ CONFIRMATION_RECEIVED = "_confirmation_received"
 
 CACHE_KEYS = {
     "object": "admin_confirm__confirmation_object",
-    "change_message": "admin_confirm__confirmation_change_message",
+    "post": "admin_confirm__confirmation_request_post",
 }

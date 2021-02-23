@@ -1,4 +1,3 @@
-from itertools import chain
 from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -120,14 +119,23 @@ class AdminConfirmMixin:
         Returns a dictionary of the fields and their changed values if any
         """
 
-        def _display_for_field(value, field):
-            if value is None:
-                return ""
+        def _display_for_changed_data(field, initial_value, new_value):
+            if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+                return [initial_value, new_value]
 
-            if isinstance(field, FileField) or isinstance(field, ImageField):
-                return value.name
+            if initial_value:
+                if new_value == False:
+                    # Clear has been selected
+                    return [initial_value.name, None]
+                elif new_value:
+                    return [initial_value.name, new_value.name]
+                else:
+                    return [initial_value.name, initial_value.name]
 
-            return value
+            if new_value:
+                return [None, new_value.name]
+
+            return [None, None]
 
         changed_data = {}
         if add:
@@ -137,10 +145,9 @@ class AdminConfirmMixin:
                 default_value = field_object.get_default()
                 if new_value is not None and new_value != default_value:
                     # Show what the default value is
-                    changed_data[name] = [
-                        _display_for_field(default_value, field_object),
-                        _display_for_field(new_value, field_object),
-                    ]
+                    changed_data[name] = _display_for_changed_data(
+                        field_object, default_value, new_value
+                    )
         else:
             # Parse the changed data - Note that using form.changed_data would not work because initial is not set
             for name, new_value in form.cleaned_data.items():
@@ -157,75 +164,63 @@ class AdminConfirmMixin:
                     initial_value = field_object.value_from_object(obj)
 
                 if initial_value != new_value:
-                    changed_data[name] = [
-                        _display_for_field(initial_value, field_object),
-                        _display_for_field(new_value, field_object),
-                    ]
+                    changed_data[name] = _display_for_changed_data(
+                        field_object, initial_value, new_value
+                    )
 
         return changed_data
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
         """
-        Save the cached object from the confirmation page. This is used because
-        FileField and ImageField data cannot be passed through a form.
-
-        Saves the m2m values from request.POST since the cached object would not have
-        these stored on it
+        Save the files from cached object and pass the request
         """
-        add = object_id is None
-        obj = None
-        new_object = cache.get(CACHE_KEYS["object"])
-        change_message = cache.get(CACHE_KEYS["change_message"])
 
-        exclude = self.exclude
-        fields = self.fields
-        opts = new_object._meta
+        def _reconstruct_request_files(request):
+            reconstructed_files = {}
 
-        # Must respect fields and exclude, the new_object would only have values for
-        # fields that are in the post form. Thus, we must only save those values.
-        if not add:
-            obj = type(new_object).objects.get(id=object_id)
-            if fields:
-                for field in fields:
-                    setattr(obj, field, getattr(new_object, field))
-                obj.save()
-                new_object = obj
+            cached_object = cache.get(CACHE_KEYS["object"])
+            cached_query_dict = cache.get(CACHE_KEYS["post"])
+            # Reconstruct the files from cached object
+            if not cached_object:
+                return
+
+            if not cached_query_dict:
+                return
+
+            for field in self.model._meta.get_fields():
+                if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+                    continue
+
+                cached_file = getattr(cached_object, field.name)
+                if not cached_query_dict.get(field.name) and cached_file:
+                    reconstructed_files[field.name] = cached_file
+
+            return reconstructed_files
+
+        reconstructed_files = _reconstruct_request_files(request)
+        if reconstructed_files:
+            obj = None
+            if object_id:
+                # Update the obj with the new uploaded files
+                # then pass rest of changes to Django
+                obj = self.model.objects.filter(id=object_id).first()
             else:
-                new_object.id = object_id
-                new_object.save()
-        else:
-            new_object.id = object_id
-            new_object.save()
+                # Create the obj and pass the rest as changes to Django
+                # (Since we are not handling the formsets/inlines)
+                obj = cache.get(CACHE_KEYS["object"])
 
-        # Can't use QueryDict.get() because it only returns the last value for multiselect
-        query_dict = {k: v for k, v in request.POST.lists()}
+            if obj:
+                for field, file in reconstructed_files.items():
+                    setattr(obj, field, file)
+                obj.save()
+                object_id = str(obj.id)
 
-        # Taken from _save_m2m with slight modification
-        # https://github.com/django/django/blob/master/django/forms/models.py#L430-L449
+            cached_post = cache.get(CACHE_KEYS["post"])
+            if cached_post:
+                request.POST = cached_post
 
-        # Note that for historical reasons we want to include also
-        # private_fields here. (GenericRelation was previously a fake
-        # m2m field).
-        for f in chain(opts.many_to_many, opts.private_fields):
-            if not hasattr(f, "save_form_data"):
-                continue
-            if fields and f.name not in fields:
-                continue
-            if exclude and f.name in exclude:
-                continue
-            if f.name in query_dict.keys():
-                f.save_form_data(new_object, query_dict[f.name])
-        # End code from _save_m2m
-
-        # Clear the cache
         cache.delete_many(CACHE_KEYS.values())
-
-        if add:
-            self.log_addition(request, new_object, change_message)
-            return self.response_add(request, new_object)
-        else:
-            self.log_change(request, new_object, change_message)
-            return self.response_change(request, new_object)
+        return super()._changeform_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
@@ -287,8 +282,8 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
+        cache.set(CACHE_KEYS["post"], request.POST)
         cache.set(CACHE_KEYS["object"], new_object)
-        cache.set(CACHE_KEYS["change_message"], change_message)
 
         # Parse the original save action from request
         save_action = None
