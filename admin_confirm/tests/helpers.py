@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
@@ -10,6 +11,7 @@ class ConfirmAdminTestCase(TestCase):
         )
 
     def setUp(self):
+        cache.clear()
         self.client.force_login(self.superuser)
         self.factory = RequestFactory()
 

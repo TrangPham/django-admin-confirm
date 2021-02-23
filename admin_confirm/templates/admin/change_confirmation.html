@@ -31,28 +31,26 @@
 
 {% block content %}
 
-  {% if add %}
-      <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
-      {% include "admin/change_data.html" %}
-      <form method="post" action="{% url opts|admin_urlname:'add'%}">{% csrf_token %}
+    {% if add %}
+        <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
+    {% else %}
+        <p>{% blocktrans with escaped_object=object %}Are you sure you want to change the {{ model_name }} "{{ object_name }}"?{% endblocktrans %}</p>
+    {% endif %}
 
-  {% else %}
-
-    <p>{% blocktrans with escaped_object=object %}Are you sure you want to change the {{ model_name }} "{{ object_name }}"?{% endblocktrans %}</p>
     {% include "admin/change_data.html" %}
-    <form method="post" action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}">{% csrf_token %}
-  {% endif %}
-    <div class="hidden">
-        {{form.as_p}}
-    </div>
-    {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
-    {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
-    <input type="hidden" name="_confirmation_received" value="True">
-    <div class="submit-row">
-        <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">
-        <p class="deletelink-box">
-            <a href="#" class="button cancel-link">{% trans "No, continue to edit" %}</a>
-        </p>
-    </div>
-  </form>
+
+    <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% url opts|admin_urlname:'add'%}" {% else %}action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}"{% endif %}>{% csrf_token %}
+        <div class="hidden">
+            {{form.as_p}}
+        </div>
+        {% if is_popup %}<input type="hidden" name="{{ is_popup_var }}" value="1">{% endif %}
+        {% if to_field %}<input type="hidden" name="{{ to_field_var }}" value="{{ to_field }}">{% endif %}
+        <input type="hidden" name="_confirmation_received" value="True">
+        <div class="submit-row">
+            <input type="submit" value="{% trans 'Yes, I’m sure' %}" name="{{ submit_name }}">
+            <p class="deletelink-box">
+                <a href="#" class="button cancel-link">{% trans "No, continue to edit" %}</a>
+            </p>
+        </div>
+    </form>
 {% endblock %}

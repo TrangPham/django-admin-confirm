@@ -8,6 +8,13 @@ You seem concerned about the stability and reliability of this package. You're p
 
 So if you want to include this package in your production codebase, be aware that AdminConfirmMixin works best with simple unmodified ModelAdmins.
 
+## Save Options
+
+- [x] Save
+- [x] Conitnue
+- [ ] Save As New
+- [ ] Add another
+
 ### Field types
 
 - [x] CharField
