@@ -20,8 +20,8 @@ from admin_confirm.tests.helpers import AdminConfirmTestCase
 from admin_confirm.constants import CACHE_KEYS, CACHE_TIMEOUT
 
 from tests.market.admin import ItemAdmin
-from tests.market.models import Item, Shop
-from tests.factories import ItemFactory
+from tests.market.models import GeneralManager, Item, Shop, ShoppingMall
+from tests.factories import ItemFactory, ShopFactory
 
 
 class TestFileCache(AdminConfirmTestCase):
@@ -826,7 +826,9 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
+            rendered_content=response.rendered_content,
+            save_action="_continue",
+            multipart_form=True,
         )
 
         # Should have cached the unsaved item
@@ -848,7 +850,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Wait for cache to time out
 
-        time.sleep(2)
+        time.sleep(1)
 
         # Check that it did time out
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -935,5 +937,26 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertEqual(item.image.name.count("test_image"), 1)
 
         # Should have cleared cache
+        for key in CACHE_KEYS.values():
+            self.assertIsNone(cache.get(key))
+
+    def test_form_without_files_should_not_use_cache(self):
+        cache.delete_many(CACHE_KEYS.values())
+        shop = ShopFactory()
+        # Click "Save And Continue"
+        data = {
+            "id": shop.id,
+            "name": "name",
+            "_confirm_change": True,
+            "_continue": True,
+        }
+        response = self.client.post(f"/admin/market/shop/{shop.id}/change/", data=data)
+
+        # Should be shown confirmation page
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, save_action="_continue"
+        )
+
+        # Should not have set cache since not multipart form
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))

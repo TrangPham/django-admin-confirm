@@ -6,7 +6,7 @@ Does not test confirmation of inline changes
 """
 
 
-def test_should_have_hidden_formsets(self):
+def test_should_have_hidden_formsets():
     # Not having these would cause a `ManagementForm tampered with` issue
     pass
 
