@@ -10,16 +10,17 @@ Then send the rest of the changes to Django to handle
 This is arguably the most we fiddle with the Django request
 Thus we should test it extensively
 """
+import time
 from unittest import mock
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from admin_confirm.constants import CACHE_KEYS
+from admin_confirm.constants import CACHE_KEYS, CACHE_TIMEOUT
 
 from tests.market.admin import ItemAdmin
-from tests.market.models import Item
+from tests.market.models import Item, Shop
 from tests.factories import ItemFactory
 
 
@@ -767,6 +768,144 @@ class TestFileCache(AdminConfirmTestCase):
 
         cache.get(CACHE_KEYS["object"], cache_item)
         cache.get(CACHE_KEYS["post"], data)
+
+        # Click "Yes, I'm Sure"
+        del data["_confirm_change"]
+        data["_confirmation_received"] = True
+
+        with mock.patch.object(ItemAdmin, "message_user") as message_user:
+            response = self.client.post(
+                f"/admin/market/item/{self.item.id}/change/", data=data
+            )
+            # Should show message to user with correct obj and path
+            message_user.assert_called_once()
+            message = message_user.call_args[0][1]
+            self.assertIn("/admin/market/item/1/change/", message)
+            self.assertIn(data["name"], message)
+            self.assertNotIn("You may edit it again below.", message)
+
+        # Should have redirected to changelist
+        self.assertEqual(response.url, f"/admin/market/item/")
+
+        # Should have changed existing item
+        self.assertEqual(Item.objects.count(), 1)
+        item.refresh_from_db()
+        self.assertEqual(item.name, "name")
+        # Should have cleared if requested
+        self.assertFalse(item.file.name)
+        self.assertEqual(item.image.name.count("test_image2"), 0)
+        self.assertEqual(item.image.name.count("test_image"), 1)
+
+        # Should have cleared cache
+        for key in CACHE_KEYS.values():
+            self.assertIsNone(cache.get(key))
+
+    @mock.patch("admin_confirm.admin.CACHE_TIMEOUT", 1)
+    def test_old_cache_should_not_be_used(self):
+        item = self.item
+
+        # Upload new image and remove file
+        i2 = SimpleUploadedFile(
+            name="test_image2.jpg",
+            content=open(self.image_path, "rb").read(),
+            content_type="image/jpeg",
+        )
+        # Click "Save And Continue"
+        data = {
+            "id": item.id,
+            "name": "name",
+            "price": 2.0,
+            "image": i2,
+            "file": "",
+            "file-clear": "on",
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_confirm_change": True,
+            "_continue": True,
+        }
+        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
+
+        # Should be shown confirmation page
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, save_action="_continue"
+        )
+
+        # Should have cached the unsaved item
+        cached_item = cache.get(CACHE_KEYS["object"])
+        self.assertIsNotNone(cached_item)
+        self.assertIsNone(cached_item.id)
+        self.assertEqual(cached_item.name, data["name"])
+        self.assertEqual(cached_item.price, data["price"])
+        self.assertEqual(cached_item.currency, data["currency"])
+        self.assertFalse(cached_item.file.name)
+        self.assertEqual(cached_item.image, i2)
+
+        # Should not have saved the changes yet
+        self.assertEqual(Item.objects.count(), 1)
+        item.refresh_from_db()
+        self.assertEqual(item.name, "Not name")
+        self.assertIsNotNone(item.file)
+        self.assertIsNotNone(item.image)
+
+        # Wait for cache to time out
+
+        time.sleep(2)
+
+        # Check that it did time out
+        cached_item = cache.get(CACHE_KEYS["object"])
+        self.assertIsNone(cached_item)
+
+        # Click "Yes, I'm Sure"
+        del data["_confirm_change"]
+        data["image"] = ""
+        data["_confirmation_received"] = True
+        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
+
+        # Should not have redirected to changelist
+        self.assertEqual(response.url, f"/admin/market/item/{item.id}/change/")
+
+        # Should have saved item
+        self.assertEqual(Item.objects.count(), 1)
+        saved_item = Item.objects.all().first()
+        self.assertEqual(saved_item.name, data["name"])
+        self.assertEqual(saved_item.price, data["price"])
+        self.assertEqual(saved_item.currency, data["currency"])
+        self.assertFalse(saved_item.file)
+
+        # SHOULD not have saved image since it was in the old cache
+        self.assertNotIn("test_image2", saved_item.image)
+
+        # Should have cleared cache
+        for key in CACHE_KEYS.values():
+            self.assertIsNone(cache.get(key))
+
+    def test_cache_with_incorrect_model_should_not_be_used(self):
+        item = self.item
+        # Load the Change Item Page
+        ItemAdmin.save_as_continue = False
+
+        # Upload new image and remove file
+        i2 = SimpleUploadedFile(
+            name="test_image2.jpg",
+            content=open(self.image_path, "rb").read(),
+            content_type="image/jpeg",
+        )
+        # Request.POST
+        data = {
+            "id": item.id,
+            "name": "name",
+            "price": 2.0,
+            "file": "",
+            "file-clear": "on",
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_confirm_change": True,
+            "_save": True,
+        }
+
+        # Set cache to incorrect model
+        cache_obj = Shop(name="ShopName")
+
+        cache.set(CACHE_KEYS["object"], cache_obj)
+        cache.set(CACHE_KEYS["post"], data)
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
