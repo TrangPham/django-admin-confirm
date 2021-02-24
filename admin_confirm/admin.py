@@ -236,7 +236,6 @@ class AdminConfirmMixin:
 
         reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
-            print("files")
             obj = None
 
             # remove the _confirm_add and _confirm_change from post
@@ -251,18 +250,15 @@ class AdminConfirmMixin:
                 del modified_post[CONFIRM_CHANGE]
 
             if object_id and not SAVE_AS_NEW in request.POST:
-                print(object_id)
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
                 obj = self.model.objects.filter(id=object_id).first()
-                print(obj)
             else:
                 # Create the obj and pass the rest as changes to Django
                 # (Since we are not handling the formsets/inlines)
                 # Note that this results in the "Yes, I'm Sure" submission
                 #   act as a `change` not an `add`
                 obj = cache.get(CACHE_KEYS["object"])
-                print(obj)
 
             # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
             if obj:  # pragma: no cover
@@ -285,20 +281,6 @@ class AdminConfirmMixin:
                     if "id" in modified_post:
                         del modified_post["id"]
                         modified_post["id"] = object_id
-
-            request.POST = modified_post
-
-            if obj.id and SAVE_AS_NEW in request.POST:
-                # We have already saved the new object
-                # So change action to _continue
-                del modified_post[SAVE_AS_NEW]
-                if self.save_as_continue:
-                    modified_post[SAVE_AND_CONTINUE] = True
-                else:
-                    modified_post[SAVE] = True
-                if "id" in modified_post:
-                    del modified_post["id"]
-                    modified_post["id"] = object_id
 
             request.POST = modified_post
 
