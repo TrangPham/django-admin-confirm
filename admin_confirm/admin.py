@@ -100,6 +100,7 @@ class AdminConfirmMixin:
     @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
+            print(request.POST)
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
@@ -310,9 +311,9 @@ class AdminConfirmMixin:
         )
         # End code from super()._changeform_view
 
-        if not (new_object and all_valid(formsets)):
-            # Formsets not valid, default to Django behavior
-            return super()._changeform_view(request, object_id, form_url, extra_context)
+        # if all_valid(formsets) and form_validated:
+        #     change_message = self.construct_change_message(request, form, formsets, add)
+        #     print(change_message)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
@@ -352,6 +353,7 @@ class AdminConfirmMixin:
             "save_as_new": SAVE_AS_NEW in request.POST,
             "submit_name": save_action,
             "form": form,
+            "formsets": formsets,
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)
