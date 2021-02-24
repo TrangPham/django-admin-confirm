@@ -208,26 +208,26 @@ class AdminConfirmMixin:
 
         reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
-            print("files")
             obj = None
+
             # remove the _confirm_add and _confirm_change from post
             modified_post = request.POST.copy()
+            cached_post = cache.get(CACHE_KEYS["post"])
+            if cached_post:
+                modified_post = cached_post.copy()
             if CONFIRM_ADD in modified_post:
                 del modified_post[CONFIRM_ADD]
             if CONFIRM_CHANGE in modified_post:
                 del modified_post[CONFIRM_CHANGE]
 
             if object_id and not SAVE_AS_NEW in request.POST:
-                print(object_id)
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
                 obj = self.model.objects.filter(id=object_id).first()
-                print(obj)
             else:
                 # Create the obj and pass the rest as changes to Django
                 # (Since we are not handling the formsets/inlines)
                 obj = cache.get(CACHE_KEYS["object"])
-                print(obj)
 
             if obj:
                 for field, file in reconstructed_files.items():
@@ -238,21 +238,17 @@ class AdminConfirmMixin:
                 # Used in `self.response_change`
                 request.path = get_admin_change_url(obj)
 
-            cached_post = cache.get(CACHE_KEYS["post"])
-            if cached_post:
-                request.POST = cached_post
-
-            if obj.id and SAVE_AS_NEW in request.POST:
-                # We have already saved the new object
-                # So change action to _continue
-                del modified_post[SAVE_AS_NEW]
-                if self.save_as_continue:
-                    modified_post[SAVE_AND_CONTINUE] = True
-                else:
-                    modified_post[SAVE] = True
-                if "id" in modified_post:
-                    del modified_post["id"]
-                    modified_post["id"] = object_id
+                if SAVE_AS_NEW in request.POST:
+                    # We have already saved the new object
+                    # So change action to _continue
+                    del modified_post[SAVE_AS_NEW]
+                    if self.save_as_continue:
+                        modified_post[SAVE_AND_CONTINUE] = True
+                    else:
+                        modified_post[SAVE] = True
+                    if "id" in modified_post:
+                        del modified_post["id"]
+                        modified_post["id"] = object_id
 
             request.POST = modified_post
 
