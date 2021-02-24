@@ -6,7 +6,7 @@ from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ItemAdmin, InventoryAdmin
-from tests.market.models import Item, Inventory
+from tests.market.models import Item, Inventory, ShoppingMall
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
@@ -70,6 +70,36 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
         # Should not have been added yet
         self.assertEqual(Inventory.objects.count(), 0)
+
+    def test_post_change_with_confirm_change_shoppingmall_name(self):
+        # When testing found that even though name was in confirmation_fields
+        # When only name changed, `form.is_valid` = False, and thus didn't trigger
+        # confirmation page previously, even though it should have
+
+        mall = ShoppingMall.objects.create(name="name")
+        data = {
+            "id": mall.id,
+            "name": "new name",
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+            "_save": True,
+        }
+        response = self.client.post(
+            f"/admin/market/shoppingmall/{mall.id}/change/", data
+        )
+        # Ensure not redirected (confirmation page does not redirect)
+        self.assertEqual(response.status_code, 200)
+        expected_templates = [
+            "admin/market/shoppingmall/change_confirmation.html",
+            "admin/market/change_confirmation.html",
+            "admin/change_confirmation.html",
+        ]
+        self.assertEqual(response.template_name, expected_templates)
+        self._assertSubmitHtml(rendered_content=response.rendered_content)
+
+        # Hasn't changed item yet
+        mall.refresh_from_db()
+        self.assertEqual(mall.name, "name")
 
     def test_post_change_with_confirm_change(self):
         item = ItemFactory(name="item")
