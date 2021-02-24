@@ -1,3 +1,4 @@
+from unittest import mock
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.options import TO_FIELD_VAR
@@ -5,11 +6,12 @@ from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from tests.market.admin import ItemAdmin, InventoryAdmin
+from tests.market.admin import ItemAdmin, InventoryAdmin, ShoppingMallAdmin
 from tests.market.models import Item, Inventory, ShoppingMall
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     def test_get_add_without_confirm_add(self):
         ItemAdmin.confirm_add = False

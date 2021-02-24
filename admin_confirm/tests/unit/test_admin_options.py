@@ -11,6 +11,7 @@ from tests.factories import ItemFactory, ShopFactory
 from admin_confirm.constants import CACHE_KEYS
 
 
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestAdminOptions(AdminConfirmTestCase):
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "fields", ["name", "town"])
@@ -157,6 +158,7 @@ class TestAdminOptions(AdminConfirmTestCase):
 
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "exclude", ["shops", "name"])
+    @mock.patch.object(ShoppingMallAdmin, "inlines", [])
     def test_confirmation_fields_in_exclude(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
@@ -197,6 +199,7 @@ class TestAdminOptions(AdminConfirmTestCase):
 
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "readonly_fields", ["shops", "name"])
+    @mock.patch.object(ShoppingMallAdmin, "inlines", [])
     def test_confirmation_fields_in_readonly(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
@@ -237,6 +240,7 @@ class TestAdminOptions(AdminConfirmTestCase):
 
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "readonly_fields", ["shops"])
+    @mock.patch.object(ShoppingMallAdmin, "inlines", [])
     def test_readonly_fields_should_not_change(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]

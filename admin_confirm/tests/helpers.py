@@ -29,7 +29,6 @@ class AdminConfirmTestCase(TestCase):
     def _assertSubmitHtml(
         self, rendered_content, save_action="_save", multipart_form=False
     ):
-        # TODO: call with multiparty_form where applicable
         # Submit should conserve the save action
         self.assertIn(
             f'<input type="submit" value="Yes, I’m sure" name="{save_action}">',
@@ -53,3 +52,8 @@ class AdminConfirmTestCase(TestCase):
         for k, v in fields.items():
             self.assertIn(f'name="{k}"', rendered_content)
             self.assertIn(f'value="{v}"', rendered_content)
+
+    def _assertFormsetsFormHtml(self, rendered_content, inlines):
+        for inline in inlines:
+            for field in inline.fields:
+                self.assertIn("apple", rendered_content)

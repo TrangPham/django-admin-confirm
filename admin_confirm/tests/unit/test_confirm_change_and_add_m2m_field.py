@@ -1,3 +1,4 @@
+from unittest import mock
 from admin_confirm.admin import AdminConfirmMixin
 from django.urls import reverse
 
@@ -7,6 +8,7 @@ from tests.market.models import ShoppingMall
 from tests.factories import ShopFactory
 
 
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
     def test_post_add_without_confirm_add_m2m(self):
         shops = [ShopFactory() for i in range(3)]
