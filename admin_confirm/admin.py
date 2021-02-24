@@ -10,8 +10,10 @@ from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
 from admin_confirm.utils import get_admin_change_url, snake_to_title_case
 from django.core.cache import cache
+from django.views.decorators.cache import cache_control
 from django.forms.formsets import all_valid
 from admin_confirm.constants import (
+    CACHE_TIMEOUT,
     CONFIRMATION_RECEIVED,
     CONFIRM_ADD,
     CONFIRM_CHANGE,
@@ -93,6 +95,7 @@ class AdminConfirmMixin:
             context,
         )
 
+    @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
             if (not object_id and CONFIRM_ADD in request.POST) or (
@@ -196,6 +199,10 @@ class AdminConfirmMixin:
                 return
 
             if not cached_query_dict:
+                return
+
+            if type(cached_object) != self.model:
+                # Do not use cache if the model doesn't match this model
                 return
 
             for field in self.model._meta.get_fields():
@@ -324,8 +331,8 @@ class AdminConfirmMixin:
                 save_action = key
                 break
 
-        cache.set(CACHE_KEYS["post"], request.POST)
-        cache.set(CACHE_KEYS["object"], new_object)
+        cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
+        cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
 
         title_action = _("adding") if add_or_new else _("changing")
         context = {

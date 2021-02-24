@@ -67,12 +67,21 @@ https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options
 
 ## Inline instance support??
 
-Currently Not Supported by this package
+Confirmation on inline changes is not a current feature of this project.
+
+Confirmation on add/change of ModelAdmin that includes inlines needs to be tested. Use AdminConfirmMixin with ModelAdmin containing inlines at your own risk.
 
 - [ ] .inlines
 - [ ] .get_inline_instances()
 - [ ] .get_inlines() (New in Django 3.0)
 - [ ] .get_formsets_with_inlines()
+
+#### Options for inlines
+
+- [ ] classes of inlines: Tabular, Stacked, etc
+- [ ] extra
+- [ ] action on the inline: add or change
+- [ ] clicking add another on the inline
 
 ## IDK if we want to support these
 
