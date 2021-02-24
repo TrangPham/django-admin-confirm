@@ -3,7 +3,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 from django.urls import reverse
 
-from admin_confirm.tests.helpers import ConfirmAdminTestCase
+from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
@@ -11,7 +11,7 @@ from tests.factories import ItemFactory, ShopFactory
 from admin_confirm.constants import CACHE_KEYS
 
 
-class TestAdminOptions(ConfirmAdminTestCase):
+class TestAdminOptions(AdminConfirmTestCase):
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "fields", ["name", "town"])
     def test_m2m_field_not_in_fields(self):

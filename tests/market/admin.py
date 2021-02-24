@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 
 from admin_confirm.admin import AdminConfirmMixin, confirm_action
 
-from .models import Item, Inventory, Shop, ShoppingMall
+from .models import GeneralManager, Item, Inventory, Shop, ShoppingMall
 
 
 class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
@@ -14,6 +14,9 @@ class ItemAdmin(AdminConfirmMixin, admin.ModelAdmin):
 
     list_display = ("name", "price", "currency")
     readonly_fields = ["image_preview"]
+
+    save_as = True
+    save_as_continue = False
 
     def image_preview(self, obj):
         if obj.image:
@@ -52,7 +55,12 @@ class ShoppingMallAdmin(AdminConfirmMixin, admin.ModelAdmin):
     confirmation_fields = ["name"]
 
 
+class GeneralManagerAdmin(admin.ModelAdmin):
+    save_as = True
+
+
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Inventory, InventoryAdmin)
 admin.site.register(Shop, ShopAdmin)
 admin.site.register(ShoppingMall, ShoppingMallAdmin)
+admin.site.register(GeneralManager, GeneralManagerAdmin)

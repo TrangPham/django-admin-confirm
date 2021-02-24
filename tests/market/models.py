@@ -39,6 +39,7 @@ class Inventory(models.Model):
 
 class GeneralManager(models.Model):
     name = models.CharField(max_length=120)
+    headshot = models.ImageField(upload_to="tmp/gm/headshots", null=True, blank=True)
 
 
 class Town(models.Model):

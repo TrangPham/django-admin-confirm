@@ -7,11 +7,11 @@ from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS
+from admin_confirm.constants import CACHE_KEYS, CONFIRM_ADD, CONFIRM_CHANGE
 
 
-class TestConfirmationCache(AdminConfirmTestCase):
-    def test_simple_add(self):
+class ConfirmSaveActionsIntegrationTestCases(AdminConfirmTestCase):
+    def test_simple_add_with_save(self):
         # Load the Add Item Page
         ItemAdmin.confirm_add = True
         response = self.client.get(reverse("admin:market_item_add"))
@@ -70,7 +70,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_simple_change(self):
+    def test_simple_change_with_continue(self):
         item = ItemFactory(name="Not name")
 
         # Load the Change Item Page
@@ -133,7 +133,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_file_and_image_add(self):
+    def test_file_and_image_add_addanother(self):
         # Load the Add Item Page
         ItemAdmin.confirm_add = True
         response = self.client.get(reverse("admin:market_item_add"))
@@ -162,13 +162,13 @@ class TestConfirmationCache(AdminConfirmTestCase):
             "file": f,
             "image": i,
             "_confirm_add": True,
-            "_save": True,
+            "_addanother": True,
         }
         response = self.client.post(reverse("admin:market_item_add"), data=data)
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_save"
+            rendered_content=response.rendered_content, save_action="_addanother"
         )
 
         # Should have cached the unsaved item
@@ -180,10 +180,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         self.assertEqual(cached_item.currency, data["currency"])
         self.assertEqual(cached_item.file, data["file"])
         self.assertEqual(cached_item.image, data["image"])
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("added", cached_change_message[0].keys())
 
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)
@@ -200,7 +196,8 @@ class TestConfirmationCache(AdminConfirmTestCase):
 
         # Should have redirected to changelist
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response.url, "/admin/market/item/")
+        # Should show up page to add another
+        self.assertEqual(response.url, "/admin/market/item/add/")
 
         # Should have saved item
         self.assertEqual(Item.objects.count(), 1)
@@ -218,7 +215,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_file_and_image_change(self):
+    def test_file_and_image_change_with_saveasnew(self):
         item = ItemFactory(name="Not name")
         # Select files
         image_path = "screenshot.png"
@@ -261,13 +258,13 @@ class TestConfirmationCache(AdminConfirmTestCase):
             "file-clear": "on",
             "currency": Item.VALID_CURRENCIES[0][0],
             "_confirm_change": True,
-            "_continue": True,
+            "_saveasnew": True,
         }
         response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
+            rendered_content=response.rendered_content, save_action="_saveasnew"
         )
 
         # Should have cached the unsaved item
@@ -279,10 +276,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         self.assertEqual(cached_item.currency, data["currency"])
         self.assertFalse(cached_item.file.name)
         self.assertEqual(cached_item.image, i2)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
 
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)
@@ -298,16 +291,24 @@ class TestConfirmationCache(AdminConfirmTestCase):
         response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/{item.id}/change/")
+        self.assertEqual(response.url, f"/admin/market/item/{item.id + 1}/change/")
 
-        # Should have saved item
-        self.assertEqual(Item.objects.count(), 1)
-        saved_item = Item.objects.all().first()
-        self.assertEqual(saved_item.name, data["name"])
-        self.assertEqual(saved_item.price, data["price"])
-        self.assertEqual(saved_item.currency, data["currency"])
-        self.assertFalse(saved_item.file)
-        self.assertEqual(saved_item.image, i2)
+        # Should not have changed existing item
+        item.refresh_from_db()
+        self.assertEqual(item.name, "Not name")
+        self.assertEqual(item.file.name.count("test_file"), 1)
+        self.assertEqual(item.image.name.count("test_image2"), 0)
+        self.assertEqual(item.image.name.count("test_image"), 1)
+
+        # Should have saved new item
+        self.assertEqual(Item.objects.count(), 2)
+        new_item = Item.objects.filter(id=item.id + 1).first()
+        self.assertIsNotNone(new_item)
+        self.assertEqual(new_item.name, data["name"])
+        self.assertEqual(new_item.price, data["price"])
+        self.assertEqual(new_item.currency, data["currency"])
+        self.assertFalse(new_item.file)
+        self.assertEqual(new_item.image, i2)
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
@@ -385,7 +386,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_relation_change(self):
+    def test_relation_change_with_saveasnew(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
@@ -413,7 +414,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
             "general_manager": gm2.id,
             "town": town2.id,
             "_confirm_change": True,
-            "_continue": True,
+            "_saveasnew": True,
         }
         response = self.client.post(
             f"/admin/market/shoppingmall/{mall.id}/change/", data=data
@@ -426,17 +427,13 @@ class TestConfirmationCache(AdminConfirmTestCase):
             selected_ids=data["shops"],
         )
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
+            rendered_content=response.rendered_content, save_action="_saveasnew"
         )
 
         # Should have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
         self.assertIsNotNone(cached_item)
         self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)
@@ -448,7 +445,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
             self.assertIn(shop, shops)
 
         # Click "Yes, I'm Sure"
-        confirmation_received_data = data
+        confirmation_received_data = data.copy()
         del confirmation_received_data["_confirm_change"]
         confirmation_received_data["_confirmation_received"] = True
 
@@ -458,11 +455,22 @@ class TestConfirmationCache(AdminConfirmTestCase):
         )
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/shoppingmall/{mall.id}/change/")
+        self.assertEqual(
+            response.url, f"/admin/market/shoppingmall/{mall.id + 1}/change/"
+        )
 
         # Should have saved obj
-        self.assertEqual(ShoppingMall.objects.count(), 1)
-        saved_item = ShoppingMall.objects.all().first()
+        self.assertEqual(ShoppingMall.objects.count(), 2)
+        # Should not have changed old obj
+        mall.refresh_from_db()
+        self.assertEqual(mall.name, "mall")
+        self.assertEqual(mall.general_manager, gm)
+        self.assertEqual(mall.town, town)
+        for shop in mall.shops.all():
+            self.assertIn(shop, shops)
+
+        # Should have created new obj
+        saved_item = ShoppingMall.objects.filter(id=mall.id + 1).first()
         self.assertEqual(saved_item.name, data["name"])
         self.assertEqual(saved_item.general_manager, gm2)
         self.assertEqual(saved_item.town, town2)
