@@ -223,6 +223,10 @@ class AdminConfirmMixin:
                 # Do not use cache if the model doesn't match this model
                 return
 
+            if type(cached_object) != self.model:
+                # Do not use cache if the model doesn't match this model
+                return
+
             for field in self.model._meta.get_fields():
                 if not (isinstance(field, FileField) or isinstance(field, ImageField)):
                     continue

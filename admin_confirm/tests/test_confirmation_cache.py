@@ -276,10 +276,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         self.assertFalse(cached_item.file.name)
         self.assertEqual(cached_item.image, i2)
 
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
-
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)
         item.refresh_from_db()
@@ -347,10 +343,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         cached_item = cache.get(CACHE_KEYS["object"])
         self.assertIsNotNone(cached_item)
         self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("added", cached_change_message[0].keys())
 
         # Should not have saved the object yet
         self.assertEqual(ShoppingMall.objects.count(), 0)
@@ -429,10 +421,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         cached_item = cache.get(CACHE_KEYS["object"])
         self.assertIsNotNone(cached_item)
         self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)
