@@ -8,10 +8,19 @@ from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
-from admin_confirm.utils import snake_to_title_case
+from admin_confirm.utils import get_admin_change_url, snake_to_title_case
 from django.core.cache import cache
 from django.forms.formsets import all_valid
-from admin_confirm.constants import SAVE_ACTIONS, CACHE_KEYS
+from admin_confirm.constants import (
+    CONFIRMATION_RECEIVED,
+    CONFIRM_ADD,
+    CONFIRM_CHANGE,
+    SAVE,
+    SAVE_ACTIONS,
+    CACHE_KEYS,
+    SAVE_AND_CONTINUE,
+    SAVE_AS_NEW,
+)
 
 
 class AdminConfirmMixin:
@@ -86,13 +95,13 @@ class AdminConfirmMixin:
 
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            if (not object_id and "_confirm_add" in request.POST) or (
-                object_id and "_confirm_change" in request.POST
+            if (not object_id and CONFIRM_ADD in request.POST) or (
+                object_id and CONFIRM_CHANGE in request.POST
             ):
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
                 )
-            elif "_confirmation_received" in request.POST:
+            elif CONFIRMATION_RECEIVED in request.POST:
                 return self._confirmation_received_view(
                     request, object_id, form_url, extra_context
                 )
@@ -172,10 +181,10 @@ class AdminConfirmMixin:
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
         """
-        Save the files from cached object and pass the request
+        Save the files from cached object (if any) and pass the request to Django
         """
 
-        def _reconstruct_request_files(request):
+        def _reconstruct_request_files():
             reconstructed_files = {}
 
             cached_object = cache.get(CACHE_KEYS["object"])
@@ -197,10 +206,17 @@ class AdminConfirmMixin:
 
             return reconstructed_files
 
-        reconstructed_files = _reconstruct_request_files(request)
+        reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
             obj = None
-            if object_id:
+            # remove the _confirm_add and _confirm_change from post
+            modified_post = request.POST.copy()
+            if CONFIRM_ADD in modified_post:
+                del modified_post[CONFIRM_ADD]
+            if CONFIRM_CHANGE in modified_post:
+                del modified_post[CONFIRM_CHANGE]
+
+            if object_id and not SAVE_AS_NEW in request.POST:
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
                 obj = self.model.objects.filter(id=object_id).first()
@@ -218,6 +234,23 @@ class AdminConfirmMixin:
             cached_post = cache.get(CACHE_KEYS["post"])
             if cached_post:
                 request.POST = cached_post
+
+            if obj.id and SAVE_AS_NEW in request.POST:
+                # We have already saved the new object
+                # So change action to _continue
+                del modified_post[SAVE_AS_NEW]
+                if self.save_as_continue:
+                    modified_post[SAVE_AND_CONTINUE] = True
+                else:
+                    modified_post[SAVE] = True
+                if "id" in modified_post:
+                    del modified_post["id"]
+                    modified_post["id"] = object_id
+                # Update the request path, used in the message to user and redirect
+                # Used in `self.response_change`
+                request.path = get_admin_change_url(obj)
+
+            request.POST = modified_post
 
         cache.delete_many(CACHE_KEYS.values())
         return super()._changeform_view(request, object_id, form_url, extra_context)
@@ -262,18 +295,15 @@ class AdminConfirmMixin:
         formsets, inline_instances = self._create_formsets(
             request, new_object, change=not add
         )
-
-        change_message = self.construct_change_message(request, form, formsets, add)
-        # Note to self: For inline instances see:
-        # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1582
-
         # End code from super()._changeform_view
+
         if not (form_validated and all_valid(formsets)):
             # Form not valid, cannot confirm
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
+        add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, add)
+        changed_data = self._get_changed_data(form, model, obj, add_or_new)
 
         changed_confirmation_fields = set(
             self.get_confirmation_fields(request, obj)
@@ -282,9 +312,6 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
-        cache.set(CACHE_KEYS["post"], request.POST)
-        cache.set(CACHE_KEYS["object"], new_object)
-
         # Parse the original save action from request
         save_action = None
         for key in request.POST.keys():
@@ -292,7 +319,10 @@ class AdminConfirmMixin:
                 save_action = key
                 break
 
-        title_action = _("adding") if add else _("changing")
+        cache.set(CACHE_KEYS["post"], request.POST)
+        cache.set(CACHE_KEYS["object"], new_object)
+
+        title_action = _("adding") if add_or_new else _("changing")
         context = {
             **self.admin_site.each_context(request),
             "preserved_filters": self.get_preserved_filters(request),
@@ -305,6 +335,7 @@ class AdminConfirmMixin:
             "opts": opts,
             "changed_data": changed_data,
             "add": add,
+            "save_as_new": SAVE_AS_NEW in request.POST,
             "submit_name": save_action,
             "form": form,
             **(extra_context or {}),

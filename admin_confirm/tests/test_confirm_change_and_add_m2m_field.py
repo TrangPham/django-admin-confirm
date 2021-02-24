@@ -1,12 +1,13 @@
+from admin_confirm.admin import AdminConfirmMixin
 from django.urls import reverse
 
-from admin_confirm.tests.helpers import ConfirmAdminTestCase
+from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShoppingMallAdmin
 from tests.market.models import ShoppingMall
 from tests.factories import ShopFactory
 
 
-class TestConfirmChangeAndAddM2MField(ConfirmAdminTestCase):
+class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
     def test_post_add_without_confirm_add_m2m(self):
         shops = [ShopFactory() for i in range(3)]
 

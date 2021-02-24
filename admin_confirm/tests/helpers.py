@@ -3,7 +3,7 @@ from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
 
-class ConfirmAdminTestCase(TestCase):
+class AdminConfirmTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.superuser = User.objects.create_superuser(

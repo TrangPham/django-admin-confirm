@@ -12,8 +12,8 @@ So if you want to include this package in your production codebase, be aware tha
 
 - [x] Save
 - [x] Conitnue
-- [ ] Save As New
-- [ ] Add another
+- [x] Save As New
+- [x] Add another
 
 ### Field types
 
@@ -84,3 +84,7 @@ https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options
 
 - [ ] ModelAdmin.has_add_permission
 - [ ] ModelAdmin.has_change_permission
+
+## Cache Tests
+
+- [ ] post should not contain \_confirm_add \_confirm_change
