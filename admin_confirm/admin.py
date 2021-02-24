@@ -48,6 +48,8 @@ class AdminConfirmMixin:
 
         model_fields = set([field.name for field in self.model._meta.fields])
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        print(model_fields)
+        print(admin_fields)
         return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
