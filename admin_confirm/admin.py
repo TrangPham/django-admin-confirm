@@ -139,7 +139,9 @@ class AdminConfirmMixin:
                 elif new_value:
                     return [initial_value.name, new_value.name]
                 else:
-                    return [initial_value.name, initial_value.name]
+                    # Technically doesn't get called in current code because
+                    # This function is only called if there was a difference in the data
+                    return [initial_value.name, initial_value.name]  # pragma: no cover
 
             if new_value:
                 return [None, new_value.name]
