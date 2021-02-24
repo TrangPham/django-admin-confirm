@@ -208,6 +208,7 @@ class AdminConfirmMixin:
 
         reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
+            print("files")
             obj = None
             # remove the _confirm_add and _confirm_change from post
             modified_post = request.POST.copy()
@@ -217,19 +218,25 @@ class AdminConfirmMixin:
                 del modified_post[CONFIRM_CHANGE]
 
             if object_id and not SAVE_AS_NEW in request.POST:
+                print(object_id)
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
                 obj = self.model.objects.filter(id=object_id).first()
+                print(obj)
             else:
                 # Create the obj and pass the rest as changes to Django
                 # (Since we are not handling the formsets/inlines)
                 obj = cache.get(CACHE_KEYS["object"])
+                print(obj)
 
             if obj:
                 for field, file in reconstructed_files.items():
                     setattr(obj, field, file)
                 obj.save()
                 object_id = str(obj.id)
+                # Update the request path, used in the message to user and redirect
+                # Used in `self.response_change`
+                request.path = get_admin_change_url(obj)
 
             cached_post = cache.get(CACHE_KEYS["post"])
             if cached_post:
@@ -246,9 +253,6 @@ class AdminConfirmMixin:
                 if "id" in modified_post:
                     del modified_post["id"]
                     modified_post["id"] = object_id
-                # Update the request path, used in the message to user and redirect
-                # Used in `self.response_change`
-                request.path = get_admin_change_url(obj)
 
             request.POST = modified_post
 
