@@ -1,3 +1,4 @@
+from unittest import mock
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 from django.urls import reverse
@@ -10,6 +11,7 @@ from tests.factories import ItemFactory, ShopFactory
 from admin_confirm.constants import CACHE_KEYS
 
 
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmationCache(AdminConfirmTestCase):
     def test_simple_add(self):
         # Load the Add Item Page

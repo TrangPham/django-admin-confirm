@@ -21,7 +21,7 @@ class Shop(models.Model):
     name = models.CharField(max_length=120)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Inventory(models.Model):
