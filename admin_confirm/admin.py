@@ -284,6 +284,23 @@ class AdminConfirmMixin:
 
             request.POST = modified_post
 
+            if obj.id and SAVE_AS_NEW in request.POST:
+                # We have already saved the new object
+                # So change action to _continue
+                del modified_post[SAVE_AS_NEW]
+                if self.save_as_continue:
+                    modified_post[SAVE_AND_CONTINUE] = True
+                else:
+                    modified_post[SAVE] = True
+                if "id" in modified_post:
+                    del modified_post["id"]
+                    modified_post["id"] = object_id
+                # Update the request path, used in the message to user and redirect
+                # Used in `self.response_change`
+                request.path = get_admin_change_url(obj)
+
+            request.POST = modified_post
+
         cache.delete_many(CACHE_KEYS.values())
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
@@ -339,9 +356,6 @@ class AdminConfirmMixin:
         if not bool(changed_confirmation_fields):
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
-
-        cache.set(CACHE_KEYS["post"], request.POST)
-        cache.set(CACHE_KEYS["object"], new_object)
 
         # Parse the original save action from request
         save_action = None
