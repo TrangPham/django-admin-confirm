@@ -48,6 +48,8 @@ class AdminConfirmMixin:
 
         model_fields = set([field.name for field in self.model._meta.fields])
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        print(model_fields)
+        print(admin_fields)
         return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
@@ -308,8 +310,8 @@ class AdminConfirmMixin:
         )
         # End code from super()._changeform_view
 
-        if not (form_validated and all_valid(formsets)):
-            # Form not valid, cannot confirm
+        if not (new_object and all_valid(formsets)):
+            # Formsets not valid, default to Django behavior
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
