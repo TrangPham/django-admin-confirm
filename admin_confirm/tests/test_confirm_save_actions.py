@@ -10,7 +10,7 @@ from tests.factories import ItemFactory, ShopFactory
 from admin_confirm.constants import CACHE_KEYS, CONFIRM_ADD, CONFIRM_CHANGE
 
 
-class ConfirmSaveActionsIntegrationTestCases(AdminConfirmTestCase):
+class TestConfirmSaveActions(AdminConfirmTestCase):
     def test_simple_add_with_save(self):
         # Load the Add Item Page
         ItemAdmin.confirm_add = True
@@ -42,10 +42,6 @@ class ConfirmSaveActionsIntegrationTestCases(AdminConfirmTestCase):
         self.assertEqual(cached_item.name, data["name"])
         self.assertEqual(cached_item.price, data["price"])
         self.assertEqual(cached_item.currency, data["currency"])
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("added", cached_change_message[0].keys())
 
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)

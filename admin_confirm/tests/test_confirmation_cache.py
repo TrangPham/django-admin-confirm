@@ -43,10 +43,6 @@ class TestConfirmationCache(AdminConfirmTestCase):
         self.assertEqual(cached_item.price, data["price"])
         self.assertEqual(cached_item.currency, data["currency"])
 
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("added", cached_change_message[0].keys())
-
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)
 
