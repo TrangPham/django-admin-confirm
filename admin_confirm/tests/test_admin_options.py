@@ -42,14 +42,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             rendered_content=response.rendered_content, save_action="_continue"
         )
 
-        # Should have cached the unsaved obj
+        # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
+        self.assertIsNone(cached_item)
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)
@@ -119,14 +114,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             rendered_content=response.rendered_content, save_action="_continue"
         )
 
-        # Should have cached the unsaved obj
+        # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
+        self.assertIsNone(cached_item)
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)
@@ -276,14 +266,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             rendered_content=response.rendered_content, save_action="_continue"
         )
 
-        # Should have cached the unsaved obj
+        # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-
-        # cached_change_message = cache.get(CACHE_KEYS["change_message"])
-        # self.assertIsNotNone(cached_change_message)
-        # self.assertIn("changed", cached_change_message[0].keys())
+        self.assertIsNone(cached_item)
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)

@@ -12,5 +12,3 @@ class ShoppingMallAdmin(AdminConfirmMixin, ModelAdmin):
     confirm_add = True
     confirm_change = True
     confirmation_fields = ["name"]
-
-    inlines = [ShopInline]

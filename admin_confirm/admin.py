@@ -48,8 +48,6 @@ class AdminConfirmMixin:
 
         model_fields = set([field.name for field in self.model._meta.fields])
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
-        print(model_fields)
-        print(admin_fields)
         return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
@@ -100,10 +98,10 @@ class AdminConfirmMixin:
     @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            print(request.POST)
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
+                cache.delete_many(CACHE_KEYS.values())
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
                 )
@@ -111,6 +109,8 @@ class AdminConfirmMixin:
                 return self._confirmation_received_view(
                     request, object_id, form_url, extra_context
                 )
+            else:
+                cache.delete_many(CACHE_KEYS.values())
 
         extra_context = {
             **(extra_context or {}),
@@ -334,8 +334,9 @@ class AdminConfirmMixin:
                 save_action = key
                 break
 
-        cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
-        cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
+        if form.is_multipart():
+            cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
+            cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
 
         title_action = _("adding") if add_or_new else _("changing")
         context = {

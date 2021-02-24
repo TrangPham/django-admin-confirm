@@ -131,7 +131,9 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self._assertSimpleFieldFormHtml(
             rendered_content=response.rendered_content, fields=form_data
         )
-        self._assertSubmitHtml(rendered_content=response.rendered_content)
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, multipart_form=True
+        )
 
         # Hasn't changed item yet
         item.refresh_from_db()
@@ -151,9 +153,21 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     def test_get_confirmation_fields_should_default_if_not_set(self):
         expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
         ItemAdmin.confirmation_fields = None
+        ItemAdmin.fields = expected_fields
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         for field in expected_fields:
+            self.assertIn(field, actual_fields)
+
+    def test_get_confirmation_fields_default_should_only_include_fields_shown_on_admin(
+        self,
+    ):
+        admin_fields = ["name", "price"]
+        ItemAdmin.confirmation_fields = None
+        ItemAdmin.fields = admin_fields
+        admin = ItemAdmin(Item, AdminSite())
+        actual_fields = admin.get_confirmation_fields(self.factory.request())
+        for field in admin_fields:
             self.assertIn(field, actual_fields)
 
     def test_get_confirmation_fields_if_set(self):

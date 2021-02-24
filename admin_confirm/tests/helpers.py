@@ -26,7 +26,10 @@ class AdminConfirmTestCase(TestCase):
         # ManyToManyField should be embedded
         self.assertIn("related-widget-wrapper", rendered_content)
 
-    def _assertSubmitHtml(self, rendered_content, save_action="_save"):
+    def _assertSubmitHtml(
+        self, rendered_content, save_action="_save", multipart_form=False
+    ):
+        # TODO: call with multiparty_form where applicable
         # Submit should conserve the save action
         self.assertIn(
             f'<input type="submit" value="Yes, I’m sure" name="{save_action}">',
@@ -35,11 +38,16 @@ class AdminConfirmTestCase(TestCase):
         # There should not be _confirm_add or _confirm_change sent in the form on confirmaiton page
         self.assertNotIn("_confirm_add", rendered_content)
         self.assertNotIn("_confirm_change", rendered_content)
-        # Should have _confirmation_received as a hidden field
-        self.assertIn(
-            '<input type="hidden" name="_confirmation_received" value="True">',
-            rendered_content,
+
+        confirmation_received_html = (
+            '<input type="hidden" name="_confirmation_received" value="True">'
         )
+
+        if multipart_form:
+            # Should have _confirmation_received as a hidden field
+            self.assertIn(confirmation_received_html, rendered_content)
+        else:
+            self.assertNotIn(confirmation_received_html, rendered_content)
 
     def _assertSimpleFieldFormHtml(self, rendered_content, fields):
         for k, v in fields.items():
