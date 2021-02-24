@@ -11,6 +11,7 @@ class Item(models.Model):
     currency = models.CharField(max_length=3, choices=VALID_CURRENCIES)
     image = models.ImageField(upload_to="tmp/items", null=True, blank=True)
     file = models.FileField(upload_to="tmp/files", null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name

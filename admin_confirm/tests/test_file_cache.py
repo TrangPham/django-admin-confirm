@@ -23,7 +23,7 @@ from tests.market.models import Item
 from tests.factories import ItemFactory
 
 
-class FileCacheUnitTests(AdminConfirmTestCase):
+class TestFileCache(AdminConfirmTestCase):
     def setUp(self):
         # Load the Change Item Page
         ItemAdmin.confirm_change = True

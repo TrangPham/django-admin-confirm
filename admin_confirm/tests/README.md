@@ -27,17 +27,18 @@ So if you want to include this package in your production codebase, be aware tha
 - [x] OneToOneField
 - [x] ForeignKey
 
-- [ ] Custom fields
+- [x] Custom Readonly fields
 
 ### Options
 
 - [x] .exclude
 - [x] .fields
 - [x] .readonly_fields
+- [x] Actions
 
 ### Options to test
 
-- [ ] ModelAdmin.fieldsets
+- [x] ModelAdmin.fieldsets
 - [ ] ModelAdmin.form
 - [ ] ModelAdmin.raw_id_fields
 - [ ] ModelAdmin.radio_fields
@@ -58,13 +59,15 @@ https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options
 - [ ] .get_form()
 - [ ] .get_autocomplete_fields()
 - [ ] .get_prepopulated_fields()
-- [ ] .get_fieldsets()
+- [x] .get_fieldsets()
 - [ ] ModelAdmin.formfield_for_manytomany()
 - [ ] ModelAdmin.formfield_for_foreignkey()
 - [ ] ModelAdmin.formfield_for_choice_field()
 - [ ] ModelAdmin.get_changeform_initial_data()
 
 ## Inline instance support??
+
+Currently Not Supported by this package
 
 - [ ] .inlines
 - [ ] .get_inline_instances()
@@ -82,9 +85,7 @@ https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options
 
 ## More tests for these?
 
-- [ ] ModelAdmin.has_add_permission
-- [ ] ModelAdmin.has_change_permission
+Note: Currently the code always calls super().\_changeform_view(), which would ensure permissions correct as well
 
-## Cache Tests
-
-- [ ] post should not contain \_confirm_add \_confirm_change
+- [x] ModelAdmin.has_add_permission
+- [x] ModelAdmin.has_change_permission
