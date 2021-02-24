@@ -139,7 +139,7 @@ class AdminConfirmMixin:
                 elif new_value:
                     return [initial_value.name, new_value.name]
                 else:
-                    # Technically doesn't get called in current code because
+                    # No cover: Technically doesn't get called in current code because
                     # This function is only called if there was a difference in the data
                     return [initial_value.name, initial_value.name]  # pragma: no cover
 
@@ -215,7 +215,8 @@ class AdminConfirmMixin:
             # remove the _confirm_add and _confirm_change from post
             modified_post = request.POST.copy()
             cached_post = cache.get(CACHE_KEYS["post"])
-            if cached_post:
+            # No cover: __reconstruct_request_files currently checks for cached post so cached_post won't be None
+            if cached_post:  # pragma: no cover
                 modified_post = cached_post.copy()
             if CONFIRM_ADD in modified_post:
                 del modified_post[CONFIRM_ADD]
@@ -231,7 +232,8 @@ class AdminConfirmMixin:
                 # (Since we are not handling the formsets/inlines)
                 obj = cache.get(CACHE_KEYS["object"])
 
-            if obj:
+            # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
+            if obj:  # pragma: no cover
                 for field, file in reconstructed_files.items():
                     setattr(obj, field, file)
                 obj.save()
@@ -316,7 +318,8 @@ class AdminConfirmMixin:
 
         # Parse the original save action from request
         save_action = None
-        for key in request.POST.keys():
+        # No cover: There would not be a case of not request.POST.keys() and form is valid
+        for key in request.POST.keys():  # pragma: no cover
             if key in SAVE_ACTIONS:
                 save_action = key
                 break
