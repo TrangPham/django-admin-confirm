@@ -4,6 +4,13 @@ on ModelAdmin that includes inlines
 
 Does not test confirmation of inline changes
 """
+
+
+def test_should_have_hidden_formsets(self):
+    # Not having these would cause a `ManagementForm tampered with` issue
+    pass
+
+
 # TODO
 
 # import pytest
