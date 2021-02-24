@@ -32,7 +32,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_save"
+            rendered_content=response.rendered_content,
+            save_action="_save",
+            multipart_form=True,
         )
 
         # Should have cached the unsaved item
@@ -90,7 +92,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
+            rendered_content=response.rendered_content,
+            save_action="_continue",
+            multipart_form=True,
         )
 
         # Should have cached the unsaved item
@@ -160,7 +164,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_addanother"
+            rendered_content=response.rendered_content,
+            save_action="_addanother",
+            multipart_form=True,
         )
 
         # Should have cached the unsaved item
@@ -258,7 +264,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should be shown confirmation page
         self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_saveasnew"
+            rendered_content=response.rendered_content,
+            save_action="_saveasnew",
+            multipart_form=True,
         )
 
         # Should have cached the unsaved item
@@ -342,12 +350,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             rendered_content=response.rendered_content, save_action="_save"
         )
 
-        # Should have cached the unsaved object
+        # Should not have cached the unsaved object
         cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        # Should not have saved the object yet
-        self.assertEqual(ShoppingMall.objects.count(), 0)
+        self.assertIsNone(cached_item)
 
         # Click "Yes, I'm Sure"
         confirmation_received_data = data
@@ -419,10 +424,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             rendered_content=response.rendered_content, save_action="_saveasnew"
         )
 
-        # Should have cached the unsaved obj
+        # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
+        self.assertIsNone(cached_item)
 
         # Should not have saved changes yet
         self.assertEqual(ShoppingMall.objects.count(), 1)

@@ -41,14 +41,9 @@ class AdminConfirmTestCase(TestCase):
         # There should not be _confirm_add or _confirm_change sent in the form on confirmaiton page
         self.assertNotIn("_confirm_add", rendered_content)
         self.assertNotIn("_confirm_change", rendered_content)
-        # Should have _confirmation_received as a hidden field
-        self.assertIn(
-            '<input type="hidden" name="_confirmation_received" value="True">',
-            rendered_content,
-        )
 
         confirmation_received_html = (
-            '<input type="hidden" name=CONFIRMATION_RECEIVED value="True">'
+            '<input type="hidden" name="_confirmation_received" value="True">'
         )
 
         if multipart_form:
