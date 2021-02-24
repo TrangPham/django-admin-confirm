@@ -236,6 +236,8 @@ class ConfirmSaveActionsIntegrationTestCases(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.confirm_change = True
         ItemAdmin.fields = ["name", "price", "file", "image", "currency"]
+        ItemAdmin.save_as = True
+        ItemAdmin.save_as_continue = True
         response = self.client.get(f"/admin/market/item/{item.id}/change/")
 
         # Should be asked for confirmation
