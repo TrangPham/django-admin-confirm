@@ -56,3 +56,8 @@ class AdminConfirmTestCase(TestCase):
         for k, v in fields.items():
             self.assertIn(f'name="{k}"', rendered_content)
             self.assertIn(f'value="{v}"', rendered_content)
+
+    def _assertFormsetsFormHtml(self, rendered_content, inlines):
+        for inline in inlines:
+            for field in inline.fields:
+                self.assertIn("apple", rendered_content)

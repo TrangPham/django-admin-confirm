@@ -6,7 +6,7 @@ from tests.market.admin import ShoppingMallAdmin
 from tests.market.models import GeneralManager, ShoppingMall, Town
 from tests.factories import ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
+from admin_confirm.constants import CACHE_KEYS
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
