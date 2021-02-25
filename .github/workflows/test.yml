@@ -56,7 +56,7 @@ jobs:
     - name: Build Docker
       run: docker-compose build
     - name: Start Docker
-      run: docker-compose up
+      run: docker-compose up -d
     - name: Run Integration Tests within Docker
       run: docker-compose run web make test-all
 
