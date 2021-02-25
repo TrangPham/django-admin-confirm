@@ -8,3 +8,7 @@ services:
       - .:/code
     ports:
       - "8010:8010"
+    depends_on:
+      - selenium
+  selenium:
+    image: selenium/standalone-firefox

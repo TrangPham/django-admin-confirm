@@ -1,0 +1,36 @@
+__pycache__/
+*.py[cod]
+
+build/
+dist/
+sdist/
+.eggs/
+*.egg-info/
+.DS_Store
+
+# Editor settings
+.vscode/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.cache
+nosetests.xml
+coverage.xml
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+*.db
+
+# Sphinx documentation
+docs/_build/
+
+# pycharm
+.idea/
+
+tmp/
