@@ -5,11 +5,11 @@
 
 AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add and actions.
 
-![Screenshot of Change Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot.png)
+![Screenshot of Change Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot.png)
 
-![Screenshot of Add Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_add.png)
+![Screenshot of Add Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot_confirm_add.png)
 
-![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/main/screenshot_confirm_action.png)
+![Screenshot of Action Confirmation Page](https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot_confirm_action.png)
 
 It can be configured to add a confirmation page on ModelAdmin upon:
 
@@ -139,18 +139,21 @@ Your appreciation is also very welcome :) Feel free to:
 
 ### Local Development Setup
 
+**Local:**
+_You can skip this and just use docker if you want_
+
 Install pyenv
-Install python 3.8
+pyenv install 3.8.0
 
-Create virtualenv via pyenv
+Create **virtualenv** via pyenv
 
 ```
-pyenv vituralenv 3.8 django-admin-confirm-3.8
+pyenv vituralenv 3.8.0 django-admin-confirm-3.8.0
 ```
 
-Now your terminal should have `(django-admin-confirm-3.8)` prefix, because `.python-version` should have auto switch your virtual env
+Now your terminal should have `(django-admin-confirm-3.8.0)` prefix, because `.python-version` should have auto switch your virtual env
 
-Run migrations and create a superuser and run the server
+Run **migrations** and create a superuser and run the server
 
 ```
 ./tests/manage.py migrate
@@ -160,18 +163,53 @@ Run migrations and create a superuser and run the server
 
 You should be able to see the test app at `localhost:8000/admin`
 
-Running tests:
+**Running tests:**
 
-```
-make test
+```sh
+make test # Runs unit tests with coverage locally without integration tests
+make test-all # Runs unit tests + integration tests, requires extra setup to run locally
 ```
 
-Testing new changes on test project:
+Use `python -m pytest` if you want to pass in arguments
+
+`make t` is a short cut to run without coverage, last-failed, and fail fast
+
+Testing local changes on test project:
 
 ```
 pip install -e .
 make run
 ```
+
+**Docker:**
+
+Instead of local set-up, you can also use docker.
+
+Install docker-compose (or Docker Desktop which installs this for you)
+
+```
+docker-compose build
+docker-compose up -d
+```
+
+You should now be able to see the app running on `localhost:8000`
+
+If you haven't already done migrations and created a superuser, you'll want to do it here
+
+```
+docker-compose exec web tests/manage.py migrate
+docker-compose exec web tests/manage.py createsuperuser
+```
+
+Running tests in docker:
+
+```
+docker-compose exec -T web make test-all
+```
+
+The integration tests are set up within docker. I recommend running the integration tests only in docker.
+
+Docker is also set to mirror local folder so that you can edit code/tests and don't have to rebuild to run new code/tests.
 
 ### Release process
 
@@ -180,7 +218,7 @@ Honestly this part is just for my reference. But who knows :) maybe we'll have a
 Run tests, check coverage, check readme
 
 ```
-make test
+docker-compose exec -T web make test-all
 make check-readme
 ```
 
@@ -188,7 +226,7 @@ Update version in `setup.py`
 
 ```
 make package
-make upload-testpypi
+make upload-testpypi VERSION=<VERSION>
 ```
 
 Install new version locally
@@ -196,7 +234,7 @@ First you have to uninstall if you used `pip install -e` earlier
 
 ```
 pip uninstall django_admin_confirm
-make install-testpypi
+make install-testpypi VERSION=<VERSION>
 ```
 
 Update version in `requirements.txt`
