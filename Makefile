@@ -9,6 +9,9 @@ test-all:
 	coverage run --source admin_confirm --branch -m pytest
 	coverage report -m
 
+t:
+	python -m pytest --last-failed -x
+
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html
 

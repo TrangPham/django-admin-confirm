@@ -2,7 +2,6 @@ from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
-
 class AdminConfirmTestCase(TestCase):
     """
     Helper TestCase class and common associated assertions
@@ -61,3 +60,26 @@ class AdminConfirmTestCase(TestCase):
         for inline in inlines:
             for field in inline.fields:
                 self.assertIn("apple", rendered_content)
+
+
+
+import socket
+from django.test import LiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+
+class AdminConfirmIntegrationTestCase(LiveServerTestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.host = socket.gethostbyname(socket.gethostname())
+        cls.selenium = webdriver.Remote(
+            command_executor="http://selenium:4444/wd/hub",
+            desired_capabilities=DesiredCapabilities.FIREFOX,
+        )
+        super().setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.selenium.quit()
+        super().tearDownClass()
