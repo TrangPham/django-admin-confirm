@@ -14,7 +14,7 @@ on:
       - created
 
 jobs:
-  test:
+  unit-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -48,6 +48,17 @@ jobs:
       with:
         parallel: true
         flag-name: Unit Test
+
+  integration-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build Docker
+      run: docker-compose build
+    - name: Start Docker
+      run: docker-compose up
+    - name: Run Integration Tests within Docker
+      run: docker-compose run web make test-all
 
   coveralls:
     needs: test
