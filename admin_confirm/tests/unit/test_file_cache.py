@@ -10,6 +10,7 @@ Then send the rest of the changes to Django to handle
 This is arguably the most we fiddle with the Django request
 Thus we should test it extensively
 """
+import pytest
 import time
 from unittest import mock
 
@@ -800,6 +801,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
+    @pytest.mark.slow
     @mock.patch("admin_confirm.admin.CACHE_TIMEOUT", 1)
     def test_old_cache_should_not_be_used(self):
         item = self.item
