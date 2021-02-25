@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    command: python tests/manage.py runserver 0.0.0.0:8010
+    volumes:
+      - .:/code
+    ports:
+      - "8010:8010"
