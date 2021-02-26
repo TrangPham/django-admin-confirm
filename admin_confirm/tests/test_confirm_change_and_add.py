@@ -1,27 +1,16 @@
-from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
-
+from admin_confirm.tests.helpers import ConfirmAdminTestCase
 from tests.market.admin import ItemAdmin, InventoryAdmin
 from tests.market.models import Item, Inventory
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
-class TestConfirmChangeAndAdd(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.superuser = User.objects.create_superuser(
-            username="super", email="super@email.org", password="pass"
-        )
-
-    def setUp(self):
-        self.client.force_login(self.superuser)
-        self.factory = RequestFactory()
-
+class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
     def test_get_add_without_confirm_add(self):
         response = self.client.get(reverse("admin:market_item_add"))
         self.assertFalse(response.context_data.get("confirm_add"))
@@ -53,7 +42,13 @@ class TestConfirmChangeAndAdd(TestCase):
     def test_post_add_with_confirm_add(self):
         item = ItemFactory()
         shop = ShopFactory()
-        data = {"shop": shop.id, "item": item.id, "quantity": 5, "_confirm_add": True}
+        data = {
+            "shop": shop.id,
+            "item": item.id,
+            "quantity": 5,
+            "_confirm_add": True,
+            "_continue": True,
+        }
         response = self.client.post(reverse("admin:market_inventory_add"), data)
         # Ensure not redirected (confirmation page does not redirect)
         self.assertEqual(response.status_code, 200)
@@ -63,12 +58,14 @@ class TestConfirmChangeAndAdd(TestCase):
             "admin/change_confirmation.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
+
         form_data = {"shop": str(shop.id), "item": str(item.id), "quantity": str(5)}
-        for k, v in form_data.items():
-            self.assertIn(
-                f'<input type="hidden" name="{ k }" value="{ v }">',
-                response.rendered_content,
-            )
+        self._assertSimpleFieldFormHtml(
+            rendered_content=response.rendered_content, fields=form_data
+        )
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, save_action="_continue"
+        )
 
         # Should not have been added yet
         self.assertEqual(Inventory.objects.count(), 0)
@@ -96,14 +93,14 @@ class TestConfirmChangeAndAdd(TestCase):
         form_data = {
             "name": "name",
             "price": str(2.0),
-            "id": str(item.id),
+            # "id": str(item.id),
             "currency": Item.VALID_CURRENCIES[0][0],
         }
-        for k, v in form_data.items():
-            self.assertIn(
-                f'<input type="hidden" name="{ k }" value="{ v }">',
-                response.rendered_content,
-            )
+
+        self._assertSimpleFieldFormHtml(
+            rendered_content=response.rendered_content, fields=form_data
+        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content)
 
         # Hasn't changed item yet
         item.refresh_from_db()
