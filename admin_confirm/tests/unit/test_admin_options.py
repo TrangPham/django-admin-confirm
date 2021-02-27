@@ -13,7 +13,7 @@ from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 class TestAdminOptions(AdminConfirmTestCase):
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "fields", ["name", "town"])
-    def test_m2m_field_not_in_fields(self):
+    def test_change_model_with_m2m_field_without_input_for_m2m_field_should_work(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
@@ -83,7 +83,7 @@ class TestAdminOptions(AdminConfirmTestCase):
 
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "exclude", ["shops"])
-    def test_m2m_field_in_exclude(self):
+    def test_when_m2m_field_in_exclude_changes_to_field_should_not_be_saved(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
@@ -155,7 +155,7 @@ class TestAdminOptions(AdminConfirmTestCase):
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "exclude", ["shops", "name"])
     @mock.patch.object(ShoppingMallAdmin, "inlines", [])
-    def test_confirmation_fields_in_exclude(self):
+    def test_if_confirmation_fields_in_exclude_should_not_trigger_confirmation(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
@@ -196,7 +196,7 @@ class TestAdminOptions(AdminConfirmTestCase):
     @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
     @mock.patch.object(ShoppingMallAdmin, "readonly_fields", ["shops", "name"])
     @mock.patch.object(ShoppingMallAdmin, "inlines", [])
-    def test_confirmation_fields_in_readonly(self):
+    def test_if_confirmation_fields_in_readonly_should_not_trigger_confirmation(self):
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
