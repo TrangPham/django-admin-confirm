@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="None">
+  
+  
+  <link rel="shortcut icon" href="img/favicon.ico">
+  <title>My Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" href="css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet" />
+  <link href="//use.fontawesome.com/releases/v5.8.1/css/v4-shims.css" rel="stylesheet" />
+  <link href="css/mkapi-common.css" rel="stylesheet" />
+  <link href="css/mkapi-readthedocs.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Django Admin Confirm";
+    var mkdocs_page_input_path = "index.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="js/jquery-2.1.1.min.js" defer></script>
+  <script src="js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="." class="icon icon-home"> My Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul class="current">
+                    <li class="toctree-l1 current"><a class="reference internal current" href=".">Django Admin Confirm</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#disclaimer">Disclaimer</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-options">Configuration Options</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#contribution-appreciation">Contribution &amp; Appreciation</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#local-development-setup">Local Development Setup</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#release-process">Release process</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#feature-list">Feature List</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#support">Support</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">License</a>
+    </li>
+    </ul>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">API</span></p>
+                <ul>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href=".">My Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>Django Admin Confirm</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="django-admin-confirm">Django Admin Confirm</h1>
+<p><a href="https://pypi.org/project/django-admin-confirm/"><img alt="PyPI" src="https://img.shields.io/pypi/v/django-admin-confirm?color=blue" /></a> <img alt="Tests Status" src="https://github.com/TrangPham/django-admin-confirm/actions/workflows/.github/workflows/test.yml/badge.svg" /> <a href="https://coveralls.io/github/TrangPham/django-admin-confirm"><img alt="Coverage Status" src="https://coveralls.io/repos/github/TrangPham/django-admin-confirm/badge.svg" /></a>
+<img alt="PyPI - Python Version" src="https://img.shields.io/pypi/pyversions/django-admin-confirm" /> <img alt="PyPI - Django Version" src="https://img.shields.io/pypi/djversions/django-admin-confirm" /></p>
+<p>AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add and actions.</p>
+<p><img alt="Screenshot of Change Confirmation Page" src="https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot.png" /></p>
+<p><img alt="Screenshot of Add Confirmation Page" src="https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot_confirm_add.png" /></p>
+<p><img alt="Screenshot of Action Confirmation Page" src="https://raw.githubusercontent.com/TrangPham/django-admin-confirm/302e02b1e483fd41e9a6f0b6803b45cd34c866cf/screenshot_confirm_action.png" /></p>
+<p>It can be configured to add a confirmation page on ModelAdmin upon:</p>
+<ul>
+<li>saving changes</li>
+<li>adding new instances</li>
+<li>performing actions</li>
+</ul>
+<p>Typical Usage:</p>
+<pre><code class="language-py">    from admin_confirm import AdminConfirmMixin
+
+    class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
+        confirm_change = True
+        confirmation_fields = ['field1', 'field2']
+</code></pre>
+<h2 id="disclaimer">Disclaimer</h2>
+<p>Although test coverage for the package is high, this does not mean that extensive testing of all ModelAdmin configurations have been tested.</p>
+<h2 id="installation">Installation</h2>
+<p>Install django-admin-confirm by running:</p>
+<pre><code>pip install django-admin-confirm
+</code></pre>
+<p>Add to INSTALLED_APPS in your project settings before <code>django.contrib.admin</code>:</p>
+<pre><code>INSTALLED_APPS = [
+    ...
+    'admin_confirm',
+
+    'django.contrib.admin',
+    ...
+]
+</code></pre>
+<p>Note that this project follows the template override rules of Django.
+To override a template, your app should be listed before <code>admin_confirm</code> in INSTALLED_APPS.</p>
+<h2 id="configuration-options">Configuration Options</h2>
+<p><strong>Attributes:</strong></p>
+<ul>
+<li><code>confirm_change</code> <em>Optional[bool]</em> - decides if changes should trigger confirmation</li>
+<li><code>confirm_add</code> <em>Optional[bool]</em> - decides if additions should trigger confirmation</li>
+<li><code>confirmation_fields</code> <em>Optional[Array[string]]</em> - sets which fields should trigger confirmation for add/change. For adding new instances, the field would only trigger a confirmation if it's set to a value that's not its default.</li>
+<li><code>change_confirmation_template</code> <em>Optional[string]</em> - path to custom html template to use for change/add</li>
+<li><code>action_confirmation_template</code> <em>Optional[string]</em> - path to custom html template to use for actions</li>
+</ul>
+<p>Note that setting <code>confirmation_fields</code> without setting <code>confirm_change</code> or <code>confirm_add</code> would not trigger confirmation for change/add. Confirmations for actions does not use the <code>confirmation_fields</code> option.</p>
+<p><strong>Method Overrides:</strong>
+If you want even more control over the confirmation, these methods can be overridden:</p>
+<ul>
+<li><code>get_confirmation_fields(self, request: HttpRequest, obj: Optional[Object]) -&gt; List[str]</code></li>
+<li><code>render_change_confirmation(self, request: HttpRequest, context: dict) -&gt; TemplateResponse</code></li>
+<li><code>render_action_confirmation(self, request: HttpRequest, context: dict) -&gt; TemplateResponse</code></li>
+</ul>
+<h2 id="usage">Usage</h2>
+<p><strong>Confirm Change:</strong></p>
+<pre><code class="language-py">    from admin_confirm import AdminConfirmMixin
+
+    class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
+        confirm_change = True
+        confirmation_fields = ['field1', 'field2']
+</code></pre>
+<p>This would confirm changes on changes that include modifications on<code>field1</code> and/or <code>field2</code>.</p>
+<p><strong>Confirm Add:</strong></p>
+<pre><code class="language-py">    from admin_confirm import AdminConfirmMixin
+
+    class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
+        confirm_add = True
+        confirmation_fields = ['field1', 'field2']
+</code></pre>
+<p>This would confirm add on adds that set <code>field1</code> and/or <code>field2</code> to a non default value.</p>
+<p>Note: <code>confirmation_fields</code> apply to both add/change confirmations.</p>
+<p><strong>Confirm Action:</strong></p>
+<pre><code class="language-py">    from admin_confirm import AdminConfirmMixin
+
+    class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
+        actions = [&quot;action1&quot;, &quot;action2&quot;]
+
+        def action1(modeladmin, request, queryset):
+            # Do something with the queryset
+
+        @confirm_action
+        def action2(modeladmin, request, queryset):
+            # Do something with the queryset
+
+        action2.allowed_permissions = ('change',)
+</code></pre>
+<p>This would confirm <code>action2</code> but not <code>action1</code>.</p>
+<p>Action confirmation will respect <code>allowed_permissions</code> and the <code>has_xxx_permission</code> methods.</p>
+<blockquote>
+<p>Note: AdminConfirmMixin does not confirm any changes on inlines</p>
+</blockquote>
+<h2 id="contribution-appreciation">Contribution &amp; Appreciation</h2>
+<p>Contributions are most welcome :) Feel free to:</p>
+<ul>
+<li>address an issue</li>
+<li>raise an issue</li>
+<li>add more test cases</li>
+<li>add feature requests</li>
+</ul>
+<p>Your appreciation is also very welcome :) Feel free to:</p>
+<ul>
+<li>star the project</li>
+<li>open an issue just to share your thanks</li>
+</ul>
+<h3 id="local-development-setup">Local Development Setup</h3>
+<p><strong>Local:</strong>
+<em>You can skip this and just use docker if you want</em></p>
+<p>Install pyenv
+pyenv install 3.8.0</p>
+<p>Create <strong>virtualenv</strong> via pyenv</p>
+<pre><code>pyenv vituralenv 3.8.0 django-admin-confirm-3.8.0
+</code></pre>
+<p>Now your terminal should have <code>(django-admin-confirm-3.8.0)</code> prefix, because <code>.python-version</code> should have auto switch your virtual env</p>
+<p>Run <strong>migrations</strong> and create a superuser and run the server</p>
+<pre><code>./tests/manage.py migrate
+./tests/manage.py createsuperuser
+./tests/manage.py runserver
+</code></pre>
+<p>You should be able to see the test app at <code>localhost:8000/admin</code></p>
+<p><strong>Running tests:</strong></p>
+<pre><code class="language-sh">make test # Runs unit tests with coverage locally without integration tests
+make test-all # Runs unit tests + integration tests, requires extra setup to run locally
+</code></pre>
+<p>Use <code>python -m pytest</code> if you want to pass in arguments</p>
+<p><code>make t</code> is a short cut to run without coverage, last-failed, and fail fast</p>
+<p>Testing local changes on test project:</p>
+<pre><code>pip install -e .
+make run
+</code></pre>
+<p><strong>Docker:</strong></p>
+<p>Instead of local set-up, you can also use docker.</p>
+<p>Install docker-compose (or Docker Desktop which installs this for you)</p>
+<pre><code>docker-compose build
+docker-compose up -d
+</code></pre>
+<p>You should now be able to see the app running on <code>localhost:8000</code></p>
+<p>If you haven't already done migrations and created a superuser, you'll want to do it here</p>
+<pre><code>docker-compose exec web tests/manage.py migrate
+docker-compose exec web tests/manage.py createsuperuser
+</code></pre>
+<p>Running tests in docker:</p>
+<pre><code>docker-compose exec -T web make test-all
+</code></pre>
+<p>The integration tests are set up within docker. I recommend running the integration tests only in docker.</p>
+<p>Docker is also set to mirror local folder so that you can edit code/tests and don't have to rebuild to run new code/tests.</p>
+<h3 id="release-process">Release process</h3>
+<p>Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.</p>
+<p>Run tests, check coverage, check readme</p>
+<pre><code>docker-compose exec -T web make test-all
+make check-readme
+</code></pre>
+<p>Update version in <code>setup.py</code></p>
+<pre><code>make package
+make upload-testpypi VERSION=&lt;VERSION&gt;
+</code></pre>
+<p>Install new version locally
+First you have to uninstall if you used <code>pip install -e</code> earlier</p>
+<pre><code>pip uninstall django_admin_confirm
+make install-testpypi VERSION=&lt;VERSION&gt;
+</code></pre>
+<p>Update version in <code>requirements.txt</code>
+Add test locally</p>
+<pre><code>make run
+</code></pre>
+<p>Go on github and make a release in UI</p>
+<h2 id="feature-list">Feature List</h2>
+<p>This is a list of features which could potentially be added in the future. Some of which might make more sense in their own package.</p>
+<ul>
+<li>[x] confirmations on changelist actions</li>
+<li>[ ] confirmations on inlines</li>
+<li>[ ] global actions on changelist page</li>
+<li>[ ] instance actions on change/view page</li>
+<li>[ ] action logs (adding actions to history of instances)</li>
+<li>[ ] add help tooltip/popover to any field for more info</li>
+<li>[ ] add help tooltop/popover/help button to admin actions on changelist</li>
+<li>[ ] run scripts from admin</li>
+<li>[ ] completed action summary page</li>
+<li>[ ] add top and bottom areas to instance pages which can be configured for any content</li>
+</ul>
+<h2 id="support">Support</h2>
+<p>If you are having issues, please let us know through raising an issue.</p>
+<h2 id="license">License</h2>
+<p>The project is licensed under the Apache 2.0 license.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme.js" defer></script>
+      <script src="js/mkapi.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.1.2
+Build Date UTC : 2021-02-25 17:33:57.490630+00:00
+-->

@@ -1,0 +1,8 @@
+site_name: My Docs
+theme: readthedocs
+plugins:
+  - search
+  - mkapi
+nav:
+  - index.md
+  - API: mkapi/api/admin_confirm

@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  
+  <link rel="shortcut icon" href="../../../img/favicon.ico">
+  <title>admin_confirm.admin - My Docs</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700" />
+
+  <link rel="stylesheet" href="../../../css/theme.css" />
+  <link rel="stylesheet" href="../../../css/theme_extra.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" />
+  <link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet" />
+  <link href="//use.fontawesome.com/releases/v5.8.1/css/v4-shims.css" rel="stylesheet" />
+  <link href="../../../css/mkapi-common.css" rel="stylesheet" />
+  <link href="../../../css/mkapi-readthedocs.css" rel="stylesheet" />
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "admin_confirm.admin";
+    var mkdocs_page_input_path = "api/source/admin_confirm.admin.md";
+    var mkdocs_page_url = null;
+  </script>
+  
+  <script src="../../../js/jquery-2.1.1.min.js" defer></script>
+  <script src="../../../js/modernizr-2.8.3.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+        <a href="../../.." class="icon icon-home"> My Docs</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+                <ul>
+                    <li class="toctree-l1"><a class="reference internal" href="../../..">Django Admin Confirm</a>
+                    </li>
+                </ul>
+                <p class="caption"><span class="caption-text">API</span></p>
+                <ul>
+                </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../..">My Docs</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>admin_confirm.admin</li>
+    <li class="wy-breadcrumbs-aside">
+      
+    </li>
+  </ul>
+  
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <div class="mkapi-node">
+<h1 id="" class="mkapi-object mkapi-object-code plain">
+<span class="mkapi-object-kind mkapi-object-kind-code">SOURCE CODE</span>
+<span class="mkapi-object-prefix">admin_confirm.</span><span class="mkapi-object-name">admin</span>
+<span id="admin_confirm.admin"></span><a class="mkapi-docs-link" href="../../admin_confirm.admin">DOCS</a>
+</h1>
+
+<div class="mkapi-code">
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">django.contrib.admin.exceptions</span> <span class="kn">import</span> <span class="n">DisallowedModelAdminToField</span>
+<span class="kn">from</span> <span class="nn">django.contrib.admin.utils</span> <span class="kn">import</span> <span class="n">flatten_fieldsets</span><span class="p">,</span> <span class="n">unquote</span>
+<span class="kn">from</span> <span class="nn">django.core.exceptions</span> <span class="kn">import</span> <span class="n">PermissionDenied</span>
+<span class="kn">from</span> <span class="nn">django.template.response</span> <span class="kn">import</span> <span class="n">TemplateResponse</span>
+<span class="kn">from</span> <span class="nn">django.contrib.admin.options</span> <span class="kn">import</span> <span class="n">TO_FIELD_VAR</span>
+<span class="kn">from</span> <span class="nn">django.utils.translation</span> <span class="kn">import</span> <span class="n">gettext</span> <span class="k">as</span> <span class="n">_</span>
+<span class="kn">from</span> <span class="nn">django.contrib.admin</span> <span class="kn">import</span> <span class="n">helpers</span>
+<span class="kn">from</span> <span class="nn">django.db.models</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ManyToManyField</span><span class="p">,</span> <span class="n">FileField</span><span class="p">,</span> <span class="n">ImageField</span>
+<span class="kn">from</span> <span class="nn">django.forms</span> <span class="kn">import</span> <span class="n">ModelForm</span>
+<span class="kn">from</span> <span class="nn">admin_confirm.utils</span> <span class="kn">import</span> <span class="n">get_admin_change_url</span><span class="p">,</span> <span class="n">snake_to_title_case</span>
+<span class="kn">from</span> <span class="nn">django.core.cache</span> <span class="kn">import</span> <span class="n">cache</span>
+<span class="kn">from</span> <span class="nn">django.views.decorators.cache</span> <span class="kn">import</span> <span class="n">cache_control</span>
+<span class="kn">from</span> <span class="nn">django.forms.formsets</span> <span class="kn">import</span> <span class="n">all_valid</span>
+<span class="kn">from</span> <span class="nn">admin_confirm.constants</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">CACHE_TIMEOUT</span><span class="p">,</span>
+    <span class="n">CONFIRMATION_RECEIVED</span><span class="p">,</span>
+    <span class="n">CONFIRM_ADD</span><span class="p">,</span>
+    <span class="n">CONFIRM_CHANGE</span><span class="p">,</span>
+    <span class="n">SAVE</span><span class="p">,</span>
+    <span class="n">SAVE_ACTIONS</span><span class="p">,</span>
+    <span class="n">CACHE_KEYS</span><span class="p">,</span>
+    <span class="n">SAVE_AND_CONTINUE</span><span class="p">,</span>
+    <span class="n">SAVE_AS_NEW</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">AdminConfirmMixin</span><span class="p">:</span><span id="admin_confirm.admin.AdminConfirmMixin"></span><a class="mkapi-docs-link" title="admin_confirm.admin.AdminConfirmMixin" href="../../admin_confirm.admin/#admin_confirm.admin.AdminConfirmMixin">DOCS</a>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple doc string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Should we ask for confirmation for changes?</span>
+    <span class="n">confirm_change</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Should we ask for confirmation for additions?</span>
+    <span class="n">confirm_add</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># If asking for confirmation, which fields should we confirm for?</span>
+    <span class="n">confirmation_fields</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Custom templates (designed to be over-ridden in subclasses)</span>
+    <span class="n">change_confirmation_template</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">action_confirmation_template</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">get_confirmation_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span><span id="admin_confirm.admin.AdminConfirmMixin.get_confirmation_fields"></span><a class="mkapi-docs-link" title="admin_confirm.admin.AdminConfirmMixin.get_confirmation_fields" href="../../admin_confirm.admin/#admin_confirm.admin.AdminConfirmMixin.get_confirmation_fields">DOCS</a>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Hook for specifying confirmation fields</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation_fields</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirmation_fields</span>
+
+        <span class="n">model_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">fields</span><span class="p">])</span>
+        <span class="n">admin_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">flatten_fieldsets</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_fieldsets</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">model_fields</span> <span class="o">&amp;</span> <span class="n">admin_fields</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">render_change_confirmation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span>
+        <span class="n">app_label</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">app_label</span>
+
+        <span class="n">request</span><span class="o">.</span><span class="n">current_app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admin_site</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">media</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">TemplateResponse</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_confirmation_template</span>
+            <span class="ow">or</span> <span class="p">[</span>
+                <span class="s2">&quot;admin/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/change_confirmation.html&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">app_label</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">model_name</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;admin/</span><span class="si">{}</span><span class="s2">/change_confirmation.html&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">app_label</span><span class="p">),</span>
+                <span class="s2">&quot;admin/change_confirmation.html&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">context</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">render_action_confirmation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">):</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span>
+        <span class="n">app_label</span> <span class="o">=</span> <span class="n">opts</span><span class="o">.</span><span class="n">app_label</span>
+
+        <span class="n">request</span><span class="o">.</span><span class="n">current_app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">admin_site</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">context</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+            <span class="n">media</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">media</span><span class="p">,</span>
+            <span class="n">opts</span><span class="o">=</span><span class="n">opts</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">TemplateResponse</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">action_confirmation_template</span>
+            <span class="ow">or</span> <span class="p">[</span>
+                <span class="s2">&quot;admin/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/action_confirmation.html&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">app_label</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">model_name</span>
+                <span class="p">),</span>
+                <span class="s2">&quot;admin/</span><span class="si">{}</span><span class="s2">/action_confirmation.html&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">app_label</span><span class="p">),</span>
+                <span class="s2">&quot;admin/action_confirmation.html&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">context</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@cache_control</span><span class="p">(</span><span class="n">private</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">changeform_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">form_url</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">extra_context</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">method</span> <span class="o">==</span> <span class="s2">&quot;POST&quot;</span><span class="p">:</span>
+            <span class="c1"># print(request.POST)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">object_id</span> <span class="ow">and</span> <span class="n">CONFIRM_ADD</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                <span class="n">object_id</span> <span class="ow">and</span> <span class="n">CONFIRM_CHANGE</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+            <span class="p">):</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">delete_many</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_change_confirmation_view</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">CONFIRMATION_RECEIVED</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_confirmation_received_view</span><span class="p">(</span>
+                    <span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">delete_many</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="n">extra_context</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="p">(</span><span class="n">extra_context</span> <span class="ow">or</span> <span class="p">{}),</span>
+            <span class="s2">&quot;confirm_add&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirm_add</span><span class="p">,</span>
+            <span class="s2">&quot;confirm_change&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">confirm_change</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">changeform_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_changed_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="n">ModelForm</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Model</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="nb">object</span><span class="p">,</span> <span class="n">add</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a form, detect the changes on the form from the default values (if add) or</span>
+<span class="sd">        from the database values of the object (model instance)</span>
+
+<span class="sd">        form - Submitted form that is attempting to alter the obj</span>
+<span class="sd">        model - the model class of the obj</span>
+<span class="sd">        obj - instance of model which is being altered</span>
+<span class="sd">        add - are we attempting to add the obj or does it already exist in the database</span>
+
+<span class="sd">        Returns a dictionary of the fields and their changed values if any</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_display_for_changed_data</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">,</span> <span class="n">new_value</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">FileField</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">ImageField</span><span class="p">)):</span>
+                <span class="k">return</span> <span class="p">[</span><span class="n">initial_value</span><span class="p">,</span> <span class="n">new_value</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">initial_value</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">new_value</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+                    <span class="c1"># Clear has been selected</span>
+                    <span class="k">return</span> <span class="p">[</span><span class="n">initial_value</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">new_value</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">[</span><span class="n">initial_value</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">new_value</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># No cover: Technically doesn&#39;t get called in current code because</span>
+                    <span class="c1"># This function is only called if there was a difference in the data</span>
+                    <span class="k">return</span> <span class="p">[</span><span class="n">initial_value</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">initial_value</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>  <span class="c1"># pragma: no cover</span>
+
+            <span class="k">if</span> <span class="n">new_value</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">new_value</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+
+            <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+
+        <span class="n">changed_data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_value</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Don&#39;t consider default values as changed for adding</span>
+                <span class="n">field_object</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">default_value</span> <span class="o">=</span> <span class="n">field_object</span><span class="o">.</span><span class="n">get_default</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">new_value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">new_value</span> <span class="o">!=</span> <span class="n">default_value</span><span class="p">:</span>
+                    <span class="c1"># Show what the default value is</span>
+                    <span class="n">changed_data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_display_for_changed_data</span><span class="p">(</span>
+                        <span class="n">field_object</span><span class="p">,</span> <span class="n">default_value</span><span class="p">,</span> <span class="n">new_value</span>
+                    <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Parse the changed data - Note that using form.changed_data would not work because initial is not set</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_value</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">cleaned_data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+                <span class="c1"># Since the form considers initial as the value first shown in the form</span>
+                <span class="c1"># It could be incorrect when user hits save, and then hits &quot;No, go back to edit&quot;</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">refresh_from_db</span><span class="p">()</span>
+
+                <span class="n">field_object</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">initial_value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+                <span class="c1"># Note: getattr does not work on ManyToManyFields</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field_object</span><span class="p">,</span> <span class="n">ManyToManyField</span><span class="p">):</span>
+                    <span class="n">initial_value</span> <span class="o">=</span> <span class="n">field_object</span><span class="o">.</span><span class="n">value_from_object</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">initial_value</span> <span class="o">!=</span> <span class="n">new_value</span><span class="p">:</span>
+                    <span class="n">changed_data</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_display_for_changed_data</span><span class="p">(</span>
+                        <span class="n">field_object</span><span class="p">,</span> <span class="n">initial_value</span><span class="p">,</span> <span class="n">new_value</span>
+                    <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">changed_data</span>
+
+    <span class="k">def</span> <span class="nf">_confirmation_received_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save the files from cached object (if any) and pass the request to Django</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">_reconstruct_request_files</span><span class="p">():</span>
+            <span class="n">reconstructed_files</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">cached_object</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">])</span>
+            <span class="n">cached_query_dict</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">])</span>
+            <span class="c1"># Reconstruct the files from cached object</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_object</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_query_dict</span><span class="p">:</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">cached_object</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">:</span>
+                <span class="c1"># Do not use cache if the model doesn&#39;t match this model</span>
+                <span class="k">return</span>
+
+            <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_meta</span><span class="o">.</span><span class="n">get_fields</span><span class="p">():</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">FileField</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">ImageField</span><span class="p">)):</span>
+                    <span class="k">continue</span>
+
+                <span class="n">cached_file</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">cached_object</span><span class="p">,</span> <span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">cached_query_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">and</span> <span class="n">cached_file</span><span class="p">:</span>
+                    <span class="n">reconstructed_files</span><span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cached_file</span>
+
+            <span class="k">return</span> <span class="n">reconstructed_files</span>
+
+        <span class="n">reconstructed_files</span> <span class="o">=</span> <span class="n">_reconstruct_request_files</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">reconstructed_files</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># remove the _confirm_add and _confirm_change from post</span>
+            <span class="n">modified_post</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">cached_post</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">])</span>
+            <span class="c1"># No cover: __reconstruct_request_files currently checks for cached post so cached_post won&#39;t be None</span>
+            <span class="k">if</span> <span class="n">cached_post</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="n">modified_post</span> <span class="o">=</span> <span class="n">cached_post</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">CONFIRM_ADD</span> <span class="ow">in</span> <span class="n">modified_post</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">modified_post</span><span class="p">[</span><span class="n">CONFIRM_ADD</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">CONFIRM_CHANGE</span> <span class="ow">in</span> <span class="n">modified_post</span><span class="p">:</span>
+                <span class="k">del</span> <span class="n">modified_post</span><span class="p">[</span><span class="n">CONFIRM_CHANGE</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">object_id</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">SAVE_AS_NEW</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+                <span class="c1"># Update the obj with the new uploaded files</span>
+                <span class="c1"># then pass rest of changes to Django</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">object_id</span><span class="p">)</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Create the obj and pass the rest as changes to Django</span>
+                <span class="c1"># (Since we are not handling the formsets/inlines)</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">])</span>
+
+            <span class="c1"># No cover: __reconstruct_request_files currently checks for cached obj so obj won&#39;t be None</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="k">for</span> <span class="n">field</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">reconstructed_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+                <span class="n">obj</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+                <span class="n">object_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                <span class="c1"># Update the request path, used in the message to user and redirect</span>
+                <span class="c1"># Used in `self.response_change`</span>
+                <span class="n">request</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">get_admin_change_url</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">SAVE_AS_NEW</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">:</span>
+                    <span class="c1"># We have already saved the new object</span>
+                    <span class="c1"># So change action to _continue</span>
+                    <span class="k">del</span> <span class="n">modified_post</span><span class="p">[</span><span class="n">SAVE_AS_NEW</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_as_continue</span><span class="p">:</span>
+                        <span class="n">modified_post</span><span class="p">[</span><span class="n">SAVE_AND_CONTINUE</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">modified_post</span><span class="p">[</span><span class="n">SAVE</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">if</span> <span class="s2">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">modified_post</span><span class="p">:</span>
+                        <span class="k">del</span> <span class="n">modified_post</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+                        <span class="n">modified_post</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">object_id</span>
+
+            <span class="n">request</span><span class="o">.</span><span class="n">POST</span> <span class="o">=</span> <span class="n">modified_post</span>
+
+        <span class="n">cache</span><span class="o">.</span><span class="n">delete_many</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_changeform_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_change_confirmation_view</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">):</span>
+        <span class="c1"># This code is taken from super()._changeform_view</span>
+        <span class="c1"># https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1575-L1592</span>
+        <span class="n">to_field</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TO_FIELD_VAR</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">GET</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TO_FIELD_VAR</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">to_field</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_field_allowed</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">to_field</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">DisallowedModelAdminToField</span><span class="p">(</span>
+                <span class="s2">&quot;The field </span><span class="si">%s</span><span class="s2"> cannot be referenced.&quot;</span> <span class="o">%</span> <span class="n">to_field</span>
+            <span class="p">)</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+        <span class="n">opts</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">_meta</span>
+
+        <span class="n">add</span> <span class="o">=</span> <span class="n">object_id</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_add_permission</span><span class="p">(</span><span class="n">request</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PermissionDenied</span>
+
+            <span class="n">obj</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_object</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">unquote</span><span class="p">(</span><span class="n">object_id</span><span class="p">),</span> <span class="n">to_field</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_obj_does_not_exist_redirect</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">opts</span><span class="p">,</span> <span class="n">object_id</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_view_or_change_permission</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">PermissionDenied</span>
+
+        <span class="n">fieldsets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fieldsets</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="n">ModelForm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_form</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">change</span><span class="o">=</span><span class="ow">not</span> <span class="n">add</span><span class="p">,</span> <span class="n">fields</span><span class="o">=</span><span class="n">flatten_fieldsets</span><span class="p">(</span><span class="n">fieldsets</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">form</span> <span class="o">=</span> <span class="n">ModelForm</span><span class="p">(</span><span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">request</span><span class="o">.</span><span class="n">FILES</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="n">form_validated</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">is_valid</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">form_validated</span><span class="p">:</span>
+            <span class="n">new_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_form</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">change</span><span class="o">=</span><span class="ow">not</span> <span class="n">add</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_object</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">instance</span>
+        <span class="n">formsets</span><span class="p">,</span> <span class="n">inline_instances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_create_formsets</span><span class="p">(</span>
+            <span class="n">request</span><span class="p">,</span> <span class="n">new_object</span><span class="p">,</span> <span class="n">change</span><span class="o">=</span><span class="ow">not</span> <span class="n">add</span>
+        <span class="p">)</span>
+        <span class="c1"># End code from super()._changeform_view</span>
+
+        <span class="c1"># if all_valid(formsets) and form_validated:</span>
+        <span class="c1">#     change_message = self.construct_change_message(request, form, formsets, add)</span>
+        <span class="c1">#     print(change_message)</span>
+
+        <span class="n">add_or_new</span> <span class="o">=</span> <span class="n">add</span> <span class="ow">or</span> <span class="n">SAVE_AS_NEW</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span>
+        <span class="c1"># Get changed data to show on confirmation</span>
+        <span class="n">changed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_changed_data</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">add_or_new</span><span class="p">)</span>
+
+        <span class="n">changed_confirmation_fields</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_confirmation_fields</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">changed_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">bool</span><span class="p">(</span><span class="n">changed_confirmation_fields</span><span class="p">):</span>
+            <span class="c1"># No confirmation required for changed fields, continue to save</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_changeform_view</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">object_id</span><span class="p">,</span> <span class="n">form_url</span><span class="p">,</span> <span class="n">extra_context</span><span class="p">)</span>
+
+        <span class="c1"># Parse the original save action from request</span>
+        <span class="n">save_action</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># No cover: There would not be a case of not request.POST.keys() and form is valid</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">SAVE_ACTIONS</span><span class="p">:</span>
+                <span class="n">save_action</span> <span class="o">=</span> <span class="n">key</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">is_multipart</span><span class="p">():</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;post&quot;</span><span class="p">],</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">CACHE_TIMEOUT</span><span class="p">)</span>
+            <span class="n">cache</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">CACHE_KEYS</span><span class="p">[</span><span class="s2">&quot;object&quot;</span><span class="p">],</span> <span class="n">new_object</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">CACHE_TIMEOUT</span><span class="p">)</span>
+
+        <span class="n">title_action</span> <span class="o">=</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;adding&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">add_or_new</span> <span class="k">else</span> <span class="n">_</span><span class="p">(</span><span class="s2">&quot;changing&quot;</span><span class="p">)</span>
+        <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">admin_site</span><span class="o">.</span><span class="n">each_context</span><span class="p">(</span><span class="n">request</span><span class="p">),</span>
+            <span class="s2">&quot;preserved_filters&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_preserved_filters</span><span class="p">(</span><span class="n">request</span><span class="p">),</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">_</span><span class="p">(</span><span class="s1">&#39;Confirm&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">title_action</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">opts</span><span class="o">.</span><span class="n">verbose_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;subtitle&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+            <span class="s2">&quot;object_name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span>
+            <span class="s2">&quot;object_id&quot;</span><span class="p">:</span> <span class="n">object_id</span><span class="p">,</span>
+            <span class="s2">&quot;app_label&quot;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">app_label</span><span class="p">,</span>
+            <span class="s2">&quot;model_name&quot;</span><span class="p">:</span> <span class="n">opts</span><span class="o">.</span><span class="n">model_name</span><span class="p">,</span>
+            <span class="s2">&quot;opts&quot;</span><span class="p">:</span> <span class="n">opts</span><span class="p">,</span>
+            <span class="s2">&quot;changed_data&quot;</span><span class="p">:</span> <span class="n">changed_data</span><span class="p">,</span>
+            <span class="s2">&quot;add&quot;</span><span class="p">:</span> <span class="n">add</span><span class="p">,</span>
+            <span class="s2">&quot;save_as_new&quot;</span><span class="p">:</span> <span class="n">SAVE_AS_NEW</span> <span class="ow">in</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="p">,</span>
+            <span class="s2">&quot;submit_name&quot;</span><span class="p">:</span> <span class="n">save_action</span><span class="p">,</span>
+            <span class="s2">&quot;form&quot;</span><span class="p">:</span> <span class="n">form</span><span class="p">,</span>
+            <span class="s2">&quot;formsets&quot;</span><span class="p">:</span> <span class="n">formsets</span><span class="p">,</span>
+            <span class="o">**</span><span class="p">(</span><span class="n">extra_context</span> <span class="ow">or</span> <span class="p">{}),</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_change_confirmation</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">confirm_action</span><span class="p">(</span><span class="n">func</span><span class="p">):</span><span id="admin_confirm.admin.confirm_action"></span><a class="mkapi-docs-link" title="admin_confirm.admin.confirm_action" href="../../admin_confirm.admin/#admin_confirm.admin.confirm_action">DOCS</a>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    @confirm_action function wrapper for Django ModelAdmin actions</span>
+<span class="sd">    Will redirect to a confirmation page to ask for confirmation</span>
+
+<span class="sd">    Next, it would call the action if confirmed. Otherwise, it would</span>
+<span class="sd">    return to the changelist without performing action.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">func_wrapper</span><span class="p">(</span><span class="n">modeladmin</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">):</span>
+        <span class="c1"># First called by `Go` which would not have confirm_action in params</span>
+        <span class="k">if</span> <span class="n">request</span><span class="o">.</span><span class="n">POST</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_confirm_action&quot;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">modeladmin</span><span class="p">,</span> <span class="n">request</span><span class="p">,</span> <span class="n">queryset</span><span class="p">)</span>
+
+        <span class="c1"># get_actions will only return the actions that are allowed</span>
+        <span class="n">has_perm</span> <span class="o">=</span> <span class="n">modeladmin</span><span class="o">.</span><span class="n">get_actions</span><span class="p">(</span><span class="n">request</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+        <span class="n">action_display_name</span> <span class="o">=</span> <span class="n">snake_to_title_case</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Confirm Action: </span><span class="si">{</span><span class="n">action_display_name</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">context</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">modeladmin</span><span class="o">.</span><span class="n">admin_site</span><span class="o">.</span><span class="n">each_context</span><span class="p">(</span><span class="n">request</span><span class="p">),</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+            <span class="s2">&quot;queryset&quot;</span><span class="p">:</span> <span class="n">queryset</span><span class="p">,</span>
+            <span class="s2">&quot;has_perm&quot;</span><span class="p">:</span> <span class="n">has_perm</span><span class="p">,</span>
+            <span class="s2">&quot;action&quot;</span><span class="p">:</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+            <span class="s2">&quot;action_display_name&quot;</span><span class="p">:</span> <span class="n">action_display_name</span><span class="p">,</span>
+            <span class="s2">&quot;action_checkbox_name&quot;</span><span class="p">:</span> <span class="n">helpers</span><span class="o">.</span><span class="n">ACTION_CHECKBOX_NAME</span><span class="p">,</span>
+            <span class="s2">&quot;submit_name&quot;</span><span class="p">:</span> <span class="s2">&quot;confirm_action&quot;</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Display confirmation page</span>
+        <span class="k">return</span> <span class="n">modeladmin</span><span class="o">.</span><span class="n">render_action_confirmation</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">func_wrapper</span>
+</code></pre></div>
+</div>
+</div>
+              
+            </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+      
+      
+    </span>
+</div>
+    <script>var base_url = '../../..';</script>
+    <script src="../../../js/theme.js" defer></script>
+      <script src="../../../js/mkapi.js" defer></script>
+      <script src="../../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

@@ -26,6 +26,9 @@ from admin_confirm.constants import (
 
 
 class AdminConfirmMixin:
+    """
+    Simple doc string
+    """
     # Should we ask for confirmation for changes?
     confirm_change = None
 

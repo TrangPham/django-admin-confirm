@@ -1,0 +1,19 @@
+/*
+Reference: https://github.com/daizutabi/mkapi/issues/8
+Thanks to [Ahrak](https://github.com/Ahrak).
+*/
+
+.mkapi-node {
+    font-family: "Lato","proxima-nova","Helvetica Neue",Arial,sans-serif;
+}
+
+.mkapi-node ul.mkapi-items li::before {
+  vertical-align: middle;
+}
+
+.mkapi-object.plain h1.mkapi-object-body {
+    font-size: 150%;
+    margin-top: 0;
+    font-weight: 700;
+    font-family: "Roboto Slab","ff-tisa-web-pro","Georgia",Arial,sans-serif;
+}
