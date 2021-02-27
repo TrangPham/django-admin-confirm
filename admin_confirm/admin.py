@@ -6,11 +6,23 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model, ManyToManyField
+from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
-from admin_confirm.utils import snake_to_title_case
-
-SAVE_ACTIONS = ["_save", "_saveasnew", "_addanother", "_continue"]
+from admin_confirm.utils import get_admin_change_url, snake_to_title_case
+from django.core.cache import cache
+from django.views.decorators.cache import cache_control
+from django.forms.formsets import all_valid
+from admin_confirm.constants import (
+    CACHE_TIMEOUT,
+    CONFIRMATION_RECEIVED,
+    CONFIRM_ADD,
+    CONFIRM_CHANGE,
+    SAVE,
+    SAVE_ACTIONS,
+    CACHE_KEYS,
+    SAVE_AND_CONTINUE,
+    SAVE_AS_NEW,
+)
 
 
 class AdminConfirmMixin:
@@ -34,7 +46,9 @@ class AdminConfirmMixin:
         if self.confirmation_fields is not None:
             return self.confirmation_fields
 
-        return flatten_fieldsets(self.get_fieldsets(request, obj))
+        model_fields = set([field.name for field in self.model._meta.fields])
+        admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
         opts = self.model._meta
@@ -81,14 +95,22 @@ class AdminConfirmMixin:
             context,
         )
 
+    @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            if (not object_id and "_confirm_add" in request.POST) or (
-                object_id and "_confirm_change" in request.POST
+            if (not object_id and CONFIRM_ADD in request.POST) or (
+                object_id and CONFIRM_CHANGE in request.POST
             ):
+                cache.delete_many(CACHE_KEYS.values())
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
                 )
+            elif CONFIRMATION_RECEIVED in request.POST:
+                return self._confirmation_received_view(
+                    request, object_id, form_url, extra_context
+                )
+            else:
+                cache.delete_many(CACHE_KEYS.values())
 
         extra_context = {
             **(extra_context or {}),
@@ -111,31 +133,159 @@ class AdminConfirmMixin:
 
         Returns a dictionary of the fields and their changed values if any
         """
-        changed_data = {}
-        if form.is_valid():
-            if add:
-                for name, new_value in form.cleaned_data.items():
-                    # Don't consider default values as changed for adding
-                    default_value = model._meta.get_field(name).get_default()
-                    if new_value is not None and new_value != default_value:
-                        # Show what the default value is
-                        changed_data[name] = [default_value, new_value]
-            else:
-                # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-                for name, new_value in form.cleaned_data.items():
-                    # Since the form considers initial as the value first shown in the form
-                    # It could be incorrect when user hits save, and then hits "No, go back to edit"
-                    obj.refresh_from_db()
-                    # Note: getattr does not work on ManyToManyFields
-                    field_object = model._meta.get_field(name)
-                    initial_value = getattr(obj, name)
-                    if isinstance(field_object, ManyToManyField):
-                        initial_value = field_object.value_from_object(obj)
 
-                    if initial_value != new_value:
-                        changed_data[name] = [initial_value, new_value]
+        def _display_for_changed_data(field, initial_value, new_value):
+            if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+                return [initial_value, new_value]
+
+            if initial_value:
+                if new_value == False:
+                    # Clear has been selected
+                    return [initial_value.name, None]
+                elif new_value:
+                    return [initial_value.name, new_value.name]
+                else:
+                    # No cover: Technically doesn't get called in current code because
+                    # This function is only called if there was a difference in the data
+                    return [initial_value.name, initial_value.name]  # pragma: no cover
+
+            if new_value:
+                return [None, new_value.name]
+
+            return [None, None]
+
+        changed_data = {}
+        if add:
+            for name, new_value in form.cleaned_data.items():
+                # Don't consider default values as changed for adding
+                field_object = model._meta.get_field(name)
+                default_value = field_object.get_default()
+                if new_value is not None and new_value != default_value:
+                    # Show what the default value is
+                    changed_data[name] = _display_for_changed_data(
+                        field_object, default_value, new_value
+                    )
+        else:
+            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
+            for name, new_value in form.cleaned_data.items():
+
+                # Since the form considers initial as the value first shown in the form
+                # It could be incorrect when user hits save, and then hits "No, go back to edit"
+                obj.refresh_from_db()
+
+                field_object = model._meta.get_field(name)
+                initial_value = getattr(obj, name)
+
+                # Note: getattr does not work on ManyToManyFields
+                if isinstance(field_object, ManyToManyField):
+                    initial_value = field_object.value_from_object(obj)
+
+                if initial_value != new_value:
+                    changed_data[name] = _display_for_changed_data(
+                        field_object, initial_value, new_value
+                    )
 
         return changed_data
+
+    def _confirmation_received_view(self, request, object_id, form_url, extra_context):
+        """
+        When the form is a multipart form, the object and POST are cached
+        This is required because file(s) cannot be programmically uploaded
+        ie. There is no way to set a file on the html form
+
+        If the form isn't multipart, this function would not be called.
+        If there are no file changes, do nothing to the request and send to Django.
+
+        If there are files uploaded, save the files from cached object to either:
+        - the object instance if already exists
+        - or save the new object and modify the request from `add` to `change`
+        and pass the request to Django
+        """
+
+        def _reconstruct_request_files():
+            """
+            Reconstruct the file(s) from the cached object (if any).
+            Returns a dictionary of field name to cached file
+            """
+            reconstructed_files = {}
+
+            cached_object = cache.get(CACHE_KEYS["object"])
+            query_dict = cache.get(CACHE_KEYS["post"])
+            # Reconstruct the files from cached object
+            if not cached_object:
+                return
+
+            if not query_dict:
+                # Use the current POST, since it should mirror cached POST
+                query_dict = request.POST
+
+            if type(cached_object) != self.model:
+                # Do not use cache if the model doesn't match this model
+                return
+
+            for field in self.model._meta.get_fields():
+                if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+                    continue
+
+                cached_file = getattr(cached_object, field.name)
+                # If a file was uploaded, the field is omitted from the POST since it's in request.FILES
+                if not query_dict.get(field.name) and cached_file:
+                    reconstructed_files[field.name] = cached_file
+
+            return reconstructed_files
+
+        reconstructed_files = _reconstruct_request_files()
+        if reconstructed_files:
+            obj = None
+
+            # remove the _confirm_add and _confirm_change from post
+            modified_post = request.POST.copy()
+            cached_post = cache.get(CACHE_KEYS["post"])
+            # No cover: __reconstruct_request_files currently checks for cached post so cached_post won't be None
+            if cached_post:  # pragma: no cover
+                modified_post = cached_post.copy()
+            if CONFIRM_ADD in modified_post:
+                del modified_post[CONFIRM_ADD]
+            if CONFIRM_CHANGE in modified_post:
+                del modified_post[CONFIRM_CHANGE]
+
+            if object_id and not SAVE_AS_NEW in request.POST:
+                # Update the obj with the new uploaded files
+                # then pass rest of changes to Django
+                obj = self.model.objects.filter(id=object_id).first()
+            else:
+                # Create the obj and pass the rest as changes to Django
+                # (Since we are not handling the formsets/inlines)
+                # Note that this results in the "Yes, I'm Sure" submission
+                #   act as a `change` not an `add`
+                obj = cache.get(CACHE_KEYS["object"])
+
+            # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
+            if obj:  # pragma: no cover
+                for field, file in reconstructed_files.items():
+                    setattr(obj, field, file)
+                obj.save()
+                object_id = str(obj.id)
+                # Update the request path, used in the message to user and redirect
+                # Used in `self.response_change`
+                request.path = get_admin_change_url(obj)
+
+                if SAVE_AS_NEW in request.POST:
+                    # We have already saved the new object
+                    # So change action to _continue
+                    del modified_post[SAVE_AS_NEW]
+                    if self.save_as_continue:
+                        modified_post[SAVE_AND_CONTINUE] = True
+                    else:
+                        modified_post[SAVE] = True
+                    if "id" in modified_post:
+                        del modified_post["id"]
+                        modified_post["id"] = object_id
+
+            request.POST = modified_post
+
+        cache.delete_many(CACHE_KEYS.values())
+        return super()._changeform_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
         # This code is taken from super()._changeform_view
@@ -169,13 +319,19 @@ class AdminConfirmMixin:
         )
 
         form = ModelForm(request.POST, request.FILES, obj)
-        # Note to self: For inline instances see:
-        # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1582
-
+        form_validated = form.is_valid()
+        if form_validated:
+            new_object = self.save_form(request, form, change=not add)
+        else:
+            new_object = form.instance
+        formsets, inline_instances = self._create_formsets(
+            request, new_object, change=not add
+        )
         # End code from super()._changeform_view
 
+        add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, add)
+        changed_data = self._get_changed_data(form, model, obj, add_or_new)
 
         changed_confirmation_fields = set(
             self.get_confirmation_fields(request, obj)
@@ -186,13 +342,17 @@ class AdminConfirmMixin:
 
         # Parse the original save action from request
         save_action = None
-        for key in request.POST.keys():
+        # No cover: There would not be a case of not request.POST.keys() and form is valid
+        for key in request.POST.keys():  # pragma: no cover
             if key in SAVE_ACTIONS:
                 save_action = key
                 break
 
-        title_action = _("adding") if add else _("changing")
+        if form.is_multipart():
+            cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
+            cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
 
+        title_action = _("adding") if add_or_new else _("changing")
         context = {
             **self.admin_site.each_context(request),
             "preserved_filters": self.get_preserved_filters(request),
@@ -205,8 +365,10 @@ class AdminConfirmMixin:
             "opts": opts,
             "changed_data": changed_data,
             "add": add,
+            "save_as_new": SAVE_AS_NEW in request.POST,
             "submit_name": save_action,
             "form": form,
+            "formsets": formsets,
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)

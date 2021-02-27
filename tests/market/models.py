@@ -9,6 +9,9 @@ class Item(models.Model):
     name = models.CharField(max_length=120)
     price = models.DecimalField(max_digits=5, decimal_places=2)
     currency = models.CharField(max_length=3, choices=VALID_CURRENCIES)
+    image = models.ImageField(upload_to="tmp/items", null=True, blank=True)
+    file = models.FileField(upload_to="tmp/files", null=True, blank=True)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -18,7 +21,7 @@ class Shop(models.Model):
     name = models.CharField(max_length=120)
 
     def __str__(self):
-        return self.name
+        return str(self.name)
 
 
 class Inventory(models.Model):
@@ -35,9 +38,22 @@ class Inventory(models.Model):
     notes = models.TextField(default="This is the default", null=True, blank=True)
 
 
+class GeneralManager(models.Model):
+    name = models.CharField(max_length=120)
+    headshot = models.ImageField(upload_to="tmp/gm/headshots", null=True, blank=True)
+
+
+class Town(models.Model):
+    name = models.CharField(max_length=120)
+
+
 class ShoppingMall(models.Model):
     name = models.CharField(max_length=120)
     shops = models.ManyToManyField(Shop)
+    general_manager = models.OneToOneField(
+        GeneralManager, on_delete=models.CASCADE, null=True, blank=True
+    )
+    town = models.ForeignKey(Town, on_delete=models.CASCADE, null=True, blank=True)
 
     def __str__(self):
         return self.name

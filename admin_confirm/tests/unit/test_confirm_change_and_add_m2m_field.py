@@ -1,12 +1,15 @@
+from unittest import mock
+from admin_confirm.admin import AdminConfirmMixin
 from django.urls import reverse
 
-from admin_confirm.tests.helpers import ConfirmAdminTestCase
+from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShoppingMallAdmin
 from tests.market.models import ShoppingMall
 from tests.factories import ShopFactory
 
 
-class TestConfirmChangeAndAddM2MField(ConfirmAdminTestCase):
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
+class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
     def test_post_add_without_confirm_add_m2m(self):
         shops = [ShopFactory() for i in range(3)]
 
@@ -83,6 +86,9 @@ class TestConfirmChangeAndAddM2MField(ConfirmAdminTestCase):
             "admin/change_confirmation.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
+
+        # Should show two lists for the m2m current and modified values
+        self.assertEqual(response.rendered_content.count("<ul>"), 2)
 
         self._assertManyToManyFormHtml(
             rendered_content=response.rendered_content,

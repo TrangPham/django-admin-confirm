@@ -1,17 +1,20 @@
+from unittest import mock
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
-from admin_confirm.tests.helpers import ConfirmAdminTestCase
-from tests.market.admin import ItemAdmin, InventoryAdmin
-from tests.market.models import Item, Inventory
+from admin_confirm.tests.helpers import AdminConfirmTestCase
+from tests.market.admin import ItemAdmin, InventoryAdmin, ShoppingMallAdmin
+from tests.market.models import Item, Inventory, ShoppingMall
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
-class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
+@mock.patch.object(ShoppingMallAdmin, "inlines", [])
+class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     def test_get_add_without_confirm_add(self):
+        ItemAdmin.confirm_add = False
         response = self.client.get(reverse("admin:market_item_add"))
         self.assertFalse(response.context_data.get("confirm_add"))
         self.assertNotIn("_confirm_add", response.rendered_content)
@@ -70,6 +73,36 @@ class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
         # Should not have been added yet
         self.assertEqual(Inventory.objects.count(), 0)
 
+    def test_post_change_with_confirm_change_shoppingmall_name(self):
+        # When testing found that even though name was in confirmation_fields
+        # When only name changed, `form.is_valid` = False, and thus didn't trigger
+        # confirmation page previously, even though it should have
+
+        mall = ShoppingMall.objects.create(name="name")
+        data = {
+            "id": mall.id,
+            "name": "new name",
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+            "_save": True,
+        }
+        response = self.client.post(
+            f"/admin/market/shoppingmall/{mall.id}/change/", data
+        )
+        # Ensure not redirected (confirmation page does not redirect)
+        self.assertEqual(response.status_code, 200)
+        expected_templates = [
+            "admin/market/shoppingmall/change_confirmation.html",
+            "admin/market/change_confirmation.html",
+            "admin/change_confirmation.html",
+        ]
+        self.assertEqual(response.template_name, expected_templates)
+        self._assertSubmitHtml(rendered_content=response.rendered_content)
+
+        # Hasn't changed item yet
+        mall.refresh_from_db()
+        self.assertEqual(mall.name, "name")
+
     def test_post_change_with_confirm_change(self):
         item = ItemFactory(name="item")
         data = {
@@ -100,7 +133,9 @@ class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
         self._assertSimpleFieldFormHtml(
             rendered_content=response.rendered_content, fields=form_data
         )
-        self._assertSubmitHtml(rendered_content=response.rendered_content)
+        self._assertSubmitHtml(
+            rendered_content=response.rendered_content, multipart_form=True
+        )
 
         # Hasn't changed item yet
         item.refresh_from_db()
@@ -120,9 +155,22 @@ class TestConfirmChangeAndAdd(ConfirmAdminTestCase):
     def test_get_confirmation_fields_should_default_if_not_set(self):
         expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
         ItemAdmin.confirmation_fields = None
+        ItemAdmin.fields = expected_fields
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
-        self.assertEqual(expected_fields, actual_fields)
+        for field in expected_fields:
+            self.assertIn(field, actual_fields)
+
+    def test_get_confirmation_fields_default_should_only_include_fields_shown_on_admin(
+        self,
+    ):
+        admin_fields = ["name", "price"]
+        ItemAdmin.confirmation_fields = None
+        ItemAdmin.fields = admin_fields
+        admin = ItemAdmin(Item, AdminSite())
+        actual_fields = admin.get_confirmation_fields(self.factory.request())
+        for field in admin_fields:
+            self.assertIn(field, actual_fields)
 
     def test_get_confirmation_fields_if_set(self):
         expected_fields = ["name", "currency"]

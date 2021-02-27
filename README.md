@@ -27,6 +27,12 @@ Typical Usage:
         confirmation_fields = ['field1', 'field2']
 ```
 
+## Disclaimer
+
+Be aware that not all possible combinations of ModelAdmin have been tested, even if test coverage is high.
+
+See [testing readme](admin_confirm/tests/README.md) for more details
+
 ## Installation
 
 Install django-admin-confirm by running:

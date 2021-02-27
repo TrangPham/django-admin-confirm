@@ -1,8 +1,13 @@
+from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 
 
-class ConfirmAdminTestCase(TestCase):
+class AdminConfirmTestCase(TestCase):
+    """
+    Helper TestCase class and common associated assertions
+    """
+
     @classmethod
     def setUpTestData(cls):
         cls.superuser = User.objects.create_superuser(
@@ -10,6 +15,7 @@ class ConfirmAdminTestCase(TestCase):
         )
 
     def setUp(self):
+        cache.clear()
         self.client.force_login(self.superuser)
         self.factory = RequestFactory()
 
@@ -24,7 +30,9 @@ class ConfirmAdminTestCase(TestCase):
         # ManyToManyField should be embedded
         self.assertIn("related-widget-wrapper", rendered_content)
 
-    def _assertSubmitHtml(self, rendered_content, save_action="_save"):
+    def _assertSubmitHtml(
+        self, rendered_content, save_action="_save", multipart_form=False
+    ):
         # Submit should conserve the save action
         self.assertIn(
             f'<input type="submit" value="Yes, I’m sure" name="{save_action}">',
@@ -33,6 +41,16 @@ class ConfirmAdminTestCase(TestCase):
         # There should not be _confirm_add or _confirm_change sent in the form on confirmaiton page
         self.assertNotIn("_confirm_add", rendered_content)
         self.assertNotIn("_confirm_change", rendered_content)
+
+        confirmation_received_html = (
+            '<input type="hidden" name=CONFIRMATION_RECEIVED value="True">'
+        )
+
+        if multipart_form:
+            # Should have _confirmation_received as a hidden field
+            self.assertIn(confirmation_received_html, rendered_content)
+        else:
+            self.assertNotIn(confirmation_received_html, rendered_content)
 
     def _assertSimpleFieldFormHtml(self, rendered_content, fields):
         for k, v in fields.items():
