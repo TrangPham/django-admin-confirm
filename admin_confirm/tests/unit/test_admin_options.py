@@ -1,14 +1,12 @@
 from unittest import mock
-from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
-from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from tests.market.admin import ItemAdmin, ShoppingMallAdmin
-from tests.market.models import GeneralManager, Item, ShoppingMall, Town
-from tests.factories import ItemFactory, ShopFactory
+from tests.market.admin import ShoppingMallAdmin
+from tests.market.models import GeneralManager, ShoppingMall, Town
+from tests.factories import ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS
+from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
@@ -59,7 +57,6 @@ class TestAdminOptions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         confirmation_received_data = data
         del confirmation_received_data["_confirm_change"]
-        confirmation_received_data["_confirmation_received"] = True
 
         response = self.client.post(
             f"/admin/market/shoppingmall/{mall.id}/change/",
@@ -131,7 +128,6 @@ class TestAdminOptions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         confirmation_received_data = data
         del confirmation_received_data["_confirm_change"]
-        confirmation_received_data["_confirmation_received"] = True
 
         response = self.client.post(
             f"/admin/market/shoppingmall/{mall.id}/change/",
@@ -286,7 +282,6 @@ class TestAdminOptions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         confirmation_received_data = data
         del confirmation_received_data["_confirm_change"]
-        confirmation_received_data["_confirmation_received"] = True
 
         response = self.client.post(
             f"/admin/market/shoppingmall/{mall.id}/change/",

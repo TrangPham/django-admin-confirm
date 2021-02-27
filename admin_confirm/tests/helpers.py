@@ -4,6 +4,10 @@ from django.contrib.auth.models import User
 
 
 class AdminConfirmTestCase(TestCase):
+    """
+    Helper TestCase class and common associated assertions
+    """
+
     @classmethod
     def setUpTestData(cls):
         cls.superuser = User.objects.create_superuser(
@@ -39,7 +43,7 @@ class AdminConfirmTestCase(TestCase):
         self.assertNotIn("_confirm_change", rendered_content)
 
         confirmation_received_html = (
-            '<input type="hidden" name="_confirmation_received" value="True">'
+            '<input type="hidden" name=CONFIRMATION_RECEIVED value="True">'
         )
 
         if multipart_form:

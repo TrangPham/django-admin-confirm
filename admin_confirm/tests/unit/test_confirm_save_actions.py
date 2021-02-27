@@ -8,7 +8,7 @@ from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS, CONFIRM_ADD, CONFIRM_CHANGE
+from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
@@ -52,7 +52,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_add"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
         response = self.client.post(reverse("admin:market_item_add"), data=data)
 
         # Should have redirected to changelist
@@ -114,7 +114,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
         response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should not have redirected to changelist
@@ -189,14 +189,14 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         del confirmation_data["_confirm_add"]
         del confirmation_data["image"]
         del confirmation_data["file"]
-        confirmation_data["_confirmation_received"] = True
+        confirmation_data[CONFIRMATION_RECEIVED] = True
         response = self.client.post(
             reverse("admin:market_item_add"), data=confirmation_data
         )
 
         # Should have redirected to changelist
         self.assertEqual(response.status_code, 302)
-        # Should show up page to add another
+        # Should show add page since "add another" was selected
         self.assertEqual(response.url, "/admin/market/item/add/")
 
         # Should have saved item
@@ -291,7 +291,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
         data["image"] = ""
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
         response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should not have redirected to changelist
@@ -359,7 +359,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         confirmation_received_data = data
         del confirmation_received_data["_confirm_add"]
-        confirmation_received_data["_confirmation_received"] = True
+        confirmation_received_data[CONFIRMATION_RECEIVED] = True
 
         response = self.client.post(
             reverse("admin:market_shoppingmall_add"), data=confirmation_received_data
@@ -442,7 +442,6 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         confirmation_received_data = data.copy()
         del confirmation_received_data["_confirm_change"]
-        confirmation_received_data["_confirmation_received"] = True
 
         response = self.client.post(
             f"/admin/market/shoppingmall/{mall.id}/change/",

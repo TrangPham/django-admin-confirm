@@ -98,7 +98,6 @@ class AdminConfirmMixin:
     @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            # print(request.POST)
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
@@ -190,20 +189,35 @@ class AdminConfirmMixin:
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
         """
-        Save the files from cached object (if any) and pass the request to Django
+        When the form is a multipart form, the object and POST are cached
+        This is required because file(s) cannot be programmically uploaded
+        ie. There is no way to set a file on the html form
+
+        If the form isn't multipart, this function would not be called.
+        If there are no file changes, do nothing to the request and send to Django.
+
+        If there are files uploaded, save the files from cached object to either:
+        - the object instance if already exists
+        - or save the new object and modify the request from `add` to `change`
+        and pass the request to Django
         """
 
         def _reconstruct_request_files():
+            """
+            Reconstruct the file(s) from the cached object (if any).
+            Returns a dictionary of field name to cached file
+            """
             reconstructed_files = {}
 
             cached_object = cache.get(CACHE_KEYS["object"])
-            cached_query_dict = cache.get(CACHE_KEYS["post"])
+            query_dict = cache.get(CACHE_KEYS["post"])
             # Reconstruct the files from cached object
             if not cached_object:
                 return
 
-            if not cached_query_dict:
-                return
+            if not query_dict:
+                # Use the current POST, since it should mirror cached POST
+                query_dict = request.POST
 
             if type(cached_object) != self.model:
                 # Do not use cache if the model doesn't match this model
@@ -214,7 +228,8 @@ class AdminConfirmMixin:
                     continue
 
                 cached_file = getattr(cached_object, field.name)
-                if not cached_query_dict.get(field.name) and cached_file:
+                # If a file was uploaded, the field is omitted from the POST since it's in request.FILES
+                if not query_dict.get(field.name) and cached_file:
                     reconstructed_files[field.name] = cached_file
 
             return reconstructed_files
@@ -241,6 +256,8 @@ class AdminConfirmMixin:
             else:
                 # Create the obj and pass the rest as changes to Django
                 # (Since we are not handling the formsets/inlines)
+                # Note that this results in the "Yes, I'm Sure" submission
+                #   act as a `change` not an `add`
                 obj = cache.get(CACHE_KEYS["object"])
 
             # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
@@ -311,10 +328,6 @@ class AdminConfirmMixin:
             request, new_object, change=not add
         )
         # End code from super()._changeform_view
-
-        # if all_valid(formsets) and form_validated:
-        #     change_message = self.construct_change_message(request, form, formsets, add)
-        #     print(change_message)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation

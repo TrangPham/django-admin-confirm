@@ -29,7 +29,7 @@ Typical Usage:
 
 ## Disclaimer
 
-Although test coverage for the package is high, this does not mean that extensive testing of all ModelAdmin configurations have been tested.
+Be aware that not all possible combinations of ModelAdmin have been tested, even if test coverage is high.
 
 See [testing readme](admin_confirm/tests/README.md) for more details
 

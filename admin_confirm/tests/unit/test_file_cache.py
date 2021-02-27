@@ -17,10 +17,10 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from admin_confirm.constants import CACHE_KEYS, CACHE_TIMEOUT
+from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 from tests.market.admin import ItemAdmin
-from tests.market.models import GeneralManager, Item, Shop, ShoppingMall
+from tests.market.models import Item, Shop
 from tests.factories import ItemFactory, ShopFactory
 
 
@@ -83,7 +83,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -156,7 +156,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -193,7 +193,9 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_without_any_file_changes(self):
+    def test_saveasnew_without_any_file_changes_should_save_new_instance_without_files(
+        self,
+    ):
         item = self.item
 
         # Request.POST
@@ -220,7 +222,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -258,7 +260,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_add_with_upload_file(self):
+    def test_add_with_upload_file_should_save_new_instance_with_files(self):
         # Request.POST
         data = {
             "name": "name",
@@ -285,7 +287,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_add"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(f"/admin/market/item/add/", data=data)
@@ -320,7 +322,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_add_without_cached_post(self):
+    def test_add_without_cached_post_should_save_new_instance_with_file(self):
         # Request.POST
         data = {
             "name": "name",
@@ -348,7 +350,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_add"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(f"/admin/market/item/add/", data=data)
@@ -378,15 +380,14 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertEqual(new_item.currency, data["currency"])
         self.assertFalse(new_item.image)
 
-        # FAILED to save the file, because cached item was not there
-        # TODO: maybe this should not fail
-        self.assertFalse(new_item.file)
+        # Able to save the cached file since cached object was there even though cached post was not
+        self.assertIn("test_file2", new_item.file.name)
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_add_without_cached_object(self):
+    def test_add_without_cached_object_should_save_new_instance_but_not_have_file(self):
         # Request.POST
         data = {
             "name": "name",
@@ -414,7 +415,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_add"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(f"/admin/market/item/add/", data=data)
@@ -451,7 +452,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_add_without_any_cache(self):
+    def test_add_without_any_cache_should_save_new_instance_but_not_have_file(self):
         # Request.POST
         data = {
             "name": "name",
@@ -479,7 +480,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_add"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(f"/admin/market/item/add/", data=data)
@@ -516,7 +517,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_change_without_cached_post(self):
+    def test_change_without_cached_post_should_save_file_changes(self):
         item = self.item
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
@@ -532,6 +533,7 @@ class TestFileCache(AdminConfirmTestCase):
             "id": item.id,
             "name": "name",
             "price": 2.0,
+            "image": i2,
             "file": "",
             "file-clear": "on",
             "currency": Item.VALID_CURRENCIES[0][0],
@@ -553,7 +555,9 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        # Image would have been in FILES and not in POST
+        del data["image"]
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -583,15 +587,16 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertEqual(new_item.name, data["name"])
         self.assertEqual(new_item.price, data["price"])
         self.assertEqual(new_item.currency, data["currency"])
+        # Should have cleared `file` since clear was selected
         self.assertFalse(new_item.file)
-        # FAILED to save image
-        self.assertFalse(new_item.image)
+        # Saved cached file from cached obj even if cached post was missing
+        self.assertIn("test_image2", new_item.image.name)
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_change_without_cached_object(self):
+    def test_change_without_cached_object_should_save_but_without_file_changes(self):
         item = self.item
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
@@ -628,7 +633,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -666,7 +671,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_change_without_any_cache(self):
+    def test_change_without_any_cache_should_save_but_not_have_file_changes(self):
         item = self.item
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
@@ -703,7 +708,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -741,7 +746,7 @@ class TestFileCache(AdminConfirmTestCase):
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
-    def test_change_without_changing_file(self):
+    def test_change_without_changing_file_should_save_changes(self):
         item = self.item
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
@@ -771,7 +776,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(
@@ -859,7 +864,7 @@ class TestFileCache(AdminConfirmTestCase):
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
         data["image"] = ""
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
         response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should not have redirected to changelist
@@ -911,7 +916,7 @@ class TestFileCache(AdminConfirmTestCase):
 
         # Click "Yes, I'm Sure"
         del data["_confirm_change"]
-        data["_confirmation_received"] = True
+        data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
             response = self.client.post(

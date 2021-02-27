@@ -1,3 +1,12 @@
+"""
+Tests ModelAdmin with fieldsets custom configured through one of the possible methods
+Ensures that AdminConfirmMixin works correctly when implimenting class alters default fieldsets
+
+Test Matrix
+method: `.fieldsets =`, `def get_fieldsets()`
+action: change, add
+fieldset: simple, with readonly fields, with custom fields
+"""
 import pytest
 from importlib import reload
 from tests.market.admin import item_admin
@@ -10,15 +19,10 @@ from django.test.client import RequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.cache import cache
 
-from admin_confirm.constants import CACHE_KEYS, CONFIRM_CHANGE
+from admin_confirm.constants import CACHE_KEYS, CONFIRM_CHANGE, CONFIRMATION_RECEIVED
 
 from tests.market.models import Item
 from tests.factories import ItemFactory
-
-# Test Matrix
-# method: `.fieldsets =`, `def get_fieldsets()`
-# action: change, add
-# fieldset: simple, with readonly fields, with custom fields
 
 
 def fs_simple(admin):
@@ -40,6 +44,9 @@ def fs_w_readonly(admin):
 
 
 def fs_w_custom(admin):
+    admin.one = lambda self, obj: "ReadOnly"
+    admin.two = lambda self, obj: "ReadOnly"
+    admin.three = lambda self, obj: "ReadOnly"
     admin.readonly_fields = ["one", "two", "three"]
     return (
         (None, {"fields": ("name", "price", "image", "one")}),
@@ -141,7 +148,7 @@ def test_fieldsets(client, method, get_fieldset, action):
 
     # Click "Yes, I'm Sure"
     del data[action]
-    data["_confirmation_received"] = True
+    data[CONFIRMATION_RECEIVED] = True
     response = client.post(url, data=data)
 
     # Should have redirected to changelist

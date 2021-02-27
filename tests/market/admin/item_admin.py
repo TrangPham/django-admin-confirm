@@ -18,11 +18,11 @@ class ItemAdmin(AdminConfirmMixin, ModelAdmin):
         if obj.image:
             return mark_safe('<img src="{obj.image.url}" />')
 
-    def one(self, obj):
-        return "Read Only"
+    # def one(self, obj):
+    #     return "Read Only"
 
-    def two(self, obj):
-        return "Read Only"
+    # def two(self, obj):
+    #     return "Read Only"
 
-    def three(self, obj):
-        return "Read Only"
+    # def three(self, obj):
+    #     return "Read Only"
