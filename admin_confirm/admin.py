@@ -98,7 +98,6 @@ class AdminConfirmMixin:
     @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
-            # print(request.POST)
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
