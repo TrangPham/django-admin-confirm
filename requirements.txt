@@ -2,9 +2,13 @@ Django>=1.7.0
 factory-boy~=3.0.1
 coverage~=5.4
 pytest~=6.2.2
+pytest-cov~=2.11.1
 pytest-django~=4.1.0
 readme-renderer~=28.0
 twine~=3.3.0
 coveralls~=3.0.0
 Pillow~=8.1.0 # For ImageField
-selenium~=3.141.0
+
+# Known issue: https://github.com/SeleniumHQ/selenium/issues/8762
+# selenium~=3.141.0
+selenium~=4.0.0.a5

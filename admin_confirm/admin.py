@@ -97,6 +97,7 @@ class AdminConfirmMixin:
     @cache_control(private=True)
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
+            print(request.POST)
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
@@ -200,6 +201,7 @@ class AdminConfirmMixin:
         - or save the new object and modify the request from `add` to `change`
         and pass the request to Django
         """
+        print("I'm here")
 
         def _reconstruct_request_files():
             """
@@ -235,6 +237,7 @@ class AdminConfirmMixin:
 
         reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
+            print("GOT FILES")
             obj = None
 
             # remove the _confirm_add and _confirm_change from post
@@ -287,6 +290,7 @@ class AdminConfirmMixin:
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
     def _change_confirmation_view(self, request, object_id, form_url, extra_context):
+        print("HELLO")
         # This code is taken from super()._changeform_view
         # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1575-L1592
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
