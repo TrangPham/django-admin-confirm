@@ -51,10 +51,17 @@ jobs:
 
   integration-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8, 3.9]
+        django-version: [2.2, 3.0]
     steps:
     - uses: actions/checkout@v2
     - name: Build Docker
-      run: docker-compose build
+      run: |
+        - export PYTHON_VERSION = ${{ matrix.python-version }}
+        - export DJANGO_VERSION = ${{ matrix.django-version }}
+        - docker-compose build
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
