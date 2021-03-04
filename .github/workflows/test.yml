@@ -59,9 +59,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build Docker
       run: |
-        - bash -c "export PYTHON_VERSION = ${{ matrix.python-version }}"
-        - bash -c "export DJANGO_VERSION = ${{ matrix.django-version }}"
-        - docker-compose build
+        export PYTHON_VERSION=${{ matrix.python-version }}
+        export DJANGO_VERSION=${{ matrix.django-version }}
+        docker-compose build
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
