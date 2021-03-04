@@ -1,6 +1,11 @@
+import socket
+
 from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
+from django.test import LiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class AdminConfirmTestCase(TestCase):
@@ -61,12 +66,6 @@ class AdminConfirmTestCase(TestCase):
         for inline in inlines:
             for field in inline.fields:
                 self.assertIn("apple", rendered_content)
-
-
-import socket
-from django.test import LiveServerTestCase
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 
 class AdminConfirmIntegrationTestCase(LiveServerTestCase):

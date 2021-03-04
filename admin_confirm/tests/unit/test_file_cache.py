@@ -170,7 +170,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -299,7 +299,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -362,7 +362,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -416,7 +416,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -470,7 +470,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -549,7 +549,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -611,7 +611,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -640,12 +640,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -678,7 +672,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -746,7 +740,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should have changed existing item
         self.assertEqual(Item.objects.count(), 1)

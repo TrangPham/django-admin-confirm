@@ -21,7 +21,6 @@ class TestAdminOptions(AdminConfirmTestCase):
         mall.shops.set(shops)
 
         # new values
-        gm2 = GeneralManager.objects.create(name="gm2")
         town2 = Town.objects.create(name="town2")
 
         data = {
