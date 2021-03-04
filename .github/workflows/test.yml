@@ -65,3 +65,11 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel-finished: true
+
+  codecov:
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Codecov
+        uses: codecov/codecov-action@v1.2.1
