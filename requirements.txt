@@ -8,7 +8,4 @@ readme-renderer~=28.0
 twine~=3.3.0
 coveralls~=3.0.0
 Pillow~=8.1.0 # For ImageField
-
-# Known issue: https://github.com/SeleniumHQ/selenium/issues/8762
-# selenium~=3.141.0
-selenium~=4.0.0.a5
+selenium~=3.141.0
