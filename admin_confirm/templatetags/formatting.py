@@ -1,5 +1,4 @@
 from django import template
-from django.db.models.query import QuerySet
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
 
@@ -16,5 +15,5 @@ def format_change_data_field_value(field_value):
             output += "<li>" + escape(value) + "</li>"
         output += "</ul>"
         return mark_safe(output)
-    except:
+    except Exception:
         return field_value

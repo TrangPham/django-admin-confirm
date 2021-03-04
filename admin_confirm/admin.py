@@ -11,7 +11,6 @@ from django.forms import ModelForm
 from admin_confirm.utils import get_admin_change_url, snake_to_title_case
 from django.core.cache import cache
 from django.views.decorators.cache import cache_control
-from django.forms.formsets import all_valid
 from admin_confirm.constants import (
     CACHE_TIMEOUT,
     CONFIRMATION_RECEIVED,
@@ -139,7 +138,7 @@ class AdminConfirmMixin:
                 return [initial_value, new_value]
 
             if initial_value:
-                if new_value == False:
+                if new_value is False:
                     # Clear has been selected
                     return [initial_value.name, None]
                 elif new_value:
@@ -249,7 +248,7 @@ class AdminConfirmMixin:
             if CONFIRM_CHANGE in modified_post:
                 del modified_post[CONFIRM_CHANGE]
 
-            if object_id and not SAVE_AS_NEW in request.POST:
+            if object_id and SAVE_AS_NEW not in request.POST:
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
                 obj = self.model.objects.filter(id=object_id).first()

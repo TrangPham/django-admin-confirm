@@ -398,17 +398,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_save": True,
         }
 
-        # Upload new file
-        f2 = SimpleUploadedFile(
-            name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
-        # Set cache
-        cache_item = Item(
-            name=data["name"], price=data["price"], currency=data["currency"], file=f2
-        )
-
         # Make sure there's no post cached obj
         cache.delete(CACHE_KEYS["object"])
         cache.set(CACHE_KEYS["post"], data)
@@ -462,17 +451,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_confirm_add": True,
             "_save": True,
         }
-
-        # Upload new file
-        f2 = SimpleUploadedFile(
-            name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
-        # Set cache
-        cache_item = Item(
-            name=data["name"], price=data["price"], currency=data["currency"], file=f2
-        )
 
         # Make sure there's no cache
         cache.delete(CACHE_KEYS["object"])
@@ -601,12 +579,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -618,14 +590,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_confirm_change": True,
             "_saveasnew": True,
         }
-
-        # Set cache
-        cache_item = Item(
-            name=data["name"],
-            price=data["price"],
-            currency=data["currency"],
-            image=i2,
-        )
 
         # Ensure no cached obj
         cache.delete(CACHE_KEYS["object"])
@@ -693,14 +657,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_confirm_change": True,
             "_saveasnew": True,
         }
-
-        # Set cache
-        cache_item = Item(
-            name=data["name"],
-            price=data["price"],
-            currency=data["currency"],
-            image=i2,
-        )
 
         # Ensure no cache
         cache.delete(CACHE_KEYS["object"])
@@ -890,12 +846,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -930,7 +880,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should have changed existing item
         self.assertEqual(Item.objects.count(), 1)
