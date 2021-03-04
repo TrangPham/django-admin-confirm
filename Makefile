@@ -2,7 +2,7 @@ run:
 	./tests/manage.py runserver
 
 test:
-	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/integration
+	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/integration "$@"
 	coverage report -m
 
 test-all:
