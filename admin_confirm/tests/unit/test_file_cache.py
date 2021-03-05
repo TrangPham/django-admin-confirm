@@ -290,7 +290,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -353,7 +353,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -407,7 +407,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -461,7 +461,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
