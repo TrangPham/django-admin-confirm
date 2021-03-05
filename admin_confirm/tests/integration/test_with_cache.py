@@ -3,6 +3,7 @@ Tests confirmation of add/change
 on ModelAdmin that utilize caches
 """
 import os
+import pytest
 import pkg_resources
 
 from importlib import reload
@@ -83,118 +84,130 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         item.refresh_from_db()
 
-    # def test_should_save_file_additions(self):
-    #     item = Item.objects.create(name="item", price=1)
+    def test_should_save_file_additions(self):
+        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
+        if selenium_version.major < 4:
+            pytest.skip(
+                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
+            )
 
-    #     self.selenium.get(
-    #         self.live_server_url + f"/admin/market/item/{item.id}/change/"
-    #     )
-    #     self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+        item = Item.objects.create(
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0]
+        )
 
-    #     # Make a change to trigger confirmation page
-    #     price = self.selenium.find_element_by_name("price")
-    #     price.send_keys(2)
+        self.selenium.get(
+            self.live_server_url + f"/admin/market/item/{item.id}/change/"
+        )
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
-    #     print(pkg_resources.get_distribution("selenium").version)
-    #     # Upload a new file
-    #     self.image_path = "screenshot.png"
-    #     f = SimpleUploadedFile(
-    #         name="test_file.jpg",
-    #         content=open(self.image_path, "rb").read(),
-    #         content_type="image/jpeg",
-    #     )
-    #     f2 = NamedTemporaryFile()
-    #     self.selenium.find_element_by_id("id_file").send_keys(
-    #         # "/Users/thu/code/django_admin_confirm/screenshot.png"
-    #         os.getcwd()
-    #         + "/screenshot.png"
-    #         # f2.name
-    #         # os.path.abspath(self.image_path)
-    #     )
+        # Make a change to trigger confirmation page
+        price = self.selenium.find_element_by_name("price")
+        price.send_keys(2)
 
-    #     self.selenium.find_element_by_name("_continue").click()
+        # Upload a new file
+        self.selenium.find_element_by_id("id_file").send_keys(
+            os.getcwd() + "/screenshot.png"
+        )
 
-    #     # Should have hidden form containing the updated price
-    #     self.assertIn("Confirm", self.selenium.page_source)
-    #     hidden_form = self.selenium.find_element_by_id("hidden-form")
-    #     price = hidden_form.find_element_by_name("price")
-    #     self.assertEqual("21.00", price.get_attribute("value"))
+        self.selenium.find_element_by_name("_continue").click()
 
-    #     self.selenium.find_element_by_name("_confirmation_received")
-    #     print(self.selenium.page_source)
-    #     print("POST?")
-    #     self.selenium.find_element_by_name("_continue").click()
+        # Should have hidden form containing the updated price
+        self.assertIn("Confirm", self.selenium.page_source)
+        hidden_form = self.selenium.find_element_by_id("hidden-form")
+        price = hidden_form.find_element_by_name("price")
+        self.assertEqual("21.00", price.get_attribute("value"))
 
-    #     print(self.selenium.page_source)
+        self.selenium.find_element_by_name("_confirmation_received")
+        self.selenium.find_element_by_name("_continue").click()
 
-    #     item.refresh_from_db()
-    #     self.assertEqual(21, int(item.price))
-    #     self.assertIn("screenshot.png", item.file.name)
+        item.refresh_from_db()
+        self.assertEqual(21, int(item.price))
+        self.assertIn("screenshot.png", item.file.name)
 
     def test_should_save_file_changes(self):
-        gm = GeneralManager.objects.create(name="gm")
-        town = Town.objects.create(name="town")
-        mall = ShoppingMall.objects.create(name="mall", general_manager=gm, town=town)
+        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
+        if selenium_version.major < 4:
+            pytest.skip(
+                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
+            )
 
-        shops = [ShopFactory(name=i) for i in range(3)]
+        file = SimpleUploadedFile(
+            name="old_file.jpg",
+            content=open("screenshot.png", "rb").read(),
+            content_type="image/jpeg",
+        )
+        item = Item.objects.create(
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
+        )
 
         self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
+            self.live_server_url + f"/admin/market/item/{item.id}/change/"
         )
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
-        name.send_keys("New Name")
+        price = self.selenium.find_element_by_name("price")
+        price.send_keys(2)
 
-        # Change shops via inline form
-        select_shop = Select(
-            self.selenium.find_element_by_name("ShoppingMall_shops-0-shop")
+        # Upload a new file
+        self.selenium.find_element_by_id("id_file").send_keys(
+            os.getcwd() + "/screenshot.png"
         )
-        select_shop.select_by_value(str(shops[2].id))
 
         self.selenium.find_element_by_name("_continue").click()
 
+        # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-
         hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
+        price = hidden_form.find_element_by_name("price")
+        self.assertEqual("21.00", price.get_attribute("value"))
+
+        self.selenium.find_element_by_name("_confirmation_received")
         self.selenium.find_element_by_name("_continue").click()
 
-        mall.refresh_from_db()
-        self.assertIn("New Name", mall.name)
-        self.assertIn(shops[2], mall.shops.all())
+        item.refresh_from_db()
+        self.assertEqual(21, int(item.price))
+        self.assertIn("screenshot.png", item.file.name)
 
     def test_should_remove_file_if_clear_selected(self):
-        gm = GeneralManager.objects.create(name="gm")
-        town = Town.objects.create(name="town")
-        mall = ShoppingMall.objects.create(name="mall", general_manager=gm, town=town)
-
-        shops = [ShopFactory(name=i) for i in range(3)]
+        file = SimpleUploadedFile(
+            name="old_file.jpg",
+            content=open("screenshot.png", "rb").read(),
+            content_type="image/jpeg",
+        )
+        item = Item.objects.create(
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
+        )
 
         self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
+            self.live_server_url + f"/admin/market/item/{item.id}/change/"
         )
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
-        name.send_keys("New Name")
+        price = self.selenium.find_element_by_name("price")
+        price.send_keys(2)
 
-        # Change shops via inline form
-        select_shop = Select(
-            self.selenium.find_element_by_name("ShoppingMall_shops-0-shop")
+        # Choose to clear the existing file
+        self.selenium.find_element_by_id("file-clear_id").click()
+        self.assertTrue(
+            self.selenium.find_element_by_xpath(
+                ".//*[@id='file-clear_id']"
+            ).get_attribute("checked")
         )
-        select_shop.select_by_value(str(shops[2].id))
 
         self.selenium.find_element_by_name("_continue").click()
 
+        # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-
         hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
+        price = hidden_form.find_element_by_name("price")
+        self.assertEqual("21.00", price.get_attribute("value"))
+
+        self.selenium.find_element_by_name("_confirmation_received")
         self.selenium.find_element_by_name("_continue").click()
 
-        mall.refresh_from_db()
-        self.assertIn("New Name", mall.name)
-        self.assertIn(shops[2], mall.shops.all())
+        item.refresh_from_db()
+        self.assertEqual(21, int(item.price))
+        # Should have cleared `file` since clear was selected
+        self.assertFalse(item.file)

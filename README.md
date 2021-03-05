@@ -244,7 +244,6 @@ pip uninstall django_admin_confirm
 make install-testpypi VERSION=<VERSION>
 ```
 
-Update version in `requirements.txt`
 Add test locally
 
 ```
