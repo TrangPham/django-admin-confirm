@@ -1,8 +1,0 @@
-[flake8]
-max-complexity = 10
-max-line-length = 127
-paths = admin_confirm
-exclude =
-admin_confirm/tests/*
-tests/*
-ignore = Q000 # Remove bad quotes
