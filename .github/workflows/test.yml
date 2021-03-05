@@ -32,6 +32,12 @@ jobs:
         flake8 admin_confirm --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 admin_confirm --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: wemake-python-styleguide
+      uses: wemake-services/wemake-python-styleguide@0.15.2
+      with:
+        reporter: 'github-pr-review'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
     needs: [lint]
@@ -51,14 +57,6 @@ jobs:
       run: docker-compose up -d
     - name: Integration Test
       run: docker-compose run web make test-all
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1.2.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        directory: .
-        env_vars: DJANGO_VERSION,PYTHON_VERSION
-        name: codecov-umbrella
-        # fail_ci_if_error: true
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
