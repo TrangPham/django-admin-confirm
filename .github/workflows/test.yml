@@ -40,22 +40,30 @@ jobs:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
         django-version: [2.2, 3.0]
+    env:
+      DJANGO_VERSION: ${{ matrix.django-version }}
+      PYTHON_VERSION: ${{ matrix.python-version }}
     steps:
     - uses: actions/checkout@v2
     - name: Build Docker
-      run: |
-        export PYTHON_VERSION=${{ matrix.python-version }}
-        export DJANGO_VERSION=${{ matrix.django-version }}
-        docker-compose build
+      run: docker-compose build
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
       run: docker-compose run web make test-all
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1.2.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        directory: .
+        env_vars: DJANGO_VERSION,PYTHON_VERSION
+        name: codecov-umbrella
+        fail_ci_if_error: true
+        verbose: true
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true
-        flag-name: Integration Test
 
   coveralls:
     needs: [test]
@@ -65,11 +73,3 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel-finished: true
-
-  codecov:
-    needs: [test]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Codecov
-        uses: codecov/codecov-action@v1.2.1
