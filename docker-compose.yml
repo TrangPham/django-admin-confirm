@@ -2,7 +2,13 @@ version: "3.9"
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: "$PYTHON_VERSION"
+        DJANGO_VERSION: "$DJANGO_VERSION"
+        SELENIUM_VERSION: "$SELENIUM_VERSION"
     command: python tests/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
@@ -16,3 +22,5 @@ services:
     ports:
       - "4444:4444"   # Selenium
       - "5900:5900"   # VNC
+    volumes:
+      - .:/code

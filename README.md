@@ -153,6 +153,13 @@ pyenv vituralenv 3.8.0 django-admin-confirm-3.8.0
 
 Now your terminal should have `(django-admin-confirm-3.8.0)` prefix, because `.python-version` should have auto switch your virtual env
 
+Install requirements
+
+```
+pip install -r requirements.txt
+pip install -e .
+```
+
 Run **migrations** and create a superuser and run the server
 
 ```
@@ -237,7 +244,6 @@ pip uninstall django_admin_confirm
 make install-testpypi VERSION=<VERSION>
 ```
 
-Update version in `requirements.txt`
 Add test locally
 
 ```

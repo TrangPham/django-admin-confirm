@@ -14,47 +14,41 @@ on:
       - created
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: wemake-python-styleguide
+      uses: wemake-services/wemake-python-styleguide@0.15.2
+      with:
+        path: admin_confirm
+        reporter: 'github-pr-review'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
         django-version: [2.2, 3.0]
+    env:
+      DJANGO_VERSION: ${{ matrix.django-version }}
+      PYTHON_VERSION: ${{ matrix.python-version }}
+      COMPOSE_INTERACTIVE_NO_CLI: 1
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Install Django ${{ matrix.django-version }}
+    - name: Build Docker for Python 3.6
+      if: ${{ matrix.python-version == 3.6 }}
       run: |
-        pip install django==${{ matrix.django-version }}
-    - name: Install dependencies
+        export SELENIUM_VERSION=3.141.0
+        docker-compose build
+    - name: Build Docker for other Python versions
+      if: ${{ matrix.python-version != 3.6 }}
       run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Unit Test
-      run: |
-        make test
-    - name: Coveralls
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel: true
-        flag-name: Unit Test
-
-  integration-test:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build Docker
-      run: docker-compose build
+        export SELENIUM_VERSION=4.0.0a7
+        docker-compose build
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
@@ -63,10 +57,9 @@ jobs:
       uses: AndreMiras/coveralls-python-action@develop
       with:
         parallel: true
-        flag-name: Integration Test
 
   coveralls:
-    needs: [test, integration-test]
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
     - name: Coveralls Finished

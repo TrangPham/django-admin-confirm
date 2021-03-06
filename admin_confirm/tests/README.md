@@ -8,6 +8,12 @@ You seem concerned about the stability and reliability of this package. You're p
 
 So if you want to include this package in your production codebase, be aware that AdminConfirmMixin works best with simple unmodified ModelAdmins.
 
+# Probable Issues
+
+These are some areas which might/probably have issues that are not currently tested. Use at your own risk!
+
+- [ ] Saving file/image changes on inlines when confirming change on parent model
+
 ## Save Options
 
 - [x] Save
@@ -71,10 +77,10 @@ Confirmation on inline changes is not a current feature of this project.
 
 Confirmation on add/change of ModelAdmin that includes inlines needs to be tested. Use AdminConfirmMixin with ModelAdmin containing inlines at your own risk.
 
-- [ ] .inlines
-- [ ] .get_inline_instances()
-- [ ] .get_inlines() (New in Django 3.0)
-- [ ] .get_formsets_with_inlines()
+- [x] .inlines
+- [x] .get_inline_instances()
+- [x] .get_inlines() (New in Django 3.0)
+- [ ] .get_formsets_with_inlines() ???
 
 #### Options for inlines
 

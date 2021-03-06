@@ -21,8 +21,6 @@ class TestAdminOptions(AdminConfirmTestCase):
         mall.shops.set(shops)
 
         # new values
-        gm2 = GeneralManager.objects.create(name="gm2")
-        shops2 = [ShopFactory() for i in range(3)]
         town2 = Town.objects.create(name="town2")
 
         data = {
@@ -92,7 +90,6 @@ class TestAdminOptions(AdminConfirmTestCase):
 
         # new values
         gm2 = GeneralManager.objects.create(name="gm2")
-        shops2 = [ShopFactory() for i in range(3)]
         town2 = Town.objects.create(name="town2")
 
         data = {
@@ -164,7 +161,6 @@ class TestAdminOptions(AdminConfirmTestCase):
 
         # new values
         gm2 = GeneralManager.objects.create(name="gm2")
-        shops2 = [ShopFactory() for i in range(3)]
         town2 = Town.objects.create(name="town2")
 
         data = {
@@ -205,7 +201,6 @@ class TestAdminOptions(AdminConfirmTestCase):
 
         # new values
         gm2 = GeneralManager.objects.create(name="gm2")
-        shops2 = [ShopFactory() for i in range(3)]
         town2 = Town.objects.create(name="town2")
 
         data = {
@@ -246,7 +241,6 @@ class TestAdminOptions(AdminConfirmTestCase):
 
         # new values
         gm2 = GeneralManager.objects.create(name="gm2")
-        shops2 = [ShopFactory() for i in range(3)]
         town2 = Town.objects.create(name="town2")
 
         data = {

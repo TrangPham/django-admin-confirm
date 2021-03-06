@@ -1,6 +1,12 @@
+import socket
+
 from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
+from django.test import LiveServerTestCase
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
 
 class AdminConfirmTestCase(TestCase):
     """
@@ -62,22 +68,35 @@ class AdminConfirmTestCase(TestCase):
                 self.assertIn("apple", rendered_content)
 
 
-
-import socket
-from django.test import LiveServerTestCase
-from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
-
 class AdminConfirmIntegrationTestCase(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
+
         cls.host = socket.gethostbyname(socket.gethostname())
         cls.selenium = webdriver.Remote(
             command_executor="http://selenium:4444/wd/hub",
             desired_capabilities=DesiredCapabilities.FIREFOX,
         )
         super().setUpClass()
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(
+            username="super", email="super@email.org", password="pass"
+        )
+        self.client.force_login(self.superuser)
+
+        cookie = self.client.cookies["sessionid"]
+        self.selenium.get(
+            self.live_server_url + "/admin/"
+        )  # selenium will set cookie domain based on current page domain
+        self.selenium.add_cookie(
+            {"name": "sessionid", "value": cookie.value, "secure": False, "path": "/"}
+        )
+        return super().setUp()
+
+    def tearDown(self):
+        cache.clear()
+        return super().tearDown()
 
     @classmethod
     def tearDownClass(cls):

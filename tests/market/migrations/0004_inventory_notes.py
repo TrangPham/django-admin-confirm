@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('market', '0003_auto_20201108_1717'),
+        ("market", "0003_auto_20201108_1717"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='inventory',
-            name='notes',
-            field=models.TextField(blank=True, default='This is the default', null=True),
+            model_name="inventory",
+            name="notes",
+            field=models.TextField(
+                blank=True, default="This is the default", null=True
+            ),
         ),
     ]

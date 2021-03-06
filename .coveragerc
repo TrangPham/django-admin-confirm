@@ -1,4 +1,0 @@
-[run]
-relative_files = True
-omit = admin_confirm/tests/*
-branch = True

@@ -7,42 +7,68 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('market', '0005_shoppingmall'),
+        ("market", "0005_shoppingmall"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GeneralManager',
+            name="GeneralManager",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
             ],
         ),
         migrations.CreateModel(
-            name='Town',
+            name="Town",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120)),
             ],
         ),
         migrations.AddField(
-            model_name='item',
-            name='file',
-            field=models.FileField(blank=True, null=True, upload_to='tmp/files'),
+            model_name="item",
+            name="file",
+            field=models.FileField(blank=True, null=True, upload_to="tmp/files"),
         ),
         migrations.AddField(
-            model_name='item',
-            name='image',
-            field=models.ImageField(blank=True, null=True, upload_to='tmp/items'),
+            model_name="item",
+            name="image",
+            field=models.ImageField(blank=True, null=True, upload_to="tmp/items"),
         ),
         migrations.AddField(
-            model_name='shoppingmall',
-            name='general_manager',
-            field=models.OneToOneField(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='market.generalmanager'),
+            model_name="shoppingmall",
+            name="general_manager",
+            field=models.OneToOneField(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="market.generalmanager",
+            ),
         ),
         migrations.AddField(
-            model_name='shoppingmall',
-            name='town',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='market.town'),
+            model_name="shoppingmall",
+            name="town",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="market.town",
+            ),
         ),
     ]

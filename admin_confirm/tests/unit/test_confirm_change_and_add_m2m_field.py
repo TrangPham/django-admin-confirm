@@ -1,5 +1,4 @@
 from unittest import mock
-from admin_confirm.admin import AdminConfirmMixin
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase

@@ -40,8 +40,11 @@
     {% include "admin/change_data.html" %}
 
     <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% url opts|admin_urlname:'add'%}" {% else %}action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}"{% endif %}>{% csrf_token %}
-        <div class="hidden">
+        <div class="hidden" id="hidden-form">
             {{form.as_p}}
+            {% for cleared_field in cleared_fields %}
+                <input type="checkbox" name="{{ cleared_field }}-clear" checked>
+            {% endfor %}
             {% for formset in formsets %}
                 {{ formset.as_p }}
             {% endfor %}

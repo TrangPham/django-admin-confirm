@@ -170,7 +170,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -290,7 +290,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -299,7 +299,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -353,7 +353,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -362,7 +362,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -398,17 +398,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_save": True,
         }
 
-        # Upload new file
-        f2 = SimpleUploadedFile(
-            name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
-        # Set cache
-        cache_item = Item(
-            name=data["name"], price=data["price"], currency=data["currency"], file=f2
-        )
-
         # Make sure there's no post cached obj
         cache.delete(CACHE_KEYS["object"])
         cache.set(CACHE_KEYS["post"], data)
@@ -418,7 +407,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -427,7 +416,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -463,17 +452,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_save": True,
         }
 
-        # Upload new file
-        f2 = SimpleUploadedFile(
-            name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
-        # Set cache
-        cache_item = Item(
-            name=data["name"], price=data["price"], currency=data["currency"], file=f2
-        )
-
         # Make sure there's no cache
         cache.delete(CACHE_KEYS["object"])
         cache.delete(CACHE_KEYS["post"])
@@ -483,7 +461,7 @@ class TestFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(f"/admin/market/item/add/", data=data)
+            response = self.client.post("/admin/market/item/add/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -492,7 +470,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should not have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         self.item.refresh_from_db()
@@ -571,7 +549,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -601,12 +579,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -618,14 +590,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_confirm_change": True,
             "_saveasnew": True,
         }
-
-        # Set cache
-        cache_item = Item(
-            name=data["name"],
-            price=data["price"],
-            currency=data["currency"],
-            image=i2,
-        )
 
         # Ensure no cached obj
         cache.delete(CACHE_KEYS["object"])
@@ -647,7 +611,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -676,12 +640,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -693,14 +651,6 @@ class TestFileCache(AdminConfirmTestCase):
             "_confirm_change": True,
             "_saveasnew": True,
         }
-
-        # Set cache
-        cache_item = Item(
-            name=data["name"],
-            price=data["price"],
-            currency=data["currency"],
-            image=i2,
-        )
 
         # Ensure no cache
         cache.delete(CACHE_KEYS["object"])
@@ -722,7 +672,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should not have changed existing item
         item.refresh_from_db()
@@ -790,7 +740,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should have changed existing item
         self.assertEqual(Item.objects.count(), 1)
@@ -890,12 +840,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Load the Change Item Page
         ItemAdmin.save_as_continue = False
 
-        # Upload new image and remove file
-        i2 = SimpleUploadedFile(
-            name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
-            content_type="image/jpeg",
-        )
         # Request.POST
         data = {
             "id": item.id,
@@ -930,7 +874,7 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertNotIn("You may edit it again below.", message)
 
         # Should have redirected to changelist
-        self.assertEqual(response.url, f"/admin/market/item/")
+        self.assertEqual(response.url, "/admin/market/item/")
 
         # Should have changed existing item
         self.assertEqual(Item.objects.count(), 1)
