@@ -39,10 +39,13 @@ jobs:
       COMPOSE_INTERACTIVE_NO_CLI: 1
     steps:
     - uses: actions/checkout@v2
-    - name: Install compatible Selenium for python 3.6
+    - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
-      run: export SELENIUM_VERSION=3.141.0
-    - name: Build Docker
+      run: |
+        export SELENIUM_VERSION=3.141.0
+        docker-compose build
+    - name: Build Docker for other Python versions
+      if: ${{ matrix.python-version != 3.6 }}
       run: docker-compose build
     - name: Start Docker
       run: docker-compose up -d
