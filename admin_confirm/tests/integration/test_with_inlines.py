@@ -15,6 +15,7 @@ from tests.market.admin import shoppingmall_admin
 
 from admin_confirm.constants import CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
 
 
 class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
@@ -36,18 +37,18 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Change name
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated name
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        name = hidden_form.find_element_by_name("name")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        name = hidden_form.find_element(By.NAME, "name")
         self.assertIn("New Name", name.get_attribute("value"))
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should persist change
         mall.refresh_from_db()
@@ -67,16 +68,16 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         self.assertIn("Confirm", self.selenium.page_source)
 
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
-        self.selenium.find_element_by_name("_continue").click()
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        hidden_form.find_element(By.NAME, "ShoppingMall_shops-TOTAL_FORMS")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
@@ -94,22 +95,22 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
         # Change shops via inline form
         select_shop = Select(
-            self.selenium.find_element_by_name("ShoppingMall_shops-0-shop")
+            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
         )
         select_shop.select_by_value(str(shops[2].id))
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         self.assertIn("Confirm", self.selenium.page_source)
 
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
-        self.selenium.find_element_by_name("_continue").click()
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        hidden_form.find_element(By.NAME, "ShoppingMall_shops-TOTAL_FORMS")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
@@ -140,22 +141,22 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
         # Change shops via inline form
         select_shop = Select(
-            self.selenium.find_element_by_name("ShoppingMall_shops-0-shop")
+            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
         )
         select_shop.select_by_value(str(shops[2].id))
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         self.assertIn("Confirm", self.selenium.page_source)
 
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
-        self.selenium.find_element_by_name("_continue").click()
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        hidden_form.find_element(By.NAME, "ShoppingMall_shops-TOTAL_FORMS")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
@@ -180,22 +181,22 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
         # Change shops via inline form
         select_shop = Select(
-            self.selenium.find_element_by_name("ShoppingMall_shops-0-shop")
+            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
         )
         select_shop.select_by_value(str(shops[2].id))
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         self.assertIn("Confirm", self.selenium.page_source)
 
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        hidden_form.find_element_by_name("ShoppingMall_shops-TOTAL_FORMS")
-        self.selenium.find_element_by_name("_continue").click()
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        hidden_form.find_element(By.NAME, "ShoppingMall_shops-TOTAL_FORMS")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
