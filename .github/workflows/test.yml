@@ -46,7 +46,9 @@ jobs:
         docker-compose build
     - name: Build Docker for other Python versions
       if: ${{ matrix.python-version != 3.6 }}
-      run: docker-compose build
+      run: |
+        export SELENIUM_VERSION=4.0.0a7
+        docker-compose build
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
