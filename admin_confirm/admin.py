@@ -361,6 +361,7 @@ class AdminConfirmMixin:
                 save_action = key
                 break
 
+        cleared_fields = []
         if form.is_multipart():
             cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
             cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
