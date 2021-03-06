@@ -1,4 +1,4 @@
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ModelAdmin, VERTICAL
 from django.utils.safestring import mark_safe
 from admin_confirm.admin import AdminConfirmMixin
 
