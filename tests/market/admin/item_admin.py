@@ -7,6 +7,7 @@ class ItemAdmin(AdminConfirmMixin, ModelAdmin):
     confirm_change = True
     confirm_add = True
     confirmation_fields = ["price"]
+    radio_fields = {"currency": VERTICAL}
 
     list_display = ("name", "price", "currency")
     readonly_fields = ["image_preview"]

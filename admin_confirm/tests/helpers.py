@@ -71,7 +71,6 @@ class AdminConfirmTestCase(TestCase):
 class AdminConfirmIntegrationTestCase(LiveServerTestCase):
     @classmethod
     def setUpClass(cls):
-
         cls.host = socket.gethostbyname(socket.gethostname())
         cls.selenium = webdriver.Remote(
             command_executor="http://selenium:4444/wd/hub",
@@ -96,6 +95,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
 
     def tearDown(self):
         cache.clear()
+        self.selenium.get(self.live_server_url)
         return super().tearDown()
 
     @classmethod

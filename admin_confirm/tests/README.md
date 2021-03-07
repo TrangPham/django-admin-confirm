@@ -46,8 +46,8 @@ These are some areas which might/probably have issues that are not currently tes
 
 - [x] ModelAdmin.fieldsets
 - [ ] ModelAdmin.form
-- [ ] ModelAdmin.raw_id_fields
-- [ ] ModelAdmin.radio_fields
+- [x] ModelAdmin.raw_id_fields
+- [x] ModelAdmin.radio_fields
 - [ ] ModelAdmin.autocomplete_fields
 - [ ] ModelAdmin.prepopulated_fields
 
