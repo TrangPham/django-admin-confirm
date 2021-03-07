@@ -7,18 +7,16 @@ import pytest
 import pkg_resources
 
 from importlib import reload
-from tests.factories import ShopFactory
-from tests.market.models import GeneralManager, Item, ShoppingMall, Town
+from tests.market.models import Item, ShoppingMall
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin import shoppingmall_admin
 
 from admin_confirm.constants import CONFIRM_CHANGE
-from selenium.webdriver.support.ui import Select
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.file_detector import LocalFileDetector
+from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
-from tempfile import NamedTemporaryFile
 
 
 class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
@@ -39,21 +37,21 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Change name
-        name = self.selenium.find_element_by_name("name")
+        name = self.selenium.find_element(By.NAME, "name")
         name.send_keys("New Name")
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated name
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        name = hidden_form.find_element_by_name("name")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        name = hidden_form.find_element(By.NAME, "name")
         self.assertIn("New Name", name.get_attribute("value"))
 
         with self.assertRaises(NoSuchElementException):
-            self.selenium.find_element_by_name("_confirmation_received")
+            self.selenium.find_element(By.NAME, "_confirmation_received")
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should persist change
         mall.refresh_from_db()
@@ -68,19 +66,19 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Change price
-        price = self.selenium.find_element_by_name("price")
+        price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        price = hidden_form.find_element_by_name("price")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        price = hidden_form.find_element(By.NAME, "price")
         self.assertEqual("21.00", price.get_attribute("value"))
 
-        self.selenium.find_element_by_name("_confirmation_received")
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_confirmation_received")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         item.refresh_from_db()
 
@@ -101,24 +99,24 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        price = self.selenium.find_element_by_name("price")
+        price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element_by_id("id_file").send_keys(
+        self.selenium.find_element(By.ID, "id_file").send_keys(
             os.getcwd() + "/screenshot.png"
         )
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        price = hidden_form.find_element_by_name("price")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        price = hidden_form.find_element(By.NAME, "price")
         self.assertEqual("21.00", price.get_attribute("value"))
 
-        self.selenium.find_element_by_name("_confirmation_received")
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_confirmation_received")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
@@ -146,24 +144,24 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        price = self.selenium.find_element_by_name("price")
+        price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element_by_id("id_file").send_keys(
+        self.selenium.find_element(By.ID, "id_file").send_keys(
             os.getcwd() + "/screenshot.png"
         )
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        price = hidden_form.find_element_by_name("price")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        price = hidden_form.find_element(By.NAME, "price")
         self.assertEqual("21.00", price.get_attribute("value"))
 
-        self.selenium.find_element_by_name("_confirmation_received")
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_confirmation_received")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
@@ -185,27 +183,27 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
-        price = self.selenium.find_element_by_name("price")
+        price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
 
         # Choose to clear the existing file
-        self.selenium.find_element_by_id("file-clear_id").click()
+        self.selenium.find_element(By.ID, "file-clear_id").click()
         self.assertTrue(
-            self.selenium.find_element_by_xpath(
-                ".//*[@id='file-clear_id']"
+            self.selenium.find_element(
+                By.XPATH, ".//*[@id='file-clear_id']"
             ).get_attribute("checked")
         )
 
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         # Should have hidden form containing the updated price
         self.assertIn("Confirm", self.selenium.page_source)
-        hidden_form = self.selenium.find_element_by_id("hidden-form")
-        price = hidden_form.find_element_by_name("price")
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        price = hidden_form.find_element(By.NAME, "price")
         self.assertEqual("21.00", price.get_attribute("value"))
 
-        self.selenium.find_element_by_name("_confirmation_received")
-        self.selenium.find_element_by_name("_continue").click()
+        self.selenium.find_element(By.NAME, "_confirmation_received")
+        self.selenium.find_element(By.NAME, "_continue").click()
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))

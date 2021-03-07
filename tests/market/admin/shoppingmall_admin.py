@@ -14,3 +14,4 @@ class ShoppingMallAdmin(AdminConfirmMixin, ModelAdmin):
     confirmation_fields = ["name"]
 
     inlines = [ShopInline]
+    raw_id_fields = ["general_manager"]
