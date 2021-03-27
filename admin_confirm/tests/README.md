@@ -32,7 +32,8 @@ These are some areas which might/probably have issues that are not currently tes
 - [x] ManyToManyField
 - [x] OneToOneField
 - [x] ForeignKey
-
+- [x] DateField
+- [x] DateTimeField
 - [x] Custom Readonly fields
 
 ### Options
@@ -104,3 +105,17 @@ Note: Currently the code always calls super().\_changeform_view(), which would e
 
 - [x] ModelAdmin.has_add_permission
 - [x] ModelAdmin.has_change_permission
+
+### Tests for confirming models/forms with validations
+
+- [ ] ModelForm.clean\__field_
+- [ ] ModelForm.clean
+- [ ] Model.clean
+- [ ] validator on the model field
+
+There are other possible combos of theses
+
+### Tests for storage backends for ImageField and FileField
+
+- [x] Local storage
+- [ ] S3

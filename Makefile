@@ -22,6 +22,9 @@ migrate:
 shell:
 	./tests/manage.py shell
 
+dbshell:
+	./tests/manage.py dbshell
+
 package:
 	python3 setup.py sdist bdist_wheel
 
