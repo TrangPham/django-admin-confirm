@@ -108,8 +108,8 @@ Note: Currently the code always calls super().\_changeform_view(), which would e
 
 ### Tests for confirming models/forms with validations
 
-- [ ] ModelForm.clean_field
-- [ ] ModelForm.clean
+- [x] ModelForm.clean_field
+- [x] ModelForm.clean
 - [x] Model.clean
 - [x] validator on the model field
 
@@ -117,8 +117,8 @@ There are other possible combos of theses
 
 ### Tests where save functions are overridden
 
-- [ ] ModelForm.save_model
-- [ ] ModelAdmin.save
+- [ ] ModelForm.save
+- [ ] ModelAdmin.save_model
 
 ### Tests for storage backends for ImageField and FileField
 

@@ -17,6 +17,7 @@ class TestModelFieldTypes(AdminConfirmTestCase):
             "timestamp_1": str(expected_timestamp.time()),
             "currency": "USD",
             "shop": shop.id,
+            "total": 0,
             "_confirm_add": True,
             "_save": True,
         }
@@ -61,6 +62,7 @@ class TestModelFieldTypes(AdminConfirmTestCase):
             "timestamp_1": "12:30:00",
             "currency": "USD",
             "shop": transaction.shop.id,
+            "total": 0,
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
             "_continue": True,

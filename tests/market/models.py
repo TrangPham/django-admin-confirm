@@ -63,14 +63,13 @@ class ShoppingMall(models.Model):
 
 
 class Transaction(models.Model):
-    total = models.DecimalField(max_digits=5, decimal_places=2, editable=False)
+    total = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, choices=VALID_CURRENCIES)
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_created=True)
     date = models.DateField()
 
     def save(self, *args, **kwargs):
-        self.total = 0
         super().save(*args, **kwargs)
 
 
