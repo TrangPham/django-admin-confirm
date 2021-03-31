@@ -22,14 +22,17 @@ migrate:
 shell:
 	./tests/manage.py shell
 
+dbshell:
+	./tests/manage.py dbshell
+
 package:
 	python3 setup.py sdist bdist_wheel
 
 upload-testpypi:
-	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
+	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)-*
 
 i-have-tested-with-testpypi-and-am-ready-to-release:
-	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)*
+	python3 -m twine upload --repository pypi dist/django_admin_confirm-$(VERSION)-*
 
 install-testpypi:
 	pip uninstall django_admin_confirm

@@ -1,8 +1,10 @@
 """
 Tests with different form input types
 """
+from datetime import timedelta
+from django.utils import timezone
 from importlib import reload
-from tests.factories import ShopFactory
+from tests.factories import ShopFactory, TransactionFactory
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
@@ -98,3 +100,37 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
         self.assertEqual(gm2, mall.general_manager)
+
+    def test_datetime_and_field_should_work(self):
+        original_timestamp = timezone.now() - timedelta(hours=1)
+        transaction = TransactionFactory(timestamp=original_timestamp)
+
+        self.selenium.get(
+            self.live_server_url + f"/admin/market/transaction/{transaction.id}/change/"
+        )
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+        # Set date via text input
+        date_input = self.selenium.find_element(By.ID, "id_date")
+        date_input.clear()
+        date_input.send_keys("2021-01-01")
+        self.assertEqual(date_input.get_attribute("value"), "2021-01-01")
+
+        # Set timestamp via text input
+        timestamp_date = self.selenium.find_element(By.ID, "id_timestamp_0")
+        timestamp_date.clear()
+        timestamp_date.send_keys(str(timezone.now().date()))
+        timestamp_time = self.selenium.find_element(By.ID, "id_timestamp_1")
+        timestamp_time.clear()
+        timestamp_time.send_keys(str(timezone.now().time()))
+
+        # Click save and continue
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Click Yes I'm Sure on confirmation page
+        self.assertIn("Confirm", self.selenium.page_source)
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        transaction.refresh_from_db()
+        self.assertEqual(str(transaction.date), "2021-01-01")
+        self.assertTrue(transaction.timestamp > original_timestamp)
