@@ -1,11 +1,8 @@
-from unittest import mock
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from tests.market.admin import ShoppingMallAdmin
-from tests.market.models import ShoppingMall, Transaction
+from tests.market.models import Transaction
 from tests.factories import ShopFactory, TransactionFactory
 
 
@@ -44,7 +41,6 @@ class TestModelFieldTypes(AdminConfirmTestCase):
         # Selecting to "Yes, I'm sure" on the confirmation page
         # Would post to the same endpoint
         response = self.client.post(reverse("admin:market_transaction_add"), data)
-        print(response.content)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/market/transaction/")
         self.assertEqual(Transaction.objects.count(), 1)

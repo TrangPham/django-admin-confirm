@@ -80,7 +80,7 @@ class ItemSale(models.Model):
     )
     item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
     quantity = models.PositiveIntegerField(default=1)
-    total = models.DecimalField(max_digits=5, decimal_places=2, editable=False)
+    total = models.DecimalField(max_digits=5, decimal_places=2)
     currency = models.CharField(max_length=5, validators=[validate_currency])
 
     def clean(self):
@@ -91,7 +91,7 @@ class ItemSale(models.Model):
         if not inventory:
             errors["item"] = "Shop does not have the item stocked"
         else:
-            in_stock = inventory.aggregate(Sum("quantity"))["sum_quantity"]
+            in_stock = inventory.aggregate(Sum("quantity")).get("quantity__sum", 0)
             if in_stock < self.quantity:
                 errors["item"] = "Shop does not have enough of the item stocked"
         if errors:
