@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+
   web:
     build:
       context: .
@@ -16,6 +17,8 @@ services:
       - "8000:8000"
     depends_on:
       - selenium
+
+
   selenium:
     # image: selenium/standalone-firefox
     image: selenium/standalone-firefox-debug:latest
@@ -24,3 +27,21 @@ services:
       - "5900:5900"   # VNC
     volumes:
       - .:/code
+
+  localstack:
+    # container_name: "${LOCALSTACK_DOCKER_NAME-localstack_main}"
+    image: localstack/localstack
+    network_mode: bridge
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=s3
+      - DEBUG=true
+      # enable persistance
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=local
+      - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - "./tmp/localstack}:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

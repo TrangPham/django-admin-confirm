@@ -14,3 +14,4 @@ Pillow~=8.1.0 # For ImageField
 
 # Others should use
 selenium~=4.0.0.a5
+localstack~=0.12.9.1 # For testing with S3
