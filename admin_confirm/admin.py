@@ -100,6 +100,7 @@ class AdminConfirmMixin:
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
+                print("confirmation is asked for")
                 cache.delete_many(CACHE_KEYS.values())
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
@@ -111,12 +112,18 @@ class AdminConfirmMixin:
             else:
                 cache.delete_many(CACHE_KEYS.values())
 
-        extra_context = {
+        extra_context = self._add_confirmation_options_to_extra_context(extra_context)
+        return super().changeform_view(request, object_id, form_url, extra_context)
+
+    def _add_confirmation_options_to_extra_context(self, extra_context):
+        print(
+            f"Adding confirmation to extra_content {self.confirm_add} {self.confirm_change}"
+        )
+        return {
             **(extra_context or {}),
             "confirm_add": self.confirm_add,
             "confirm_change": self.confirm_change,
         }
-        return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _get_changed_data(
         self, form: ModelForm, model: Model, obj: object, add: bool
@@ -312,6 +319,9 @@ class AdminConfirmMixin:
         model = self.model
         opts = model._meta
 
+        if SAVE_AS_NEW in request.POST:
+            object_id = None
+
         add = object_id is None
         if add:
             if not self.has_add_permission(request):
@@ -331,7 +341,7 @@ class AdminConfirmMixin:
             request, obj, change=not add, fields=flatten_fieldsets(fieldsets)
         )
 
-        form = ModelForm(request.POST, request.FILES, obj)
+        form = ModelForm(request.POST, request.FILES, instance=obj)
         form_validated = form.is_valid()
         if form_validated:
             new_object = self.save_form(request, form, change=not add)
@@ -341,6 +351,16 @@ class AdminConfirmMixin:
             request, new_object, change=not add
         )
         # End code from super()._changeform_view
+        # form.is_valid() checks both errors and "is_bound"
+        # If form has errors, show the errors on the form instead of showing confirmation page
+        if not form_validated:
+            print("return early")
+            print(form.errors)
+            # We must ensure that we ask for confirmation when showing errors
+            extra_context = self._add_confirmation_options_to_extra_context(
+                extra_context
+            )
+            return super()._changeform_view(request, object_id, form_url, extra_context)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
@@ -350,6 +370,7 @@ class AdminConfirmMixin:
             self.get_confirmation_fields(request, obj)
         ) & set(changed_data.keys())
         if not bool(changed_confirmation_fields):
+            print("No change detected")
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
@@ -363,12 +384,15 @@ class AdminConfirmMixin:
 
         cleared_fields = []
         if form.is_multipart():
+            print(f"Caching new_object {new_object.image}")
             cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
             cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
+            # cache.set("files", request.FILES, timeout=CACHE_TIMEOUT)
 
             # Handle when files are cleared - since the `form` object would not hold that info
             cleared_fields = self._get_cleared_fields(request)
 
+        print("Render Change Confirmation")
         title_action = _("adding") if add_or_new else _("changing")
         context = {
             **self.admin_site.each_context(request),

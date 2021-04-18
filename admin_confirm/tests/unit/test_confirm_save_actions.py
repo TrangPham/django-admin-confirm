@@ -99,13 +99,13 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             multipart_form=True,
         )
 
-        # Should have cached the unsaved item
-        cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        self.assertEqual(cached_item.name, data["name"])
-        self.assertEqual(cached_item.price, data["price"])
-        self.assertEqual(cached_item.currency, data["currency"])
+        # # Should have cached the unsaved item
+        # cached_item = cache.get(CACHE_KEYS["object"])
+        # self.assertIsNotNone(cached_item)
+        # self.assertIsNone(cached_item.id)
+        # self.assertEqual(cached_item.name, data["name"])
+        # self.assertEqual(cached_item.price, data["price"])
+        # self.assertEqual(cached_item.currency, data["currency"])
 
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)

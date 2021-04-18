@@ -68,6 +68,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         # Change price
         price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
+        self.selenium.find_element(By.ID, "id_currency_0").click()
 
         self.selenium.find_element(By.NAME, "_continue").click()
 

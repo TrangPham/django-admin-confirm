@@ -8,6 +8,9 @@ from ..models import Checkout
 
 
 class CheckoutForm(ModelForm):
+    search_fields = ["shop", "date"]
+    confirm_change = True
+
     class Meta:
         model = Checkout
         fields = [

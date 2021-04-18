@@ -69,14 +69,14 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         # Make a change to trigger confirmation page
         name = self.selenium.find_element(By.NAME, "name")
-        name.send_keys("New Name")
+        name.send_keys("This is New Name")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
         self.assertIn("Confirm", self.selenium.page_source)
-
         hidden_form = self.selenium.find_element(By.ID, "hidden-form")
         hidden_form.find_element(By.NAME, "ShoppingMall_shops-TOTAL_FORMS")
+
         self.selenium.find_element(By.NAME, "_continue").click()
 
         mall.refresh_from_db()
