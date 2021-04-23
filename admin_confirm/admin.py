@@ -1,4 +1,6 @@
 from typing import Dict
+from django.core.files.temp import NamedTemporaryFile
+from django.core import files
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.exceptions import PermissionDenied
@@ -8,7 +10,7 @@ from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
-from admin_confirm.utils import get_admin_change_url, snake_to_title_case
+from admin_confirm.utils import log, get_admin_change_url, snake_to_title_case
 from django.core.cache import cache
 from django.views.decorators.cache import cache_control
 from admin_confirm.constants import (
@@ -22,6 +24,7 @@ from admin_confirm.constants import (
     SAVE_AND_CONTINUE,
     SAVE_AS_NEW,
 )
+from admin_confirm.file_cache import FileCache
 
 
 class AdminConfirmMixin:
@@ -37,6 +40,8 @@ class AdminConfirmMixin:
     # Custom templates (designed to be over-ridden in subclasses)
     change_confirmation_template = None
     action_confirmation_template = None
+
+    _file_cache = FileCache()
 
     def get_confirmation_fields(self, request, obj=None):
         """
@@ -100,7 +105,8 @@ class AdminConfirmMixin:
             if (not object_id and CONFIRM_ADD in request.POST) or (
                 object_id and CONFIRM_CHANGE in request.POST
             ):
-                print("confirmation is asked for")
+                log("confirmation is asked for")
+                self._file_cache.delete_all()
                 cache.delete_many(CACHE_KEYS.values())
                 return self._change_confirmation_view(
                     request, object_id, form_url, extra_context
@@ -110,13 +116,14 @@ class AdminConfirmMixin:
                     request, object_id, form_url, extra_context
                 )
             else:
+                self._file_cache.delete_all()
                 cache.delete_many(CACHE_KEYS.values())
 
         extra_context = self._add_confirmation_options_to_extra_context(extra_context)
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _add_confirmation_options_to_extra_context(self, extra_context):
-        print(
+        log(
             f"Adding confirmation to extra_content {self.confirm_add} {self.confirm_change}"
         )
         return {
@@ -207,49 +214,52 @@ class AdminConfirmMixin:
         - or save the new object and modify the request from `add` to `change`
         and pass the request to Django
         """
+        log("Confirmation has been received")
 
         def _reconstruct_request_files():
             """
-            Reconstruct the file(s) from the cached object (if any).
+            Reconstruct the file(s) from the file cache (if any).
             Returns a dictionary of field name to cached file
             """
             reconstructed_files = {}
 
             cached_object = cache.get(CACHE_KEYS["object"])
-            query_dict = cache.get(CACHE_KEYS["post"])
             # Reconstruct the files from cached object
             if not cached_object:
+                log("Warning: no cached_object")
                 return
-
-            if not query_dict:
-                # Use the current POST, since it should mirror cached POST
-                query_dict = request.POST
 
             if type(cached_object) != self.model:
                 # Do not use cache if the model doesn't match this model
+                log(f"Warning: cached_object is not of type {self.model}")
                 return
+
+            query_dict = request.POST
 
             for field in self.model._meta.get_fields():
                 if not (isinstance(field, FileField) or isinstance(field, ImageField)):
                     continue
 
-                cached_file = getattr(cached_object, field.name)
+                cached_file = self._file_cache.get(field.name)
+
                 # If a file was uploaded, the field is omitted from the POST since it's in request.FILES
-                if not query_dict.get(field.name) and cached_file:
-                    reconstructed_files[field.name] = cached_file
+                if not query_dict.get(field.name):
+                    if not cached_file:
+                        log(
+                            f"Warning: Could not find file cached for field {field.name}"
+                        )
+                    else:
+                        reconstructed_files[field.name] = cached_file
 
             return reconstructed_files
 
         reconstructed_files = _reconstruct_request_files()
         if reconstructed_files:
+            log(f"Found reconstructed files for fields: {reconstructed_files.keys()}")
             obj = None
 
             # remove the _confirm_add and _confirm_change from post
             modified_post = request.POST.copy()
-            cached_post = cache.get(CACHE_KEYS["post"])
-            # No cover: __reconstruct_request_files currently checks for cached post so cached_post won't be None
-            if cached_post:  # pragma: no cover
-                modified_post = cached_post.copy()
             if CONFIRM_ADD in modified_post:
                 del modified_post[CONFIRM_ADD]
             if CONFIRM_CHANGE in modified_post:
@@ -269,6 +279,7 @@ class AdminConfirmMixin:
             # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
             if obj:  # pragma: no cover
                 for field, file in reconstructed_files.items():
+                    log(f"Setting file field {field} to file {file}")
                     setattr(obj, field, file)
                 obj.save()
                 object_id = str(obj.id)
@@ -290,7 +301,9 @@ class AdminConfirmMixin:
 
             request.POST = modified_post
 
+        self._file_cache.delete_all()
         cache.delete_many(CACHE_KEYS.values())
+
         return super()._changeform_view(request, object_id, form_url, extra_context)
 
     def _get_cleared_fields(self, request):
@@ -354,8 +367,8 @@ class AdminConfirmMixin:
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
         if not form_validated:
-            print("return early")
-            print(form.errors)
+            log("Invalid Form: return early")
+            log(form.errors)
             # We must ensure that we ask for confirmation when showing errors
             extra_context = self._add_confirmation_options_to_extra_context(
                 extra_context
@@ -370,7 +383,7 @@ class AdminConfirmMixin:
             self.get_confirmation_fields(request, obj)
         ) & set(changed_data.keys())
         if not bool(changed_confirmation_fields):
-            print("No change detected")
+            log("No change detected")
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
@@ -384,15 +397,17 @@ class AdminConfirmMixin:
 
         cleared_fields = []
         if form.is_multipart():
-            print(f"Caching new_object {new_object.image}")
-            cache.set(CACHE_KEYS["post"], request.POST, timeout=CACHE_TIMEOUT)
-            cache.set(CACHE_KEYS["object"], new_object, timeout=CACHE_TIMEOUT)
-            # cache.set("files", request.FILES, timeout=CACHE_TIMEOUT)
+            log("Caching files")
+            cache.set(CACHE_KEYS["object"], new_object, CACHE_TIMEOUT)
+            # Save files as tempfiles
+            for field_name in request.FILES:
+                file = request.FILES[field_name]
+                self._file_cache.set(field_name, file)
 
             # Handle when files are cleared - since the `form` object would not hold that info
             cleared_fields = self._get_cleared_fields(request)
 
-        print("Render Change Confirmation")
+        log("Render Change Confirmation")
         title_action = _("adding") if add_or_new else _("changing")
         context = {
             **self.admin_site.each_context(request),

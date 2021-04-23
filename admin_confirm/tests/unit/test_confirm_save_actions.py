@@ -205,11 +205,11 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(saved_item.name, data["name"])
         self.assertEqual(saved_item.price, data["price"])
         self.assertEqual(saved_item.currency, data["currency"])
-        self.assertEqual(saved_item.file, data["file"])
-        self.assertEqual(saved_item.image, data["image"])
+        self.assertIsNotNone(saved_item.file)
+        self.assertIsNotNone(saved_item.image)
 
-        self.assertEqual(saved_item.file.name, "test_file.jpg")
-        self.assertEqual(saved_item.image.name, "test_image.jpg")
+        self.assertRegex(saved_item.file.name, r"test_file_.*\.jpg$")
+        self.assertRegex(saved_item.image.name, r"test_image_.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
@@ -312,7 +312,8 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(new_item.price, data["price"])
         self.assertEqual(new_item.currency, data["currency"])
         self.assertFalse(new_item.file)
-        self.assertEqual(new_item.image, i2)
+        self.assertIsNotNone(new_item.image)
+        self.assertRegex(new_item.image.name, r"test_image2_.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():

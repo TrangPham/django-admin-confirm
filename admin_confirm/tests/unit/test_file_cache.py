@@ -10,6 +10,7 @@ Then send the rest of the changes to Django to handle
 This is arguably the most we fiddle with the Django request
 Thus we should test it extensively
 """
+from admin_confirm.file_cache import FileCache
 import time
 from unittest import mock
 
@@ -77,6 +78,8 @@ class TestFileCache(AdminConfirmTestCase):
             currency=data["currency"],
             image=i2,
         )
+        file_cache = FileCache()
+        file_cache.set('image', i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         cache.set(CACHE_KEYS["post"], data)
@@ -150,6 +153,8 @@ class TestFileCache(AdminConfirmTestCase):
             currency=data["currency"],
             image=i2,
         )
+        file_cache = FileCache()
+        file_cache.set("image", i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         cache.set(CACHE_KEYS["post"], data)
@@ -261,22 +266,24 @@ class TestFileCache(AdminConfirmTestCase):
             self.assertIsNone(cache.get(key))
 
     def test_add_with_upload_file_should_save_new_instance_with_files(self):
-        # Request.POST
-        data = {
-            "name": "name",
-            "price": 2.0,
-            "image": "",
-            "currency": Item.VALID_CURRENCIES[0][0],
-            "_confirm_add": True,
-            "_save": True,
-        }
-
         # Upload new file
         f2 = SimpleUploadedFile(
             name="test_file2.jpg",
             content=open(self.image_path, "rb").read(),
             content_type="image/jpeg",
         )
+
+        # Request.POST
+        data = {
+            "name": "name",
+            "price": 2.0,
+            "image": "",
+            "file": f2,
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_confirm_add": True,
+            "_save": True,
+        }
+
         # Set cache
         cache_item = Item(
             name=data["name"], price=data["price"], currency=data["currency"], file=f2
@@ -315,30 +322,34 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertEqual(new_item.name, data["name"])
         self.assertEqual(new_item.price, data["price"])
         self.assertEqual(new_item.currency, data["currency"])
-        self.assertIn("test_file2", new_item.file.name)
+        self.assertIsNotNone(new_item.file)
         self.assertFalse(new_item.image)
+
+        self.assertRegex(new_item.file.name, r"test_file2_.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
     def test_add_without_cached_post_should_save_new_instance_with_file(self):
-        # Request.POST
-        data = {
-            "name": "name",
-            "price": 2.0,
-            "image": "",
-            "currency": Item.VALID_CURRENCIES[0][0],
-            "_confirm_add": True,
-            "_save": True,
-        }
-
         # Upload new file
         f2 = SimpleUploadedFile(
             name="test_file2.jpg",
             content=open(self.image_path, "rb").read(),
             content_type="image/jpeg",
         )
+
+        # Request.POST
+        data = {
+            "name": "name",
+            "price": 2.0,
+            "image": "",
+            "file": f2,
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_confirm_add": True,
+            "_save": True,
+        }
+
         # Set cache
         cache_item = Item(
             name=data["name"], price=data["price"], currency=data["currency"], file=f2
@@ -381,7 +392,7 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertFalse(new_item.image)
 
         # Able to save the cached file since cached object was there even though cached post was not
-        self.assertIn("test_file2", new_item.file.name)
+        self.assertRegex(new_item.file.name, r"test_file2_.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
@@ -526,6 +537,8 @@ class TestFileCache(AdminConfirmTestCase):
             currency=data["currency"],
             image=i2,
         )
+        file_cache = FileCache()
+        file_cache.set("image", i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         # Ensure no cached post
@@ -567,6 +580,7 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertEqual(new_item.currency, data["currency"])
         # Should have cleared `file` since clear was selected
         self.assertFalse(new_item.file)
+        self.assertIsNotNone(new_item.image)
         # Saved cached file from cached obj even if cached post was missing
         self.assertIn("test_image2", new_item.image.name)
 
@@ -789,12 +803,6 @@ class TestFileCache(AdminConfirmTestCase):
         # Should have cached the unsaved item
         cached_item = cache.get(CACHE_KEYS["object"])
         self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        self.assertEqual(cached_item.name, data["name"])
-        self.assertEqual(cached_item.price, data["price"])
-        self.assertEqual(cached_item.currency, data["currency"])
-        self.assertFalse(cached_item.file.name)
-        self.assertEqual(cached_item.image, i2)
 
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)

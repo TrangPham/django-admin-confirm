@@ -23,11 +23,12 @@ SECRET_KEY = "=yddl-40388w3e2hl$e8)revce=n67_idi8pfejtn3!+2%!_qt"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+ADMIN_CONFIRM_DEBUG = True
 
-USE_DCOKER = os.environ.get("USE_DOCKER", "").lower() == "true"
+USE_DOCKER = os.environ.get("USE_DOCKER", "").lower() == "true"
 
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
-if USE_DCOKER:
+if USE_DOCKER:
     import socket
 
     ALLOWED_HOSTS += [socket.gethostbyname(socket.gethostname())]
