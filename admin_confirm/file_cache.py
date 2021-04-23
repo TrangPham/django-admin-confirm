@@ -68,7 +68,7 @@ class FileCache(object):
             self.cache.set(key, state, self.timeout)
             log(f"Setting file cache with {key}")
             self.cached_keys.append(key)
-        except AttributeError:
+        except AttributeError:  # pragma: no cover
             pass  # noqa: WPS420
 
     def get(self, key):

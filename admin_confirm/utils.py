@@ -17,11 +17,11 @@ def format_cache_key(model: str, field: str) -> str:
     return f"{CACHE_KEY_PREFIX}__{model}__{field}"
 
 
-def log(message: str):
+def log(message: str):  # pragma: no cover
     if DEBUG:
         print(message)
 
 
-def inspect(obj: object):
+def inspect(obj: object):  # pragma: no cover
     if DEBUG:
         print(f"{str(obj): type(obj) - dir(obj)}")

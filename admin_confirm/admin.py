@@ -266,9 +266,9 @@ class AdminConfirmMixin:
             # remove the _confirm_add and _confirm_change from post
             modified_post = request.POST.copy()
             if CONFIRM_ADD in modified_post:
-                del modified_post[CONFIRM_ADD]
+                del modified_post[CONFIRM_ADD]  # pragma: no cover
             if CONFIRM_CHANGE in modified_post:
-                del modified_post[CONFIRM_CHANGE]
+                del modified_post[CONFIRM_CHANGE]  # pragma: no cover
 
             if object_id and SAVE_AS_NEW not in request.POST:
                 # Update the obj with the new uploaded files
