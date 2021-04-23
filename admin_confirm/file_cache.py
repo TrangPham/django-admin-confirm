@@ -1,4 +1,5 @@
-"""
+""" FileCache - caches files for ModelAdmins with confirmations.
+
 Code modified from: https://github.com/MaistrenkoAnton/filefield-cache/blob/master/filefield_cache/cache.py
 Original copy date: April 22, 2021
 ---
@@ -29,38 +30,33 @@ SOFTWARE.
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 try:
-    from cStringIO import StringIO as BytesIO
+    from cStringIO import StringIO as BytesIO  # noqa: WPS433
 except ImportError:
-    from io import BytesIO
+    from io import BytesIO  # noqa: WPS433, WPS440
+
 from django.core.cache import cache
 
-from admin_confirm.constants import CACHE_TIMEOUT, CACHE_KEY_PREFIX
+from admin_confirm.constants import CACHE_TIMEOUT
 from admin_confirm.utils import log
 
 
-class FileCache:
-    """
-    Cache file data and retain the file upon confirmation
-    """
+class FileCache(object):
+    "Cache file data and retain the file upon confirmation."
 
     timeout = CACHE_TIMEOUT
-    key_prefix = CACHE_KEY_PREFIX
 
     def __init__(self):
         self.cache = cache
         self.cached_keys = []
 
-    def _format_key(self, key):
-        return f"{CACHE_KEY_PREFIX}_{key}"
-
     def set(self, key, upload):
         """
         Set file data to cache for 1000s
+
         :param key: cache key
         :param upload: file data
         """
-        key = self._format_key(key)
-        try:
+        try:  # noqa: WPS229
             state = {
                 "name": upload.name,
                 "size": upload.size,
@@ -73,22 +69,22 @@ class FileCache:
             log(f"Setting file cache with {key}")
             self.cached_keys.append(key)
         except AttributeError:
-            pass
+            pass  # noqa: WPS420
 
     def get(self, key):
         """
         Get the file data from cache using specific cache key
+
         :param key: cache key
         :return: File data
         """
-        key = self._format_key(key)
         upload = None
         state = self.cache.get(key)
         if state:
-            f = BytesIO()
-            f.write(state["content"])
+            file = BytesIO()
+            file.write(state["content"])
             upload = InMemoryUploadedFile(
-                file=f,
+                file=file,
                 field_name="file",
                 name=state["name"],
                 content_type=state["content_type"],
@@ -102,15 +98,13 @@ class FileCache:
     def delete(self, key):
         """
         Delete file data from cache
+
         :param key: cache key
         """
-        key = self._format_key(key)
         self.cache.delete(key)
         self.cached_keys.remove(key)
 
     def delete_all(self):
-        """
-        Delete all cached file data from cache
-        """
+        "Delete all cached file data from cache."
         self.cache.delete_many(self.cached_keys)
         self.cached_keys = []

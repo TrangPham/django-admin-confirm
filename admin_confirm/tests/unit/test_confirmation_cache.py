@@ -293,7 +293,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         self.assertFalse(saved_item.file)
         self.assertIsNotNone(saved_item.image)
 
-        self.assertRegex(saved_item.image.name, r"test_image2_.*\.jpg$")
+        self.assertRegex(saved_item.image.name, r"test_image2.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():

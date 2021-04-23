@@ -121,7 +121,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
-        self.assertRegex(item.file.name, r"screenshot_.*\.png$")
+        self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
         selenium_version = pkg_resources.get_distribution("selenium").parsed_version
@@ -166,7 +166,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
-        self.assertRegex(item.file.name, r"screenshot_.*\.png$")
+        self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_remove_file_if_clear_selected(self):
         file = SimpleUploadedFile(

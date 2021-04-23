@@ -10,6 +10,7 @@ Then send the rest of the changes to Django to handle
 This is arguably the most we fiddle with the Django request
 Thus we should test it extensively
 """
+from admin_confirm.utils import format_cache_key
 from admin_confirm.file_cache import FileCache
 import time
 from unittest import mock
@@ -79,7 +80,7 @@ class TestFileCache(AdminConfirmTestCase):
             image=i2,
         )
         file_cache = FileCache()
-        file_cache.set('image', i2)
+        file_cache.set(format_cache_key(model="Item", field="image"), i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         cache.set(CACHE_KEYS["post"], data)
@@ -154,7 +155,7 @@ class TestFileCache(AdminConfirmTestCase):
             image=i2,
         )
         file_cache = FileCache()
-        file_cache.set("image", i2)
+        file_cache.set(format_cache_key(model="Item", field="image"), i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         cache.set(CACHE_KEYS["post"], data)
@@ -325,7 +326,7 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertIsNotNone(new_item.file)
         self.assertFalse(new_item.image)
 
-        self.assertRegex(new_item.file.name, r"test_file2_.*\.jpg$")
+        self.assertRegex(new_item.file.name, r"test_file2.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
@@ -392,7 +393,7 @@ class TestFileCache(AdminConfirmTestCase):
         self.assertFalse(new_item.image)
 
         # Able to save the cached file since cached object was there even though cached post was not
-        self.assertRegex(new_item.file.name, r"test_file2_.*\.jpg$")
+        self.assertRegex(new_item.file.name, r"test_file2.*\.jpg$")
 
         # Should have cleared cache
         for key in CACHE_KEYS.values():
@@ -538,7 +539,7 @@ class TestFileCache(AdminConfirmTestCase):
             image=i2,
         )
         file_cache = FileCache()
-        file_cache.set("image", i2)
+        file_cache.set(format_cache_key(model="Item", field="image"), i2)
 
         cache.set(CACHE_KEYS["object"], cache_item)
         # Ensure no cached post

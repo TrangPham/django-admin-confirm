@@ -1,8 +1,7 @@
 from typing import Dict
-from django.core.files.temp import NamedTemporaryFile
-from django.core import files
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
@@ -10,11 +9,14 @@ from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
-from admin_confirm.utils import log, get_admin_change_url, snake_to_title_case
-from django.core.cache import cache
+from admin_confirm.utils import (
+    log,
+    get_admin_change_url,
+    snake_to_title_case,
+    format_cache_key,
+)
 from django.views.decorators.cache import cache_control
 from admin_confirm.constants import (
-    CACHE_TIMEOUT,
     CONFIRMATION_RECEIVED,
     CONFIRM_ADD,
     CONFIRM_CHANGE,
@@ -23,6 +25,7 @@ from admin_confirm.constants import (
     CACHE_KEYS,
     SAVE_AND_CONTINUE,
     SAVE_AS_NEW,
+    CACHE_TIMEOUT,
 )
 from admin_confirm.file_cache import FileCache
 
@@ -240,7 +243,9 @@ class AdminConfirmMixin:
                 if not (isinstance(field, FileField) or isinstance(field, ImageField)):
                     continue
 
-                cached_file = self._file_cache.get(field.name)
+                cached_file = self._file_cache.get(
+                    format_cache_key(model=self.model.__name__, field=field.name)
+                )
 
                 # If a file was uploaded, the field is omitted from the POST since it's in request.FILES
                 if not query_dict.get(field.name):
@@ -399,10 +404,13 @@ class AdminConfirmMixin:
         if form.is_multipart():
             log("Caching files")
             cache.set(CACHE_KEYS["object"], new_object, CACHE_TIMEOUT)
+
             # Save files as tempfiles
             for field_name in request.FILES:
                 file = request.FILES[field_name]
-                self._file_cache.set(field_name, file)
+                self._file_cache.set(
+                    format_cache_key(model=model.__name__, field=field_name), file
+                )
 
             # Handle when files are cleared - since the `form` object would not hold that info
             cleared_fields = self._get_cleared_fields(request)
