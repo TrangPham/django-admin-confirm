@@ -14,19 +14,6 @@ on:
       - created
 
 jobs:
-  # lint:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - name: wemake-python-styleguide
-  #     uses: wemake-services/wemake-python-styleguide@0.15.2
-  #     with:
-  #       path: admin_confirm
-  #       reporter: 'github-pr-review'
-  #     env:
-  #       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #     continue-on-error: true
-
   test:
     runs-on: ubuntu-latest
     strategy:
