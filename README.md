@@ -2,6 +2,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/django-admin-confirm?color=blue)](https://pypi.org/project/django-admin-confirm/) ![Tests Status](https://github.com/TrangPham/django-admin-confirm/actions/workflows/.github/workflows/test.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/TrangPham/django-admin-confirm/badge.svg)](https://coveralls.io/github/TrangPham/django-admin-confirm)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/django-admin-confirm) ![PyPI - Django Version](https://img.shields.io/pypi/djversions/django-admin-confirm)
+![PyPI - License](https://img.shields.io/pypi/l/django_admin_confirm) ![Status](https://img.shields.io/badge/status-alpha-yellow)
 
 AdminConfirmMixin is a mixin for ModelAdmin to add confirmations to change, add and actions.
 
