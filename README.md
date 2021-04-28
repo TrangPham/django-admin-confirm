@@ -32,7 +32,7 @@ Typical Usage:
 
 Be aware that not all possible combinations of ModelAdmin have been tested, even if test coverage is high.
 
-See [testing readme](admin_confirm/tests/README.md) for more details
+See [testing readme](docs/testing_notes.md) for more details
 
 ## Installation
 
@@ -54,6 +54,13 @@ Note that this project follows the template override rules of Django.
 To override a template, your app should be listed before `admin_confirm` in INSTALLED_APPS.
 
 ## Configuration Options
+
+**Environment Variables**:
+
+Caching is used to cache files for confirmation. When change/add is submitted on the ModelAdmin, if confirmation is required, files will be cached until all validations pass and confirmation is received.
+
+- `ADMIN_CONFIRM_CACHE_TIMEOUT` _default: 1000_
+- `ADMIN_CONFIRM_CACHE_KEY_PREFIX` _default: admin_confirm\_\_file_cache_
 
 **Attributes:**
 
@@ -138,135 +145,7 @@ Your appreciation is also very welcome :) Feel free to:
 - star the project
 - open an issue just to share your thanks
 
-### Local Development Setup
-
-**Local:**
-_You can skip this and just use docker if you want_
-
-Install pyenv
-pyenv install 3.8.0
-
-Create **virtualenv** via pyenv
-
-```
-pyenv vituralenv 3.8.0 django-admin-confirm-3.8.0
-```
-
-Now your terminal should have `(django-admin-confirm-3.8.0)` prefix, because `.python-version` should have auto switch your virtual env
-
-Install requirements
-
-```
-pip install -r requirements.txt
-pip install -e .
-```
-
-Run **migrations** and create a superuser and run the server
-
-```
-./tests/manage.py migrate
-./tests/manage.py createsuperuser
-./tests/manage.py runserver
-```
-
-You should be able to see the test app at `localhost:8000/admin`
-
-**Running tests:**
-
-```sh
-make test # Runs unit tests with coverage locally without integration tests
-make test-all # Runs unit tests + integration tests, requires extra setup to run locally
-```
-
-Use `python -m pytest` if you want to pass in arguments
-
-`make t` is a short cut to run without coverage, last-failed, and fail fast
-
-Testing local changes on test project:
-
-```
-pip install -e .
-make run
-```
-
-**Docker:**
-
-Instead of local set-up, you can also use docker.
-
-Install docker-compose (or Docker Desktop which installs this for you)
-
-```
-docker-compose build
-docker-compose up -d
-```
-
-You should now be able to see the app running on `localhost:8000`
-
-If you haven't already done migrations and created a superuser, you'll want to do it here
-
-```
-docker-compose exec web tests/manage.py migrate
-docker-compose exec web tests/manage.py createsuperuser
-```
-
-Running tests in docker:
-
-```
-docker-compose exec -T web make test-all
-```
-
-The integration tests are set up within docker. I recommend running the integration tests only in docker.
-
-Docker is also set to mirror local folder so that you can edit code/tests and don't have to rebuild to run new code/tests.
-
-### Release process
-
-Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.
-
-Run tests, check coverage, check readme
-
-```
-docker-compose exec -T web make test-all
-make check-readme
-```
-
-Update version in `setup.py`
-
-```
-make package
-make upload-testpypi VERSION=<VERSION>
-```
-
-Install new version locally
-First you have to uninstall if you used `pip install -e` earlier
-
-```
-pip uninstall django_admin_confirm
-make install-testpypi VERSION=<VERSION>
-```
-
-Add test locally
-
-```
-make run
-```
-
-Go on github and make a release in UI
-
-## Feature List
-
-This is a list of features which could potentially be added in the future. Some of which might make more sense in their own package.
-
-- [x] confirmations on changelist actions
-- [ ] confirmations on inlines
-- [ ] global actions on changelist page
-- [ ] instance actions on change/view page
-- [ ] action logs (adding actions to history of instances)
-- [ ] add help tooltip/popover to any field for more info
-- [ ] add help tooltop/popover/help button to admin actions on changelist
-- [ ] run scripts from admin
-- [ ] completed action summary page
-- [ ] add top and bottom areas to instance pages which can be configured for any content
+Check out our [development process](docs/development_process.md) if you're interested.
 
 ## Support
 
