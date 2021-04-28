@@ -1,7 +1,11 @@
 """
 Ensures that confirmations work with validators on the Model and on the Modelform.
+
+NOTE: These unit tests are not enough to ensure that confirmations work with validators.
+    Please ensure to add integration tests too!
 """
 
+from admin_confirm.constants import CONFIRM_ADD
 from unittest import mock
 from django.urls import reverse
 from django.utils import timezone
@@ -80,27 +84,8 @@ class TestWithValidators(AdminConfirmTestCase):
             "_save": True,
         }
         response = self.client.post(reverse("admin:market_itemsale_add"), data)
-        # Should not have been added yet
-        self.assertEqual(ItemSale.objects.count(), 0)
 
-        # Ensure not redirected (confirmation page does not redirect)
-        self.assertEqual(response.status_code, 200)
-        expected_templates = [
-            "admin/market/itemsale/change_confirmation.html",
-            "admin/market/change_confirmation.html",
-            "admin/change_confirmation.html",
-        ]
-        self.assertEqual(response.template_name, expected_templates)
-
-        self._assertSubmitHtml(rendered_content=response.rendered_content)
-
-        # Confirmation page would not have the _confirm_add sent on submit
-        del data["_confirm_add"]
-        # Selecting to "Yes, I'm sure" on the confirmation page
-        # Would post to the same endpoint
-        response = self.client.post(reverse("admin:market_itemsale_add"), data)
-
-        # Should not have redirected, since there was an error
+        # Should show form with error and not confirmation page
         self.assertEqual(response.status_code, 200)
         expected_templates = [
             "admin/market/itemsale/change_form.html",
@@ -109,8 +94,10 @@ class TestWithValidators(AdminConfirmTestCase):
         ]
         self.assertEqual(response.template_name, expected_templates)
         self.assertEqual(ItemSale.objects.count(), 0)
-        self.assertTrue("error" in str(response.content))
-        self.assertTrue("Invalid Currency" in str(response.content))
+        self.assertIn("error", str(response.rendered_content))
+        self.assertIn("Invalid Currency", str(response.rendered_content))
+        # Should still ask for confirmation
+        self.assertIn(CONFIRM_ADD, response.rendered_content)
 
     def test_can_confirm_for_models_with_clean_overridden(self):
         shop = ShopFactory()
@@ -162,6 +149,7 @@ class TestWithValidators(AdminConfirmTestCase):
         item = ItemFactory()
         InventoryFactory(shop=shop, item=item, quantity=1)
         transaction = TransactionFactory(shop=shop)
+        # Asking to buy more than the shop has in stock
         data = {
             "transaction": transaction.id,
             "item": item.id,
@@ -176,6 +164,28 @@ class TestWithValidators(AdminConfirmTestCase):
         # Should not have been added yet
         self.assertEqual(ItemSale.objects.count(), 0)
 
+        # Ensure it shows the form and not the confirmation page
+        self.assertEqual(response.status_code, 200)
+        expected_templates = [
+            "admin/market/itemsale/change_form.html",
+            "admin/market/change_form.html",
+            "admin/change_form.html",
+        ]
+        self.assertEqual(response.template_name, expected_templates)
+        self.assertTrue("error" in str(response.content))
+        self.assertTrue(
+            "Shop does not have enough of the item stocked" in str(response.content)
+        )
+
+        # Should still be asking for confirmation
+        self.assertIn(CONFIRM_ADD, response.rendered_content)
+
+        # Fix the issue by buying only what shop has in stock
+        data["quantity"] = 1
+        # _confirm_add would still be in the POST data
+        response = self.client.post(reverse("admin:market_itemsale_add"), data)
+
+        # Should show confirmation page
         # Ensure not redirected (confirmation page does not redirect)
         self.assertEqual(response.status_code, 200)
         expected_templates = [
@@ -186,26 +196,6 @@ class TestWithValidators(AdminConfirmTestCase):
         self.assertEqual(response.template_name, expected_templates)
 
         self._assertSubmitHtml(rendered_content=response.rendered_content)
-
-        # Confirmation page would not have the _confirm_add sent on submit
-        del data["_confirm_add"]
-        # Selecting to "Yes, I'm sure" on the confirmation page
-        # Would post to the same endpoint
-        response = self.client.post(reverse("admin:market_itemsale_add"), data)
-
-        # Should not have redirected, since there was an error
-        self.assertEqual(response.status_code, 200)
-        expected_templates = [
-            "admin/market/itemsale/change_form.html",
-            "admin/market/change_form.html",
-            "admin/change_form.html",
-        ]
-        self.assertEqual(response.template_name, expected_templates)
-        self.assertEqual(ItemSale.objects.count(), 0)
-        self.assertTrue("error" in str(response.content))
-        self.assertTrue(
-            "Shop does not have enough of the item stocked" in str(response.content)
-        )
 
     def test_can_confirm_for_modelform_with_clean_field_and_clean_overridden(self):
         shop = ShopFactory()
@@ -270,27 +260,19 @@ class TestWithValidators(AdminConfirmTestCase):
         # Should not have been added yet
         self.assertEqual(Checkout.objects.count(), 0)
 
-        # Ensure not redirected (confirmation page does not redirect)
+        # Should show form with error and not confirmation page
         self.assertEqual(response.status_code, 200)
         expected_templates = [
-            "admin/market/checkout/change_confirmation.html",
-            "admin/market/change_confirmation.html",
-            "admin/change_confirmation.html",
+            "admin/market/checkout/change_form.html",
+            "admin/market/change_form.html",
+            "admin/change_form.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-
-        self._assertSubmitHtml(rendered_content=response.rendered_content)
-
-        # Confirmation page would not have the _confirm_add sent on submit
-        del data["_confirm_add"]
-        # Selecting to "Yes, I'm sure" on the confirmation page
-        # Would post to the same endpoint
-        response = self.client.post(reverse("admin:market_checkout_add"), data)
-        print(response.content)
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(Checkout.objects.count(), 0)
-        self.assertIn("error", str(response.content))
-        self.assertIn("Invalid Total 111", str(response.content))
+        self.assertIn("error", str(response.rendered_content))
+        self.assertIn("Invalid Total 111", str(response.rendered_content))
+        # Should still ask for confirmation
+        self.assertIn(CONFIRM_ADD, response.rendered_content)
 
     def test_cannot_confirm_for_modelform_with_clean_overridden_if_validation_fails(
         self,
@@ -311,24 +293,19 @@ class TestWithValidators(AdminConfirmTestCase):
         # Should not have been added yet
         self.assertEqual(Checkout.objects.count(), 0)
 
-        # Ensure not redirected (confirmation page does not redirect)
+        # Should not have been added yet
+        self.assertEqual(Checkout.objects.count(), 0)
+
+        # Should show form with error and not confirmation page
         self.assertEqual(response.status_code, 200)
         expected_templates = [
-            "admin/market/checkout/change_confirmation.html",
-            "admin/market/change_confirmation.html",
-            "admin/change_confirmation.html",
+            "admin/market/checkout/change_form.html",
+            "admin/market/change_form.html",
+            "admin/change_form.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-
-        self._assertSubmitHtml(rendered_content=response.rendered_content)
-
-        # Confirmation page would not have the _confirm_add sent on submit
-        del data["_confirm_add"]
-        # Selecting to "Yes, I'm sure" on the confirmation page
-        # Would post to the same endpoint
-        response = self.client.post(reverse("admin:market_checkout_add"), data)
-        print(response.content)
-        self.assertEqual(response.status_code, 200)
         self.assertEqual(Checkout.objects.count(), 0)
-        self.assertIn("error", str(response.content))
-        self.assertIn("Invalid Total 222", str(response.content))
+        self.assertIn("error", str(response.rendered_content))
+        self.assertIn("Invalid Total 222", str(response.rendered_content))
+        # Should still ask for confirmation
+        self.assertIn(CONFIRM_ADD, response.rendered_content)

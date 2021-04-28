@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.test import LiveServerTestCase
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.by import By
 
 
 class AdminConfirmTestCase(TestCase):
@@ -69,6 +71,7 @@ class AdminConfirmTestCase(TestCase):
 
 
 class AdminConfirmIntegrationTestCase(LiveServerTestCase):
+    # Setup/Teardown Methods
     @classmethod
     def setUpClass(cls):
         cls.host = socket.gethostbyname(socket.gethostname())
@@ -102,3 +105,22 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
     def tearDownClass(cls):
         cls.selenium.quit()
         super().tearDownClass()
+
+    # Helper Methods
+
+    def set_value(self, by, by_value, value):
+        element = self.selenium.find_element(by, by_value)
+        element.clear()
+        element.send_keys(value)
+
+    def select_value(self, by, by_value, value):
+        element = Select(self.selenium.find_element(by, by_value))
+        element.select_by_value(value)
+
+    def select_index(self, by, by_value, index):
+        element = Select(self.selenium.find_element(by, by_value))
+        element.select_by_index(index)
+
+    def print_hidden_form(self):
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        print(hidden_form.get_attribute("innerHTML"))

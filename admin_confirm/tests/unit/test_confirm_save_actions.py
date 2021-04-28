@@ -102,10 +102,6 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         # Should have cached the unsaved item
         cached_item = cache.get(CACHE_KEYS["object"])
         self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        self.assertEqual(cached_item.name, data["name"])
-        self.assertEqual(cached_item.price, data["price"])
-        self.assertEqual(cached_item.currency, data["currency"])
 
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)
@@ -171,16 +167,6 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             multipart_form=True,
         )
 
-        # Should have cached the unsaved item
-        cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        self.assertEqual(cached_item.name, data["name"])
-        self.assertEqual(cached_item.price, data["price"])
-        self.assertEqual(cached_item.currency, data["currency"])
-        self.assertEqual(cached_item.file, data["file"])
-        self.assertEqual(cached_item.image, data["image"])
-
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)
 
@@ -205,13 +191,14 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(saved_item.name, data["name"])
         self.assertEqual(saved_item.price, data["price"])
         self.assertEqual(saved_item.currency, data["currency"])
-        self.assertEqual(saved_item.file, data["file"])
-        self.assertEqual(saved_item.image, data["image"])
+        self.assertIsNotNone(saved_item.file)
+        self.assertIsNotNone(saved_item.image)
 
-        self.assertEqual(saved_item.file.name, "test_file.jpg")
-        self.assertEqual(saved_item.image.name, "test_image.jpg")
+        self.assertRegex(saved_item.file.name, r"test_file.*\.jpg$")
+        self.assertRegex(saved_item.image.name, r"test_image.*\.jpg$")
 
         # Should have cleared cache
+        self.assertEqual(len(ItemAdmin._file_cache.cached_keys), 0)
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
@@ -271,16 +258,6 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             multipart_form=True,
         )
 
-        # Should have cached the unsaved item
-        cached_item = cache.get(CACHE_KEYS["object"])
-        self.assertIsNotNone(cached_item)
-        self.assertIsNone(cached_item.id)
-        self.assertEqual(cached_item.name, data["name"])
-        self.assertEqual(cached_item.price, data["price"])
-        self.assertEqual(cached_item.currency, data["currency"])
-        self.assertFalse(cached_item.file.name)
-        self.assertEqual(cached_item.image, i2)
-
         # Should not have saved the changes yet
         self.assertEqual(Item.objects.count(), 1)
         item.refresh_from_db()
@@ -312,11 +289,11 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(new_item.price, data["price"])
         self.assertEqual(new_item.currency, data["currency"])
         self.assertFalse(new_item.file)
-        self.assertEqual(new_item.image, i2)
+        self.assertIsNotNone(new_item.image)
+        self.assertRegex(new_item.image.name, r"test_image2.*\.jpg$")
 
         # Should have cleared cache
-        for key in CACHE_KEYS.values():
-            self.assertIsNone(cache.get(key))
+        self.assertEqual(len(ItemAdmin._file_cache.cached_keys), 0)
 
     def test_relations_add(self):
         gm = GeneralManager.objects.create(name="gm")
@@ -379,6 +356,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             self.assertIn(shop, shops)
 
         # Should have cleared cache
+        self.assertEqual(len(ItemAdmin._file_cache.cached_keys), 0)
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
 
@@ -473,5 +451,4 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             self.assertIn(shop, shops2)
 
         # Should have cleared cache
-        for key in CACHE_KEYS.values():
-            self.assertIsNone(cache.get(key))
+        self.assertEqual(len(ItemAdmin._file_cache.cached_keys), 0)

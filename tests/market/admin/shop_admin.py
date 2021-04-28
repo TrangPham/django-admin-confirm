@@ -5,6 +5,7 @@ from admin_confirm.admin import AdminConfirmMixin, confirm_action
 class ShopAdmin(AdminConfirmMixin, ModelAdmin):
     confirmation_fields = ["name"]
     actions = ["show_message", "show_message_no_confirmation"]
+    search_fields = ["name"]
 
     @confirm_action
     def show_message(modeladmin, request, queryset):

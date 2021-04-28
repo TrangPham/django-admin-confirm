@@ -68,6 +68,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         # Change price
         price = self.selenium.find_element(By.NAME, "price")
         price.send_keys(2)
+        self.selenium.find_element(By.ID, "id_currency_0").click()
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
@@ -120,7 +121,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
-        self.assertIn("screenshot.png", item.file.name)
+        self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
         selenium_version = pkg_resources.get_distribution("selenium").parsed_version
@@ -165,7 +166,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
-        self.assertIn("screenshot.png", item.file.name)
+        self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_remove_file_if_clear_selected(self):
         file = SimpleUploadedFile(

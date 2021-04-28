@@ -12,6 +12,12 @@ test-all:
 t:
 	python -m pytest --last-failed -x
 
+test-integration:
+	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/unit
+
+docker-exec:
+	docker-compose exec -T web ${COMMAND}
+
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html
 
