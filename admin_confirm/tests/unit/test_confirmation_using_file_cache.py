@@ -26,7 +26,7 @@ from tests.market.models import Item, Shop
 from tests.factories import ItemFactory, ShopFactory
 
 
-class TestFileCache(AdminConfirmTestCase):
+class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def setUp(self):
         # Load the Change Item Page
         ItemAdmin.confirm_change = True
