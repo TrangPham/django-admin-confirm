@@ -39,7 +39,7 @@ jobs:
     - name: Start Docker
       run: docker-compose up -d
     - name: Integration Test
-      run: docker-compose run web make test-all
+      run: make test-all
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:

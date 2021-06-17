@@ -8,10 +8,17 @@ twine~=3.3.0
 coveralls~=3.0.0
 Pillow~=8.1.0 # For ImageField
 
+### SELENIUM ###
 # Known issue: https://github.com/SeleniumHQ/selenium/issues/8762
 # Python 3.6 should use because selenium 4 doesn't work with py3.6
 # selenium~=3.141.0
 
 # Others should use
 selenium~=4.0.0.a5
+### END SELENIUM ###
+
+### S3 ###
 localstack~=0.12.9.1 # For testing with S3
+django-storages~=1.11.1
+boto3~=1.17.47
+### END S3 ###
