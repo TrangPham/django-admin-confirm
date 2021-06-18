@@ -128,7 +128,8 @@ USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
 LOCALSTACK_HOSTAME = "localhost"
 SELENIUM_HOSTNAME = "localhost"
 if USE_DOCKER:
-    LOCALSTACK_HOSTAME = "host.docker.internal"
+    # LOCALSTACK_HOSTAME = "host.docker.internal"
+    LOCALSTACK_HOSTAME = "172.17.0.1"
     SELENIUM_HOSTNAME = "selenium"
 
 

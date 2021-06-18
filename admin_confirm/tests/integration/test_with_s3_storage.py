@@ -42,7 +42,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         super().tearDown()
 
     def test_s3_is_being_used(self):
-        self.assertEqual(settings.USE_S3, True)
+        self.assertTrue(settings.USE_S3)
         self.assertIsNotNone(settings.AWS_ACCESS_KEY_ID)
         self.assertEqual(
             settings.DEFAULT_FILE_STORAGE,
