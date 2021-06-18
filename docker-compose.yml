@@ -29,8 +29,8 @@ services:
 
   localstack:
     image: localstack/localstack
-    container_name: localstack_main
-    network_mode: bridge
+    # container_name: localstack_main
+    # network_mode: bridge
     ports:
       - "4566:4566"
       - "4571:4571"
@@ -41,6 +41,7 @@ services:
       - DATA_DIR=/tmp/localstack/data
       - LAMBDA_EXECUTOR=local
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOSTNAME_EXTERNAL=localstack
     volumes:
       - "./docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
       - "./tmp/localstack:/tmp/localstack"

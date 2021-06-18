@@ -125,13 +125,16 @@ USE_TZ = True
 
 USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
 
-AWS_S3_ENDPOINT_URL_HOST = "localhost"
+LOCALSTACK_HOSTAME = "localhost"
+SELENIUM_HOSTNAME = "localhost"
 if USE_DOCKER:
-    AWS_S3_ENDPOINT_URL_HOST = "host.docker.internal"
+    LOCALSTACK_HOSTAME = "host.docker.internal"
+    SELENIUM_HOSTNAME = "selenium"
+
 
 if USE_S3:
     # aws settings
-    AWS_S3_ENDPOINT_URL = f"http://{AWS_S3_ENDPOINT_URL_HOST}:4566"
+    AWS_S3_ENDPOINT_URL = f"http://{LOCALSTACK_HOSTAME}:4566"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "test")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "test")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "mybucket")
