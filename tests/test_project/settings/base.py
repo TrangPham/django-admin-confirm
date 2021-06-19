@@ -115,6 +115,19 @@ USE_L10N = True
 
 USE_TZ = True
 
+# Setting the hostnames of the services which we are running
+# On github actions, services can be configured on the jobs themselves
+# and can be accessed at localhost. See: https://docs.github.com/en/actions/guides/about-service-containers#communicating-with-service-containers
+
+USE_GITHUB_ACTIONS = os.getenv("USE_GITHUB_ACTIONS", None)
+
+LOCALSTACK_HOSTAME = "localhost"
+SELENIUM_HOSTNAME = "localhost"
+if USE_DOCKER and not USE_GITHUB_ACTIONS:
+    # LOCALSTACK_HOSTAME = "host.docker.internal"
+    LOCALSTACK_HOSTAME = "172.17.0.1"  # Docker's internal IP
+    SELENIUM_HOSTNAME = "selenium"
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
@@ -124,14 +137,6 @@ USE_TZ = True
 # S3 Storage settings
 
 USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
-
-LOCALSTACK_HOSTAME = "localhost"
-SELENIUM_HOSTNAME = "localhost"
-if USE_DOCKER:
-    # LOCALSTACK_HOSTAME = "host.docker.internal"
-    LOCALSTACK_HOSTAME = "172.17.0.1"
-    SELENIUM_HOSTNAME = "selenium"
-
 
 if USE_S3:
     # aws settings

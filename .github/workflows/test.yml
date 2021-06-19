@@ -16,6 +16,30 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-firefox:latest
+        ports:
+          - "4444:4444" # Selenium
+          - "5900:5900" # VNC
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: s3
+          DEFAULT_REGION: us-west-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          # enable persistance
+          DATA_DIR: /tmp/localstack/data
+          LAMBDA_EXECUTOR: local
+          DOCKER_HOST: unix:///var/run/docker.sock
+        volumes:
+          - "./docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+          - "./tmp/localstack:/tmp/localstack"
+          - "/var/run/docker.sock:/var/run/docker.sock"
+        ports:
+          - 4566:4566
+          - 4571:4571
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
@@ -24,6 +48,7 @@ jobs:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       COMPOSE_INTERACTIVE_NO_CLI: 1
+      USE_GITHUB_ACTIONS: true
     steps:
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
@@ -36,8 +61,8 @@ jobs:
       run: |
         export SELENIUM_VERSION=4.0.0a7
         docker-compose build
-    - name: Start Docker
-      run: docker-compose up -d
+    - name: Start Docker Web
+      run: docker-compose up -d web
     - name: Integration Test
       run: docker-compose run web make test-all
     - name: Coveralls
