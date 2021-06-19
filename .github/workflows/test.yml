@@ -55,14 +55,14 @@ jobs:
       if: ${{ matrix.python-version == 3.6 }}
       run: |
         export SELENIUM_VERSION=3.141.0
-        docker-compose build
+        docker-compose up -f docker-compose.ci.yml -d --build
     - name: Build Docker for other Python versions
       if: ${{ matrix.python-version != 3.6 }}
       run: |
         export SELENIUM_VERSION=4.0.0a7
-        docker-compose build
-    - name: Start Docker Web
-      run: docker-compose up -d web
+        docker-compose up -f docker-compose.ci.yml -d --build
+    # - name: Start Docker Web
+    #   run: docker-compose up -d
     - name: Integration Test
       run: docker-compose run web make test-all
     - name: Coveralls
