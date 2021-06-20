@@ -50,6 +50,9 @@ jobs:
       COMPOSE_INTERACTIVE_NO_CLI: 1
       USE_GITHUB_ACTIONS: true
     steps:
+    - name: Update Permissions
+      run: |
+        sudo chown -R $USER:$USER /home/github/actions-runner/_work/django_admin_confirm
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
