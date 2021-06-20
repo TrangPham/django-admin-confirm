@@ -60,7 +60,7 @@ jobs:
       if: ${{ matrix.python-version != 3.6 }}
       run: |
         export SELENIUM_VERSION=4.0.0a7
-        docker-compose up -f docker-compose.ci.yml -d --build
+        docker-compose -f docker-compose.ci.yml up -d --build
     # - name: Start Docker Web
     #   run: docker-compose up -d
     - name: Integration Test
