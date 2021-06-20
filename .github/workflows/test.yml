@@ -33,10 +33,10 @@ jobs:
           DATA_DIR: /tmp/localstack/data
           LAMBDA_EXECUTOR: local
           DOCKER_HOST: unix:///var/run/docker.sock
-        # volumes:
-        #   - "./docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
-        #   - "./tmp/localstack:/tmp/localstack"
-        #   - "/var/run/docker.sock:/var/run/docker.sock"
+        volumes:
+          - "${ github.workspace }/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+          - "${ github.workspace }/tmp/localstack:/tmp/localstack"
+          - "/var/run/docker.sock:/var/run/docker.sock"
         ports:
           - 4566:4566
           - 4571:4571
@@ -55,7 +55,7 @@ jobs:
       if: ${{ matrix.python-version == 3.6 }}
       run: |
         export SELENIUM_VERSION=3.141.0
-        docker-compose f docker-compose.ci.yml up -d --build
+        docker-compose -f docker-compose.ci.yml up -d --build
     - name: Build Docker for other Python versions
       if: ${{ matrix.python-version != 3.6 }}
       run: |
@@ -64,7 +64,7 @@ jobs:
     # - name: Start Docker Web
     #   run: docker-compose up -d
     - name: Integration Test
-      run: docker-compose f docker-compose.ci.yml run web make test-all
+      run: docker-compose -f docker-compose.ci.yml run web make test-all
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
