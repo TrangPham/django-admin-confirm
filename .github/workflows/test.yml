@@ -58,7 +58,7 @@ jobs:
     - name: Update Permissions and Create AWS Bucket
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}
-        aws --endpoint-url http://localhost:4566 --region us-west-1 s3 mb s3://mybucket
+        aws --cli-connect-timeout 6000 --endpoint-url http://localhost:4566 --region us-west-1 s3 mb s3://mybucket
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
