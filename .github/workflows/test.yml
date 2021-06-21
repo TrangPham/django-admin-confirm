@@ -34,7 +34,9 @@ jobs:
           LAMBDA_EXECUTOR: local
           DOCKER_HOST: unix:///var/run/docker.sock
         volumes:
-          - "${{ github.workspace }}/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+          # It doesn't seem like the scripts in entrypoint are being ran... or they are not copied over since
+          # the checkout action happens after init services on Github Actions
+          # - "${{ github.workspace }}/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
           - "${{ github.workspace }}/tmp/localstack:/tmp/localstack"
           - "/var/run/docker.sock:/var/run/docker.sock"
         ports:
@@ -50,9 +52,10 @@ jobs:
       COMPOSE_INTERACTIVE_NO_CLI: 1
       USE_GITHUB_ACTIONS: true
     steps:
-    - name: Update Permissions
+    - name: Update Permissions and Create AWS Bucket
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}
+        awslocal s3 mb s3://mybucket
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
