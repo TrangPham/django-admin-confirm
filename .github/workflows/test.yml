@@ -74,7 +74,7 @@ jobs:
     - name: Attempt to connect to localstack and create bucket
       run: |
         curl -X GET http://localhost:4566/health
-        aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket
+        aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
     # - name: Start Docker Web
     #   run: docker-compose up -d
     - name: Integration Test
