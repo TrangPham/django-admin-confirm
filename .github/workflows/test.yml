@@ -33,6 +33,7 @@ jobs:
           DATA_DIR: /tmp/localstack/data
           LAMBDA_EXECUTOR: local
           DOCKER_HOST: unix:///var/run/docker.sock
+          DEBUG: true
         volumes:
           # It doesn't seem like the scripts in entrypoint are being ran... or they are not copied over since
           # the checkout action happens after init services on Github Actions
@@ -58,6 +59,7 @@ jobs:
     - name: Update Permissions and Create AWS Bucket
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}
+        curl http://localhost:4566/health
         aws --cli-connect-timeout 6000 --debug --endpoint-url http://localhost:4566 --region us-west-1 s3 mb s3://mybucket
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
