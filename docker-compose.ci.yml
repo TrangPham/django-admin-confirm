@@ -12,6 +12,7 @@ services:
     command: python tests/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
+    network_mode: bridge
     ports:
       - "8000:8000"
     # depends_on:
