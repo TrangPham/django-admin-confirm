@@ -43,6 +43,7 @@ jobs:
         ports:
           - 4566:4566
           - 4571:4571
+        options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
