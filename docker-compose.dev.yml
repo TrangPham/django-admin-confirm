@@ -23,8 +23,7 @@ services:
       - LOCALSTACK_HOST=host.docker.internal
 
   selenium:
-    # image: selenium/standalone-firefox
-    image: selenium/standalone-firefox-debug:latest
+    image: selenium/standalone-firefox
     ports:
       - "4444:4444" # Selenium
       - "5900:5900" # VNC

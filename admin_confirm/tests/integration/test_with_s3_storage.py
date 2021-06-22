@@ -23,7 +23,7 @@ from tests.market.admin import shoppingmall_admin
 from admin_confirm.constants import CONFIRM_CHANGE
 
 
-class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
+class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.selenium.file_detector = LocalFileDetector()
         session = localstack_client.session.Session(region_name="us-west-1")

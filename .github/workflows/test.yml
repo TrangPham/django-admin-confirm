@@ -59,6 +59,7 @@ jobs:
     - name: Update Permissions
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}
+      # required because actions/checkout@2 wants to delete the /tmp/localstack folder
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
@@ -74,14 +75,13 @@ jobs:
       run: |
         curl -X GET http://localhost:4566/health
         aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
-    # - name: Start Docker Web
-    #   run: docker-compose up -d
+      # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
     - name: Integration Test
       run: |
         docker exec -t web_main make test-all
-      # Known Issue: docker-compose cannot run/exec in container when in host network_mode.
+      # Known Issue: docker-compose cannot run/exec in container via service name when in host network_mode.
       # See: https://github.com/docker/compose/issues/4548
-      # docker-compose -f docker-compose.ci.yml run web make test-all
+      # IE: this doesn't work: docker-compose -f docker-compose.ci.yml run web make test-all
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
