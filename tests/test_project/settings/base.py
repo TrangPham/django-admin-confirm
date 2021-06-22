@@ -119,7 +119,7 @@ USE_TZ = True
 # On github actions, services can be configured on the jobs themselves
 # and can be accessed at localhost. See: https://docs.github.com/en/actions/guides/about-service-containers#communicating-with-service-containers
 
-USE_GITHUB_ACTIONS = os.getenv("USE_GITHUB_ACTIONS", None)
+USE_GITHUB_ACTIONS = os.getenv("USE_GITHUB_ACTIONS", "false") == "true"
 
 LOCALSTACK_HOSTAME = "localhost"
 SELENIUM_HOSTNAME = "localhost"

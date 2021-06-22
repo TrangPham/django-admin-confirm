@@ -52,7 +52,7 @@ jobs:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       COMPOSE_INTERACTIVE_NO_CLI: 1
-      USE_GITHUB_ACTIONS: true
+      USE_GITHUB_ACTIONS: "true"
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-west-1
