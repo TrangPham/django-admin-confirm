@@ -119,15 +119,8 @@ USE_TZ = True
 # On github actions, services can be configured on the jobs themselves
 # and can be accessed at localhost. See: https://docs.github.com/en/actions/guides/about-service-containers#communicating-with-service-containers
 
-USE_GITHUB_ACTIONS = os.getenv("USE_GITHUB_ACTIONS", "false") == "true"
-
-LOCALSTACK_HOSTAME = "localhost"
-SELENIUM_HOSTNAME = "localhost"
-if USE_DOCKER and not USE_GITHUB_ACTIONS:
-    # LOCALSTACK_HOSTAME = "host.docker.internal"
-    LOCALSTACK_HOSTAME = "172.17.0.1"  # Docker's internal IP
-    SELENIUM_HOSTNAME = "selenium"
-
+LOCALSTACK_HOSTAME = os.getenv("LOCALSTACK_HOSTNAME", "localhost")
+SELENIUM_HOSTNAME = os.getenv("SELENIUM_HOSTNAME", "localhost")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
