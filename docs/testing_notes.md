@@ -17,7 +17,7 @@ These are some areas which might/probably have issues that are not currently tes
 ## Save Options
 
 - [x] Save
-- [x] Conitnue
+- [x] Continue
 - [x] Save As New
 - [x] Add another
 

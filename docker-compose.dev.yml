@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PYTHON_VERSION: "$PYTHON_VERSION"
+        DJANGO_VERSION: "$DJANGO_VERSION"
+        SELENIUM_VERSION: "$SELENIUM_VERSION"
+    command: python tests/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - selenium
+      - localstack
+    environment:
+      - SELENIUM_HOST=selenium
+      # Used for localstack_client as well as our project
+      - LOCALSTACK_HOST=host.docker.internal
+
+  selenium:
+    image: selenium/standalone-firefox
+    ports:
+      - "4444:4444" # Selenium
+      - "5900:5900" # VNC
+    volumes:
+      - .:/code
+
+  localstack:
+    image: localstack/localstack
+    container_name: localstack_main
+    network_mode: bridge
+    ports:
+      - "4566:4566"
+      - "4571:4571"
+    environment:
+      - SERVICES=s3
+      - DEBUG=true
+      # enable persistance
+      - DATA_DIR=/tmp/localstack/data
+      - LAMBDA_EXECUTOR=docker
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOSTNAME_EXTERNAL=localstack
+    volumes:
+      - "./docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+      - "./tmp/localstack:/tmp/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

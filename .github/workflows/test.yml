@@ -16,6 +16,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-firefox:latest
+        ports:
+          - "4444:4444" # Selenium
+          - "5900:5900" # VNC
+      localstack:
+        image: localstack/localstack:latest
+        env:
+          SERVICES: s3
+          DEFAULT_REGION: us-west-1
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          # enable persistance
+          DATA_DIR: /tmp/localstack/data
+          LAMBDA_EXECUTOR: local
+          DOCKER_HOST: unix:///var/run/docker.sock
+          DEBUG: true
+        volumes:
+          # It doesn't seem like the scripts in entrypoint are being ran... or they are not copied over since
+          # the checkout action happens after init services on Github Actions
+          # - "${{ github.workspace }}/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+          - "${{ github.workspace }}/tmp/localstack:/tmp/localstack"
+          - "/var/run/docker.sock:/var/run/docker.sock"
+        ports:
+          - 4566:4566
+          - 4571:4571
+        options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
@@ -24,22 +52,36 @@ jobs:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       COMPOSE_INTERACTIVE_NO_CLI: 1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-west-1
     steps:
+    - name: Update Permissions
+      run: |
+        sudo chown -R $USER:$USER ${{ github.workspace }}
+      # required because actions/checkout@2 wants to delete the /tmp/localstack folder
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
       run: |
         export SELENIUM_VERSION=3.141.0
-        docker-compose build
+        docker-compose -f docker-compose.ci.yml up -d --build
     - name: Build Docker for other Python versions
       if: ${{ matrix.python-version != 3.6 }}
       run: |
         export SELENIUM_VERSION=4.0.0a7
-        docker-compose build
-    - name: Start Docker
-      run: docker-compose up -d
+        docker-compose -f docker-compose.ci.yml up -d --build
+    - name: Attempt to connect to localstack and create bucket
+      run: |
+        curl -X GET http://localhost:4566/health
+        aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
+      # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
     - name: Integration Test
-      run: docker-compose run web make test-all
+      run: |
+        docker exec -t web_main make test-all
+      # Known Issue: docker-compose cannot run/exec in container via service name when in host network_mode.
+      # See: https://github.com/docker/compose/issues/4548
+      # IE: this doesn't work: docker-compose -f docker-compose.ci.yml run web make test-all
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:

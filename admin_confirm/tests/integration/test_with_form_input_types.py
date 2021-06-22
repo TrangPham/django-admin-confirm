@@ -12,7 +12,6 @@ from tests.market.admin import item_admin, shoppingmall_admin
 
 from django.contrib.admin import VERTICAL
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
 
