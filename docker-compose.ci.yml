@@ -13,6 +13,7 @@ services:
     volumes:
       - .:/code
     network_mode: host
+    container_name: web_main
     # ports:
     #   - "8000:8000"
     # depends_on:

@@ -77,7 +77,11 @@ jobs:
     # - name: Start Docker Web
     #   run: docker-compose up -d
     - name: Integration Test
-      run: docker-compose -f docker-compose.ci.yml run web make test-all
+      run: |
+        docker exec -t web_main make test-all
+      # Known Issue: docker-compose cannot run/exec in container when in host network_mode.
+      # See: https://github.com/docker/compose/issues/4548
+      # docker-compose -f docker-compose.ci.yml run web make test-all
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
