@@ -18,9 +18,8 @@ services:
       - selenium
       - localstack
     environment:
-      - SELENIUM_HOSTNAME=selenium
-      - LOCALSTACK_HOSTNAME=host.docker.internal
-      # Used for localstack_client
+      - SELENIUM_HOST=selenium
+      # Used for localstack_client as well as our project
       - LOCALSTACK_HOST=host.docker.internal
 
   selenium:

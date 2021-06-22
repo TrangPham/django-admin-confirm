@@ -119,8 +119,8 @@ USE_TZ = True
 # On github actions, services can be configured on the jobs themselves
 # and can be accessed at localhost. See: https://docs.github.com/en/actions/guides/about-service-containers#communicating-with-service-containers
 
-LOCALSTACK_HOSTAME = os.getenv("LOCALSTACK_HOSTNAME", "localhost")
-SELENIUM_HOSTNAME = os.getenv("SELENIUM_HOSTNAME", "localhost")
+LOCALSTACK_HOST = os.getenv("LOCALSTACK_HOST", "localhost")
+SELENIUM_HOST = os.getenv("SELENIUM_HOST", "localhost")
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.0/howto/static-files/
@@ -133,7 +133,7 @@ USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
 
 if USE_S3:
     # aws settings
-    AWS_S3_ENDPOINT_URL = f"http://{LOCALSTACK_HOSTAME}:4566"
+    AWS_S3_ENDPOINT_URL = f"http://{LOCALSTACK_HOST}:4566"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "test")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "test")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "mybucket")
