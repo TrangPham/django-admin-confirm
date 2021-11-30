@@ -12,15 +12,5 @@ services:
     command: python tests/manage.py runserver 0.0.0.0:8000
     volumes:
       - .:/code
-    ports:
-      - "8000:8000"
-    depends_on:
-      - selenium
-  selenium:
-    # image: selenium/standalone-firefox
-    image: selenium/standalone-firefox-debug:latest
-    ports:
-      - "4444:4444"   # Selenium
-      - "5900:5900"   # VNC
-    volumes:
-      - .:/code
+    network_mode: host
+    container_name: web_main

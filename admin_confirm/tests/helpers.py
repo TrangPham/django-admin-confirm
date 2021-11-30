@@ -4,6 +4,8 @@ from django.core.cache import cache
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from django.test import LiveServerTestCase
+from tests.test_project.settings import SELENIUM_HOST
+
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
@@ -76,7 +78,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
     def setUpClass(cls):
         cls.host = socket.gethostbyname(socket.gethostname())
         cls.selenium = webdriver.Remote(
-            command_executor="http://selenium:4444/wd/hub",
+            command_executor=f"http://{SELENIUM_HOST}:4444/wd/hub",
             desired_capabilities=DesiredCapabilities.FIREFOX,
         )
         super().setUpClass()
