@@ -9,7 +9,7 @@ pyenv install 3.8.0
 Create **virtualenv** via pyenv
 
 ```
-pyenv vituralenv 3.8.0 django-admin-confirm-3.8.0
+pyenv virtualenv 3.8.0 django-admin-confirm-3.8.0
 ```
 
 Now your terminal should have `(django-admin-confirm-3.8.0)` prefix, because `.python-version` should have auto switch your virtual env
