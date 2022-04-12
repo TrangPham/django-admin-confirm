@@ -1,0 +1,1 @@
+These scripts are only used by docker in dev. In CI, please update the `test.yml` commands to imitate these scripts.
