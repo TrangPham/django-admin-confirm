@@ -21,4 +21,5 @@ def format_change_data_field_value(field_value):
 
 @register.simple_tag
 def verbose_name(obj, fieldname):
-    return obj._meta.get_field(fieldname).verbose_name
+    if obj:
+        return obj._meta.get_field(fieldname).verbose_name

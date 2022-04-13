@@ -65,13 +65,13 @@ log('Message to send to stdout')
 
 **Docker:**
 
-Instead of local set-up, you can also use docker.
+Instead of local set-up, you can also use docker. You may have to delete `.python-version` to do this.
 
 Install docker-compose (or Docker Desktop which installs this for you)
 
 ```
-docker-compose build
-docker-compose up -d
+docker-compose -f docker-compose.dev.yml build
+docker-compose -f docker-compose.dev.yml up -d
 ```
 
 You should now be able to see the app running on `localhost:8000`
@@ -79,14 +79,14 @@ You should now be able to see the app running on `localhost:8000`
 If you haven't already done migrations and created a superuser, you'll want to do it here
 
 ```
-docker-compose exec web tests/manage.py migrate
-docker-compose exec web tests/manage.py createsuperuser
+docker-compose -f docker-compose.dev.yml exec web tests/manage.py migrate
+docker-compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser
 ```
 
 Running tests in docker:
 
 ```
-docker-compose exec -T web make test-all
+docker-compose -f docker-compose.dev.yml exec -T web make test-all
 ```
 
 The integration tests are set up within docker. I recommend running the integration tests only in docker.
@@ -100,7 +100,7 @@ Honestly this part is just for my reference. But who knows :) maybe we'll have a
 Run tests, check coverage, check readme
 
 ```
-docker-compose exec -T web make test-all
+docker-compose -f docker-compose.dev.yml exec -T web make test-all
 make check-readme
 ```
 
