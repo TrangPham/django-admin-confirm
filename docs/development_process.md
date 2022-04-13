@@ -3,6 +3,8 @@
 **Local:**
 _You can skip this and just use docker if you want_
 
+_NOTE: as of 2022-04-12 I don't know if 3.8.0 works anymore if you're on newer versions of macOS. See: https://github.com/pyenv/pyenv/issues/2143#issuecomment-1072032647 You can try using another version of python locally or use docker_
+
 Install pyenv
 pyenv install 3.8.0
 
@@ -63,6 +65,13 @@ from admin_confirm.utils import log
 log('Message to send to stdout')
 ```
 
+**Localstack**:
+Localstack is used for integration testing and also in the test project.
+
+To check if localstack is running correctly, go to `http://localhost:4566`
+To check if the bucket has been set up correctly, go to `http://localhost:4566/mybucket`
+To check if the static files have been set up correctly, go to `http://localhost:4566/mybucket/`
+
 **Docker:**
 
 Instead of local set-up, you can also use docker. You may have to delete `.python-version` to do this.
@@ -92,6 +101,8 @@ docker-compose -f docker-compose.dev.yml exec -T web make test-all
 The integration tests are set up within docker. I recommend running the integration tests only in docker.
 
 Docker is also set to mirror local folder so that you can edit code/tests and don't have to rebuild to run new code/tests.
+
+Use `docker-compose -f docker-compose.dev.yml up -d --force-recreate` if you need to restart the docker containers. For example when updating the docker-compose.yml file, but if you change `Dockerfile` you have to rebuild.
 
 ### Release process
 

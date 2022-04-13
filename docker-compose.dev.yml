@@ -9,7 +9,15 @@ services:
         PYTHON_VERSION: "$PYTHON_VERSION"
         DJANGO_VERSION: "$DJANGO_VERSION"
         SELENIUM_VERSION: "$SELENIUM_VERSION"
-    command: python tests/manage.py runserver 0.0.0.0:8000
+    # Note: collectstatic runs from inside the docker container and needs
+    #       to access localstack through the host machine using host.docker.internal
+    #       BUT when we access the django server from our host machine, we need to access
+    #       the stored staticfiles via localhost, so export LOCALSTACK_HOST before and after
+    command: >
+      sh -c "export LOCALSTACK_HOST=host.docker.internal &&
+             python tests/manage.py collectstatic --no-input &&
+             export LOCALSTACK_HOST=localhost &&
+             python tests/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
@@ -18,9 +26,8 @@ services:
       - selenium
       - localstack
     environment:
-      - SELENIUM_HOST=selenium
-      # Used for localstack_client as well as our project
       - LOCALSTACK_HOST=host.docker.internal
+      - SELENIUM_HOST=host.docker.internal
 
   selenium:
     image: selenium/standalone-firefox
@@ -32,8 +39,6 @@ services:
 
   localstack:
     image: localstack/localstack
-    container_name: localstack_main
-    network_mode: bridge
     ports:
       - "4566:4566"
       - "4571:4571"

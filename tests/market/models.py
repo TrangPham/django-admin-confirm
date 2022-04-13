@@ -54,7 +54,7 @@ class ShoppingMall(models.Model):
     name = models.CharField(max_length=120)
     shops = models.ManyToManyField(Shop, blank=True)
     general_manager = models.OneToOneField(
-        GeneralManager, on_delete=models.CASCADE, null=True, blank=True
+        GeneralManager, on_delete=models.CASCADE, null=True, blank=True, verbose_name="manager"
     )
     town = models.ForeignKey(Town, on_delete=models.CASCADE, null=True, blank=True)
 
