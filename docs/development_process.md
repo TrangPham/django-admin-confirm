@@ -3,18 +3,16 @@
 **Local:**
 _You can skip this and just use docker if you want_
 
-_NOTE: as of 2022-04-12 I don't know if 3.8.0 works anymore if you're on newer versions of macOS. See: https://github.com/pyenv/pyenv/issues/2143#issuecomment-1072032647 You can try using another version of python locally or use docker_
-
 Install pyenv
-pyenv install 3.8.0
+pyenv install 3.9.9
 
 Create **virtualenv** via pyenv
 
 ```
-pyenv virtualenv 3.8.0 django-admin-confirm-3.8.0
+pyenv virtualenv 3.9.9 django-admin-confirm-3.9.9
 ```
 
-Now your terminal should have `(django-admin-confirm-3.8.0)` prefix, because `.python-version` should have auto switch your virtual env
+Now your terminal should have `(django-admin-confirm-3.9.9)` prefix, because `.python-version` should have auto switch your virtual env
 
 Install requirements
 
@@ -70,7 +68,7 @@ Localstack is used for integration testing and also in the test project.
 
 To check if localstack is running correctly, go to `http://localhost:4566`
 To check if the bucket has been set up correctly, go to `http://localhost:4566/mybucket`
-To check if the static files have been set up correctly, go to `http://localhost:4566/mybucket/`
+To check if the static files have been set up correctly, go to `http://localhost:4566/mybucket/static/admin/css/base.css`
 
 **Docker:**
 
