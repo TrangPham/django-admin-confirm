@@ -1,3 +1,4 @@
+import functools
 from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
@@ -449,6 +450,7 @@ def confirm_action(func):
     return to the changelist without performing action.
     """
 
+    @functools.wraps(func)
     def func_wrapper(modeladmin, request, queryset):
         # First called by `Go` which would not have confirm_action in params
         if request.POST.get("_confirm_action"):
