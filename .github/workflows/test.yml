@@ -48,9 +48,9 @@ jobs:
       matrix:
         python-version: [3.8, 3.9, 3.10.0]
         django-version: [3.2, 4.0.4]
-      include:
-      - python-version: 3.7
-        django-version: 3.2
+        include:
+        - python-version: 3.7
+          django-version: 3.2
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
