@@ -46,11 +46,11 @@ jobs:
         options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9, 3.10.0]
-        django-version: [2.2, 3.0, 3.2]
+        python-version: [3.8, 3.9, 3.10.0]
+        django-version: [3.2, 4.0.4]
       include:
-      - python-version: 3.8
-        django-version: 4.0.4
+      - python-version: 3.7
+        django-version: 3.2
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
