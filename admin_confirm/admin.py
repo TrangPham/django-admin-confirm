@@ -9,6 +9,7 @@ from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
+from django.utils.decorators import method_decorator
 from admin_confirm.utils import (
     log,
     get_admin_change_url,
@@ -102,7 +103,7 @@ class AdminConfirmMixin:
             context,
         )
 
-    @cache_control(private=True)
+    @method_decorator(cache_control(private=True))
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         if request.method == "POST":
             if (not object_id and CONFIRM_ADD in request.POST) or (
