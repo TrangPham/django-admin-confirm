@@ -135,3 +135,5 @@ make run
 ```
 
 Go on github and make a release in UI
+
+To update supported version badges, use https://shields.io
