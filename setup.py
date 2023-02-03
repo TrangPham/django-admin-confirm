@@ -7,7 +7,7 @@ README = open(os.path.join(here, "README.md")).read()
 
 setup(
     name="django-admin-confirm",
-    version="1.0.0a0",
+    version="1.0.0",
     packages=["admin_confirm"],
     description=("Adds confirmation to Django Admin changes, additions and actions"),
     long_description_content_type="text/markdown",
