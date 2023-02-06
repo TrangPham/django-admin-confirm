@@ -30,7 +30,7 @@ jobs:
           AWS_ACCESS_KEY_ID: test
           AWS_SECRET_ACCESS_KEY: test
           # enable persistance
-          DATA_DIR: /tmp/localstack/data
+          PERSISTENCE: 1
           LAMBDA_EXECUTOR: local
           DOCKER_HOST: unix:///var/run/docker.sock
           DEBUG: true
@@ -38,7 +38,7 @@ jobs:
           # It doesn't seem like the scripts in entrypoint are being ran... or they are not copied over since
           # the checkout action happens after init services on Github Actions
           # - "${{ github.workspace }}/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
-          - "${{ github.workspace }}/tmp/localstack:/tmp/localstack"
+          - "${{ github.workspace }}/volume:/var/lib/localstack"
           - "/var/run/docker.sock:/var/run/docker.sock"
         ports:
           - 4566:4566
@@ -63,7 +63,7 @@ jobs:
     - name: Update Permissions
       run: |
         sudo chown -R $USER:$USER ${{ github.workspace }}
-      # required because actions/checkout@2 wants to delete the /tmp/localstack folder
+      # required because actions/checkout@2 wants to delete the localstack folder
     - uses: actions/checkout@v2
     - name: Build Docker for Python 3.6
       if: ${{ matrix.python-version == 3.6 }}
