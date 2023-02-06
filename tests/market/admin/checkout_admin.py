@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from admin_confirm.admin import AdminConfirmMixin
+from admin_confirm import AdminConfirmMixin
 
 from django.contrib.admin import ModelAdmin
 from django.forms import ModelForm

@@ -46,11 +46,11 @@ services:
       - SERVICES=s3
       - DEBUG=true
       # enable persistance
-      - DATA_DIR=/tmp/localstack/data
+      - PERSISTENCE=1
       - LAMBDA_EXECUTOR=docker
       - DOCKER_HOST=unix:///var/run/docker.sock
       - HOSTNAME_EXTERNAL=localstack
     volumes:
       - "./docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
-      - "./tmp/localstack:/tmp/localstack"
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"

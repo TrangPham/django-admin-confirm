@@ -19,7 +19,7 @@ selenium~=4.0.0.a5
 ### END SELENIUM ###
 
 ### S3 ###
-localstack~=0.12.9.1 # For testing with S3
+localstack~=1.0.0 # For testing with S3
 django-storages~=1.11.1
-boto3~=1.17.47
+boto3>=1.20.0
 ### END S3 ###

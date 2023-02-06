@@ -1,5 +1,5 @@
 from django.contrib.admin import ModelAdmin
-from admin_confirm.admin import AdminConfirmMixin, confirm_action
+from admin_confirm import AdminConfirmMixin, confirm_action
 
 
 class ShopAdmin(AdminConfirmMixin, ModelAdmin):
