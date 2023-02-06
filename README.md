@@ -110,8 +110,7 @@ Note: `confirmation_fields` apply to both add/change confirmations.
 **Confirm Action:**
 
 ```py
-    from admin_confirm import AdminConfirmMixin
-    from admin_confirm.admin import confirm_action
+    from admin_confirm.admin import AdminConfirmMixin, confirm_action
 
     class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
         actions = ["action1", "action2"]
