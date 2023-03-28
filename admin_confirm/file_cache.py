@@ -106,5 +106,9 @@ class FileCache(object):
 
     def delete_all(self):
         "Delete all cached file data from cache."
-        self.cache.delete_many(self.cached_keys)
-        self.cached_keys = []
+        # Issue #46 Redis Cache errs if we call delete_many with an empty list - fixed in Django 4.2
+        # Note: set_many() should check for empty data in redis too.
+        # See: https://github.com/django/django/commit/608ab043f75f1f9c094de57d2fd678f522bb8243
+        if self.cached_keys:
+            self.cache.delete_many(self.cached_keys)
+            self.cached_keys = []
