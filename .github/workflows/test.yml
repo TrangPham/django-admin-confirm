@@ -46,7 +46,7 @@ jobs:
         options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10.0]
+        python-version: [3.8, 3.9, 3.10.0, 3.11]
         django-version: [3.2, 4.0.4]
         include:
         # Version 4.0 of Django drops support for python 3.6 & 3.7
