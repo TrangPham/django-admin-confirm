@@ -278,3 +278,16 @@ class TestConfirmActions(TestCase):
         self.assertEqual(expected_template, actual_template)
         # Clear our setting to not affect other tests
         ShopAdmin.action_confirmation_template = None
+
+    def test_action_confirm_title_equal_description_field(self):
+        response = self.client.post(
+            reverse("admin:market_shop_changelist"),
+            data={
+                "action": ["show_description"],
+                "select_across": ["0"],
+                "index": ["0"],
+                "_selected_action": ["3", "2", "1"],
+            },
+            follow=True,
+        )
+        self.assertIn("Confirm Action: foobar description", response.rendered_content)

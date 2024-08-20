@@ -460,8 +460,9 @@ def confirm_action(func):
         # get_actions will only return the actions that are allowed
         has_perm = modeladmin.get_actions(request).get(func.__name__) is not None
 
-        action_display_name = snake_to_title_case(func.__name__)
-        title = f"Confirm Action: {action_display_name}"
+        __, __, action_display_name = modeladmin.get_action(request.POST['action'])
+
+        title = f"{_('Confirm Action')}: {action_display_name}"
 
         context = {
             **modeladmin.admin_site.each_context(request),
