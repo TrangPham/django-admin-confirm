@@ -80,11 +80,11 @@ class ActionFormMixin(BaseMixin):
         if step == ToolAction.BACK:
             # cancel ask, revert to previous form
             data = tool_chain.rollback()
-            form_instance = form(data)
+            form_instance = self.__get_instance(form, data=data, instance=queryset_or_object)
         # First called by `Go` which would not have tool_name in params
         elif step == ToolAction.CONFIRMED:
             # form is filled
-            form_instance = form(request.POST)
+            form_instance = self.__get_instance(form, data=request.POST, instance=queryset_or_object)
             if form_instance.is_valid():
                 metadata = self.__get_metadata(form)
                 tool_chain.set_tool(tool_name, form_instance.data, metadata=metadata)
@@ -93,13 +93,21 @@ class ActionFormMixin(BaseMixin):
             # forward to next
             return func(self, request, queryset_or_object)
         else:
-            form_instance = form()
+            form_instance = self.__get_instance(form, instance=queryset_or_object)
 
         queryset: QuerySet = self.to_queryset(request, queryset_or_object)
         context = self.build_context(request, func, queryset, form_instance, tool_name, display_queryset)
 
         # Display form
         return self.render_action_form(request, context)
+
+    @staticmethod
+    def __get_instance(
+        form: type[forms.BaseForm], data: dict | None = None, instance: forms.BaseForm | None = None
+    ) -> forms.BaseForm:
+        if issubclass(form, forms.ModelForm):
+            return form(data, instance=instance)
+        return form(data)
 
 
 def add_form_to_action(form: Form, display_queryset=True):
