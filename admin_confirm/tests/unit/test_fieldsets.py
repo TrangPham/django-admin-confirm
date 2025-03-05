@@ -1,6 +1,6 @@
 """
 Tests ModelAdmin with fieldsets custom configured through one of the possible methods
-Ensures that AdminConfirmMixin works correctly when implimenting class alters default fieldsets
+Ensures that AdminConfirmMixin works correctly when implementing class alters default fieldsets
 
 Test Matrix
 method: `.fieldsets =`, `def get_fieldsets()`
