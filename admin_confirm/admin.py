@@ -187,14 +187,14 @@ class AdminConfirmMixin:
                             field_object, default_value, new_value
                         )
         else:
+            # Since the form considers initial as the value first shown in the form
+            # It could be incorrect when user hits save, and then hits "No, go back to edit"
+            obj.refresh_from_db()
+
             # Parse the changed data - Note that using form.changed_data would not work because initial is not set
             for name, new_value in form.cleaned_data.items():
                 # Ignore custom fields
                 with suppress(FieldDoesNotExist):
-
-                    # Since the form considers initial as the value first shown in the form
-                    # It could be incorrect when user hits save, and then hits "No, go back to edit"
-                    obj.refresh_from_db()
 
                     field_object = model._meta.get_field(name)
                     initial_value = getattr(obj, name)
