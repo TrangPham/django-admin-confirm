@@ -83,6 +83,9 @@ docker-compose -f docker-compose.dev.yml up -d
 
 You should now be able to see the app running on `localhost:8000`
 
+> Note:
+> If you get NoSuchBucket error in the web container, execute `awslocal s3 mb s3://mybucket` in the localstack container and restart web container.
+
 If you haven't already done migrations and created a superuser, you'll want to do it here
 
 ```
@@ -136,4 +139,4 @@ make run
 
 Go on github and make a release in UI
 
-To update supported version badges, use https://shields.io
+To update supported version badges, use <https://shields.io>

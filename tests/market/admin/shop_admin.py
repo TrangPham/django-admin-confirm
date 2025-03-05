@@ -9,12 +9,15 @@ class ShopAdmin(AdminConfirmMixin, ModelAdmin):
 
     @confirm_action
     def show_message(modeladmin, request, queryset):
+        # This is an example of an action with confirmation
+        # Any action can have a confirmation added using @confirm_action
         shops = ", ".join(shop.name for shop in queryset)
         modeladmin.message_user(request, f"You selected with confirmation: {shops}")
 
     show_message.allowed_permissions = ("delete",)
 
     def show_message_no_confirmation(modeladmin, request, queryset):
+        # This is a regular django action without confirmation
         shops = ", ".join(shop.name for shop in queryset)
         modeladmin.message_user(request, f"You selected without confirmation: {shops}")
 
