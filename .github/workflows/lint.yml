@@ -9,9 +9,7 @@ on:
   pull_request:
     branches:
       - main
-  release:
-    types:
-      - created
+  workflow_call:
 
 jobs:
   flake8-lint:

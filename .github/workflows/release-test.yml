@@ -1,0 +1,59 @@
+name: Publish Python 🐍 distribution 📦 TestPyPI
+
+on: workflow_dispatch
+
+jobs:
+  run-tests:
+    uses: ./.github/workflows/test.yml
+
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  release-build:
+    runs-on: ubuntu-latest
+    needs:
+      - run-tests
+      - lint
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Build distribution 📦
+        run: |
+          docker compose -f docker-compose.ci.yml up -d --build
+          make package
+
+      - name: upload dists
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dists
+          path: dist/
+
+  publish-to-testpypi:
+    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    if: github.actor == 'trangpham'
+    needs:
+      - build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/django-admin-confirm/
+
+    permissions:
+      id-token: write # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+      - name: Download all the dists
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Publish distribution 📦 to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
