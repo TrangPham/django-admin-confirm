@@ -24,6 +24,7 @@ jobs:
 
       - name: Build distribution 📦
         run: |
+          pip install -r requirements.txt
           docker compose -f docker-compose.ci.yml up -d --build
           make package
 
@@ -34,7 +35,7 @@ jobs:
           path: dist/
 
   publish-to-testpypi:
-    name: Publish Python 🐍 distribution 📦 to TestPyPI
+    name: Publish to TestPyPI
     if: github.actor == 'trangpham'
     needs:
       - build
@@ -53,7 +54,7 @@ jobs:
         with:
           name: python-package-distributions
           path: dist/
-      - name: Publish to TestPyPI
+      - name: Publish Python 🐍 distribution 📦 to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
