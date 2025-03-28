@@ -25,7 +25,6 @@ jobs:
       - name: Build distribution 📦
         run: |
           pip install -r requirements.txt
-          docker compose -f docker-compose.ci.yml up -d --build
           make package
 
       - name: upload dists
