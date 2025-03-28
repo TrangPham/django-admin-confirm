@@ -6,7 +6,7 @@ pytest-django~=4.1.0
 readme-renderer~=28.0
 twine~=3.3.0
 coveralls~=3.0.0
-Pillow~=8.1.0 # For ImageField
+Pillow~=10.4.0 # For ImageField
 wheel~=0.37.1
 
 ### SELENIUM ###
