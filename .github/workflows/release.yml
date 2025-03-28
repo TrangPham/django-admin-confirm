@@ -1,4 +1,4 @@
-name: Publish Python 🐍 distribution 📦 to PyPI and Github
+name: Publish Release
 
 on: workflow_dispatch
 
@@ -9,7 +9,7 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
-  release-build:
+  build:
     runs-on: ubuntu-latest
     needs:
       - run-tests
