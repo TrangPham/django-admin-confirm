@@ -137,6 +137,12 @@ Add test locally
 make run
 ```
 
+If the css is not applied, run:
+
+```
+python tests/manage.py collectstatic
+```
+
 Go on github and make a release in UI
 
 To update supported version badges, use <https://shields.io>

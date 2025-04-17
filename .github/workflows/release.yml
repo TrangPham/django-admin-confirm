@@ -11,6 +11,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    environment: release
     needs:
       - run-tests
       - lint
@@ -20,23 +21,24 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          # Using with <3.13 since cgi was removed in 3.13
+          python-version: "3.11"
 
       - name: Build distribution 📦
         run: |
-          docker compose -f docker-compose.ci.yml up -d --build
+          pip install -r requirements.txt
           make package
 
       - name: upload dists
         uses: actions/upload-artifact@v4
         with:
-          name: release-dists
+          name: python-package-distributions
           path: dist/
 
   publish-to-pypi:
     name: >-
       Publish to PyPI
-    if: startsWith(github.ref, 'refs/tags/') && github.actor == 'trangpham'
+    if: github.actor == 'trangpham'
     needs:
       - build
     runs-on: ubuntu-latest
@@ -61,6 +63,7 @@ jobs:
     needs:
       - publish-to-pypi
     runs-on: ubuntu-latest
+    environment: release
 
     permissions:
       contents: write # IMPORTANT: mandatory for making GitHub Releases
