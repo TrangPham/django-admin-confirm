@@ -1,9 +1,9 @@
 import socket
 
 from django.core.cache import cache
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, RequestFactory, LiveServerTestCase
+from django.test.utils import setup_test_environment
 from django.contrib.auth.models import User
-from django.test import LiveServerTestCase
 from tests.test_project.settings import SELENIUM_HOST
 
 from selenium import webdriver
@@ -25,6 +25,7 @@ class AdminConfirmTestCase(TestCase):
 
     def setUp(self):
         cache.clear()
+        setup_test_environment()
         self.client.force_login(self.superuser)
         self.factory = RequestFactory()
 
@@ -39,9 +40,7 @@ class AdminConfirmTestCase(TestCase):
         # ManyToManyField should be embedded
         self.assertIn("related-widget-wrapper", rendered_content)
 
-    def _assertSubmitHtml(
-        self, rendered_content, save_action="_save", multipart_form=False
-    ):
+    def _assertSubmitHtml(self, rendered_content, save_action="_save", multipart_form=False):
         # Submit should conserve the save action
         self.assertIn(
             f'<input type="submit" value="Yes, I’m sure" name="{save_action}">',
@@ -79,11 +78,12 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
         cls.host = socket.gethostbyname(socket.gethostname())
         cls.selenium = webdriver.Remote(
             command_executor=f"http://{SELENIUM_HOST}:4444/wd/hub",
-            desired_capabilities=DesiredCapabilities.FIREFOX,
+            options=webdriver.FirefoxOptions(),
         )
         super().setUpClass()
 
     def setUp(self):
+        setup_test_environment()
         self.superuser = User.objects.create_superuser(
             username="super", email="super@email.org", password="pass"
         )

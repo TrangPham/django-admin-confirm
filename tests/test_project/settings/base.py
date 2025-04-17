@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
+import django
+
+DJANGO_VERSION = django.__version__
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -141,15 +144,33 @@ if USE_S3:
     # AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
     # s3 static settings
-    STATIC_LOCATION = "staticfiles"
     STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/{STATIC_LOCATION}/"
     STATIC_ROOT = os.path.join(BASE_DIR, STATIC_LOCATION)
-    STATICFILES_STORAGE = "tests.storage_backends.StaticStorage"
     # s3 public media settings
-    PUBLIC_MEDIA_LOCATION = "mediafiles"
     MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{PUBLIC_MEDIA_LOCATION}/"
     MEDIA_ROOT = os.path.join(BASE_DIR, PUBLIC_MEDIA_LOCATION)
-    DEFAULT_FILE_STORAGE = "tests.storage_backends.PublicMediaStorage"
+
+    if DJANGO_VERSION >= "4.2":
+        STORAGES = {
+            "default": {
+                "BACKEND": "tests.storage_backends.PublicMediaStorage",
+                "OPTIONS": {
+                    "location": "/staticfiles",
+                },
+            },
+            "staticfiles": {
+                "BACKEND": "tests.storage_backends.StaticStorage",
+                "OPTIONS": {
+                    "location": "/mediafiles",
+                },
+            },
+        }
+    else:
+        STATIC_LOCATION = "staticfiles"
+        STATICFILES_STORAGE = "tests.storage_backends.StaticStorage"
+        PUBLIC_MEDIA_LOCATION = "mediafiles"
+        DEFAULT_FILE_STORAGE = "tests.storage_backends.PublicMediaStorage"
+
 else:
     STATIC_URL = "/staticfiles/"
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
