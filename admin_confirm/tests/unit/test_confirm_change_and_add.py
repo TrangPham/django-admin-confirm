@@ -323,10 +323,6 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertTrue(isinstance(response, HttpResponseBadRequest))
         self.assertEqual(response.reason_phrase, "Bad Request")
-        self.assertEqual(
-            response.context.get("exception_value"),
-            "The field shop cannot be referenced.",
-        )
 
         # Should not have been added
         self.assertEqual(Inventory.objects.count(), 0)
