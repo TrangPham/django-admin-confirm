@@ -15,8 +15,17 @@ t:
 test-integration:
 	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/unit
 
+docker-build:
+	docker-compose -f docker-compose.dev.yml build
+
+docker-up:
+	docker-compose -f docker-compose.dev.yml up -d
+
 docker-exec:
 	docker-compose -f docker-compose.dev.yml exec -T web ${COMMAND}
+
+create-bucket:
+	docker-compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html

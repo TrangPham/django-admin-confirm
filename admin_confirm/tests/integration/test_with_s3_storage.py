@@ -9,6 +9,7 @@ import os
 import pytest
 import pkg_resources
 import localstack_client.session
+import django
 
 from importlib import reload
 from selenium.webdriver.remote.file_detector import LocalFileDetector
@@ -22,6 +23,9 @@ from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin import shoppingmall_admin
 
 from admin_confirm.constants import CONFIRM_CHANGE
+
+
+DJANGO_VERSION = django.__version__
 
 
 class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
@@ -45,15 +49,17 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
     def test_s3_is_being_used(self):
         self.assertTrue(settings.USE_S3)
         self.assertIsNotNone(settings.AWS_ACCESS_KEY_ID)
-        if hasattr(settings, "DEFAULT_FILE_STORAGE"):
-            # Deprecated in Django 5.1
+
+        if DJANGO_VERSION >= "4.2":
+            # Available since Django 4.2
             self.assertEqual(
-                settings.DEFAULT_FILE_STORAGE,
+                settings.STORAGES["default"]["BACKEND"],
                 "tests.storage_backends.PublicMediaStorage",
             )
         else:
+            # Deprecated in Django 5.1
             self.assertEqual(
-                settings.STORAGES["default"]["BACKEND"],
+                settings.DEFAULT_FILE_STORAGE,
                 "tests.storage_backends.PublicMediaStorage",
             )
 

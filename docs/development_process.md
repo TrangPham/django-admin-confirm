@@ -86,6 +86,10 @@ You should now be able to see the app running on `localhost:8000`
 > Note:
 > If you get NoSuchBucket error in the web container, execute `awslocal s3 mb s3://mybucket` in the localstack container and restart web container.
 
+```
+docker-compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+```
+
 If you haven't already done migrations and created a superuser, you'll want to do it here
 
 ```
