@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
-from django.test.utils import setup_test_environment
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
@@ -310,7 +309,6 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self.assertEqual(Inventory.objects.count(), 1)
 
     def test_handles_to_field_not_allowed(self):
-        setup_test_environment()  # required in Django 5.2 to set up template engine, which provides response.context
         item = ItemFactory()
         shop = ShopFactory()
         data = {
