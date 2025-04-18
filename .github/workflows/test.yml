@@ -61,10 +61,6 @@ jobs:
             django-version: 5.2
           - python-version: 3.13
             django-version: 5.2
-          # Version 4.0 of Django drops support for python 3.6 & 3.7
-          - python-version: 3.7
-            django-version: 3.2
-
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
