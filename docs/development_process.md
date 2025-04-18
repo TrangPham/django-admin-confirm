@@ -86,6 +86,10 @@ You should now be able to see the app running on `localhost:8000`
 > Note:
 > If you get NoSuchBucket error in the web container, execute `awslocal s3 mb s3://mybucket` in the localstack container and restart web container.
 
+```
+docker-compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+```
+
 If you haven't already done migrations and created a superuser, you'll want to do it here
 
 ```
@@ -109,6 +113,7 @@ Use `docker-compose -f docker-compose.dev.yml up -d --force-recreate` if you nee
 
 Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.
 
+<!-- Note this is the old manual way
 Run tests, check coverage, check readme
 
 ```
@@ -121,7 +126,10 @@ Update version in `setup.py`
 ```
 make package
 make upload-testpypi VERSION=<VERSION>
-```
+``` -->
+
+Update version in `setup.py`
+Push this branch and dispatch the workflow for `Test Release`
 
 Install new version locally
 First you have to uninstall if you used `pip install -e` earlier
@@ -137,6 +145,17 @@ Add test locally
 make run
 ```
 
-Go on github and make a release in UI
+If the css is not applied, run:
 
-To update supported version badges, use <https://shields.io>
+```
+python tests/manage.py collectstatic
+```
+
+Manually smoke check changes
+
+Merge the version change into main
+Then dispatch the workflow for `Release`
+
+<!-- Go on github and make a release in UI -->
+
+To update supported version badges, use <https://shields.io> (Most of these are dynamic though)

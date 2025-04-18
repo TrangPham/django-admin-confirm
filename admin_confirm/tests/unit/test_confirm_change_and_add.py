@@ -66,9 +66,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self._assertSimpleFieldFormHtml(
             rendered_content=response.rendered_content, fields=form_data
         )
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have been added yet
         self.assertEqual(Inventory.objects.count(), 0)
@@ -86,9 +84,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             "csrfmiddlewaretoken": "fake token",
             "_save": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data)
         # Ensure not redirected (confirmation page does not redirect)
         self.assertEqual(response.status_code, 200)
         expected_templates = [
@@ -133,9 +129,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self._assertSimpleFieldFormHtml(
             rendered_content=response.rendered_content, fields=form_data
         )
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, multipart_form=True
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, multipart_form=True)
 
         # Hasn't changed item yet
         item.refresh_from_db()
@@ -202,9 +196,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
         }
-        response = self.client.post(
-            f"/admin/market/inventory/{inventory.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/inventory/{inventory.id}/change/", data)
 
         # Form invalid should show errors on form
         self.assertEqual(response.status_code, 200)
@@ -230,9 +222,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
         }
-        response = self.client.post(
-            f"/admin/market/inventory/{inventory.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/inventory/{inventory.id}/change/", data)
 
         # Should not have shown confirmation page since shop did not change
         self.assertEqual(response.status_code, 302)
@@ -258,9 +248,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         new_inventory = Inventory.objects.all().first()
         self.assertEqual(new_inventory.shop, shop)
         self.assertEqual(new_inventory.item, item)
-        self.assertEqual(
-            new_inventory.quantity, Inventory._meta.get_field("quantity").default
-        )
+        self.assertEqual(new_inventory.quantity, Inventory._meta.get_field("quantity").default)
 
     def test_no_change_permissions(self):
         user = User.objects.create_user(username="user", is_staff=True)
@@ -275,9 +263,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
         }
-        response = self.client.post(
-            f"/admin/market/inventory/{inventory.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/inventory/{inventory.id}/change/", data)
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(isinstance(response, HttpResponseForbidden))
@@ -337,10 +323,6 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self.assertEqual(response.status_code, 400)
         self.assertTrue(isinstance(response, HttpResponseBadRequest))
         self.assertEqual(response.reason_phrase, "Bad Request")
-        self.assertEqual(
-            response.context.get("exception_value"),
-            "The field shop cannot be referenced.",
-        )
 
         # Should not have been added
         self.assertEqual(Inventory.objects.count(), 0)

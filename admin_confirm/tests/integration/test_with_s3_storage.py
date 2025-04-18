@@ -3,11 +3,13 @@ Tests confirmation of add/change
 on ModelAdmin that utilize caches
 and S3 as a storage backend
 """
+
 import os
 
 import pytest
 import pkg_resources
 import localstack_client.session
+import django
 
 from importlib import reload
 from selenium.webdriver.remote.file_detector import LocalFileDetector
@@ -21,6 +23,9 @@ from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin import shoppingmall_admin
 
 from admin_confirm.constants import CONFIRM_CHANGE
+
+
+DJANGO_VERSION = django.__version__
 
 
 class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
@@ -44,10 +49,19 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
     def test_s3_is_being_used(self):
         self.assertTrue(settings.USE_S3)
         self.assertIsNotNone(settings.AWS_ACCESS_KEY_ID)
-        self.assertEqual(
-            settings.DEFAULT_FILE_STORAGE,
-            "tests.storage_backends.PublicMediaStorage",
-        )
+
+        if DJANGO_VERSION >= "4.2":
+            # Available since Django 4.2
+            self.assertEqual(
+                settings.STORAGES["default"]["BACKEND"],
+                "tests.storage_backends.PublicMediaStorage",
+            )
+        else:
+            # Deprecated in Django 5.1
+            self.assertEqual(
+                settings.DEFAULT_FILE_STORAGE,
+                "tests.storage_backends.PublicMediaStorage",
+            )
 
     def test_should_save_file_additions(self):
         selenium_version = pkg_resources.get_distribution("selenium").parsed_version
@@ -56,13 +70,9 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
 
-        item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0]
-        )
+        item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -70,9 +80,7 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element(By.ID, "id_file").send_keys(
-            os.getcwd() + "/screenshot.png"
-        )
+        self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
@@ -110,9 +118,7 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
             name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
         )
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -120,9 +126,7 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element(By.ID, "id_file").send_keys(
-            os.getcwd() + "/screenshot.png"
-        )
+        self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
@@ -143,9 +147,7 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         objects = [obj for obj in self.bucket.objects.all()]
         self.assertEqual(len(objects), 2)
         get_last_modified = lambda obj: int(obj.last_modified.strftime("%s"))
-        objects_by_last_modified = [
-            obj for obj in sorted(objects, key=get_last_modified)
-        ]
+        objects_by_last_modified = [obj for obj in sorted(objects, key=get_last_modified)]
         self.assertRegex(objects_by_last_modified[-1].key, r"screenshot.*\.png$")
         self.assertRegex(objects_by_last_modified[0].key, r"old_file.*\.jpg$")
 
@@ -159,9 +161,7 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
             name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
         )
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -171,9 +171,9 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         # Choose to clear the existing file
         self.selenium.find_element(By.ID, "file-clear_id").click()
         self.assertTrue(
-            self.selenium.find_element(
-                By.XPATH, ".//*[@id='file-clear_id']"
-            ).get_attribute("checked")
+            self.selenium.find_element(By.XPATH, ".//*[@id='file-clear_id']").get_attribute(
+                "checked"
+            )
         )
 
         self.selenium.find_element(By.NAME, "_continue").click()

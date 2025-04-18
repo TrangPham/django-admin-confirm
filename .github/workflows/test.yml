@@ -44,12 +44,23 @@ jobs:
         options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
       matrix:
-        python-version: [3.8, 3.9, 3.10.0, 3.11]
-        django-version: [3.2, 4.0.4]
+        python-version: [3.8, 3.9, 3.10.0]
+        django-version: [3.2, 4.2]
         include:
-          # Version 4.0 of Django drops support for python 3.6 & 3.7
-          - python-version: 3.7
-            django-version: 3.2
+          # Version 4.2 adds support for 3.11 & 3.12
+          - python-version: 3.11
+            django-version: 4.2
+          - python-version: 3.12
+            django-version: 4.2
+          # Version 5.2 drops support for 3.8 & 3.9
+          - python-version: 3.10.0
+            django-version: 5.2
+          - python-version: 3.11
+            django-version: 5.2
+          - python-version: 3.12
+            django-version: 5.2
+          - python-version: 3.13
+            django-version: 5.2
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
@@ -63,13 +74,13 @@ jobs:
           sudo chown -R $USER:$USER ${{ github.workspace }}
         # required because actions/checkout@2 wants to delete the localstack folder
       - uses: actions/checkout@v2
-      - name: Build Docker for Python 3.6
-        if: ${{ matrix.python-version == 3.6 }}
-        run: |
-          export SELENIUM_VERSION=3.141.0
-          docker compose -f docker-compose.ci.yml up -d --build
-        # Note: Github Runners no longer supports docker-compose, use docker compose instead
-        #       see https://github.com/orgs/community/discussions/116610
+      # - name: Build Docker for Python 3.6
+      #   if: ${{ matrix.python-version == 3.6 }}
+      #   run: |
+      #     export SELENIUM_VERSION=3.141.0
+      #     docker compose -f docker-compose.ci.yml up -d --build
+      # Note: Github Runners no longer supports docker-compose, use docker compose instead
+      #       see https://github.com/orgs/community/discussions/116610
       - name: Build Docker for other Python versions
         if: ${{ matrix.python-version != 3.6 }}
         run: |
@@ -77,7 +88,7 @@ jobs:
           docker compose -f docker-compose.ci.yml up -d --build
       - name: Attempt to connect to localstack and create bucket
         run: |
-          curl -X GET http://localhost:4566/health
+          curl -X GET http://localhost:4566/_localstack/health
           aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
         # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
       - name: Integration Test

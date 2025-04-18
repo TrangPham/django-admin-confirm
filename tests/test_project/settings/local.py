@@ -5,5 +5,21 @@ WSGI_APPLICATION = "test_project.wsgi.application"
 ROOT_URLCONF = "test_project.urls"
 
 if USE_S3:
-    STATICFILES_STORAGE = "storage_backends.StaticStorage"
-    DEFAULT_FILE_STORAGE = "storage_backends.PublicMediaStorage"
+    if DJANGO_VERSION >= "4.2":
+        STORAGES = {
+            "default": {
+                "BACKEND": "storage_backends.PublicMediaStorage",
+                "OPTIONS": {
+                    "location": "staticfiles",
+                },
+            },
+            "staticfiles": {
+                "BACKEND": "storage_backends.StaticStorage",
+                "OPTIONS": {
+                    "location": "mediafiles",
+                },
+            },
+        }
+    else:
+        STATICFILES_STORAGE = "storage_backends.StaticStorage"
+        DEFAULT_FILE_STORAGE = "storage_backends.PublicMediaStorage"
