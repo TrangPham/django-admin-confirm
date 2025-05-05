@@ -12,13 +12,12 @@ from django.contrib.admin import helpers
 from django.db.models import Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_control
 from admin_confirm.utils import (
     log,
     get_admin_change_url,
-    snake_to_title_case,
     format_cache_key,
 )
-from django.views.decorators.cache import cache_control
 from admin_confirm.constants import (
     CONFIRMATION_RECEIVED,
     CONFIRM_ADD,
@@ -77,8 +76,8 @@ class AdminConfirmMixin:
             request,
             self.change_confirmation_template
             or [
-                "admin/{}/{}/change_confirmation.html".format(app_label, opts.model_name),
-                "admin/{}/change_confirmation.html".format(app_label),
+                f"admin/{app_label}/{opts.model_name}/change_confirmation.html",
+                f"admin/{app_label}/change_confirmation.html",
                 "admin/change_confirmation.html",
             ],
             context,
@@ -98,8 +97,8 @@ class AdminConfirmMixin:
             request,
             self.action_confirmation_template
             or [
-                "admin/{}/{}/action_confirmation.html".format(app_label, opts.model_name),
-                "admin/{}/action_confirmation.html".format(app_label),
+                f"admin/{app_label}/{opts.model_name}/action_confirmation.html",
+                f"admin/{app_label}/action_confirmation.html",
                 "admin/action_confirmation.html",
             ],
             context,
@@ -327,7 +326,7 @@ class AdminConfirmMixin:
         # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1575-L1592
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
         if to_field and not self.to_field_allowed(request, to_field):
-            raise DisallowedModelAdminToField("The field %s cannot be referenced." % to_field)
+            raise DisallowedModelAdminToField(f"The field {to_field} cannot be referenced.")
 
         model = self.model
         opts = model._meta
@@ -358,7 +357,7 @@ class AdminConfirmMixin:
             new_object = self.save_form(request, form, change=not add)
         else:
             new_object = form.instance
-        formsets, inline_instances = self._create_formsets(request, new_object, change=not add)
+        formsets, _inline_instances = self._create_formsets(request, new_object, change=not add)
         # End code from super()._changeform_view
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
