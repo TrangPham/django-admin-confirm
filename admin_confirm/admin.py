@@ -53,16 +53,17 @@ class AdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
+
+        # default confirmation_fields to all fields on model
+        confirmation_fields = set([field.name for field in self.model._meta.fields])
+
+        if self.confirmation_fields and self.confirmation_fields != "__all__":
+            # if specified, set confirmation fields
+            confirmation_fields = self.confirmation_fields
+
         # Valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
-
-        if self.confirmation_fields is not None and self.confirmation_fields != '__all__':
-            confirmation_fields = self.confirmation_fields
-        else:
-            # If no confirmation fields are specified or __all__ is specified, use all fields
-            confirmation_fields = set([field.name for field in self.model._meta.fields])
-        
-        return list(model_fields & admin_fields)
+        return list(confirmation_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
         opts = self.model._meta
@@ -77,9 +78,7 @@ class AdminConfirmMixin:
             request,
             self.change_confirmation_template
             or [
-                "admin/{}/{}/change_confirmation.html".format(
-                    app_label, opts.model_name
-                ),
+                "admin/{}/{}/change_confirmation.html".format(app_label, opts.model_name),
                 "admin/{}/change_confirmation.html".format(app_label),
                 "admin/change_confirmation.html",
             ],
@@ -100,9 +99,7 @@ class AdminConfirmMixin:
             request,
             self.action_confirmation_template
             or [
-                "admin/{}/{}/action_confirmation.html".format(
-                    app_label, opts.model_name
-                ),
+                "admin/{}/{}/action_confirmation.html".format(app_label, opts.model_name),
                 "admin/{}/action_confirmation.html".format(app_label),
                 "admin/action_confirmation.html",
             ],
@@ -118,13 +115,9 @@ class AdminConfirmMixin:
                 log("confirmation is asked for")
                 self._file_cache.delete_all()
                 cache.delete_many(CACHE_KEYS.values())
-                return self._change_confirmation_view(
-                    request, object_id, form_url, extra_context
-                )
+                return self._change_confirmation_view(request, object_id, form_url, extra_context)
             elif CONFIRMATION_RECEIVED in request.POST:
-                return self._confirmation_received_view(
-                    request, object_id, form_url, extra_context
-                )
+                return self._confirmation_received_view(request, object_id, form_url, extra_context)
             else:
                 self._file_cache.delete_all()
                 cache.delete_many(CACHE_KEYS.values())
@@ -133,18 +126,14 @@ class AdminConfirmMixin:
         return super().changeform_view(request, object_id, form_url, extra_context)
 
     def _add_confirmation_options_to_extra_context(self, extra_context):
-        log(
-            f"Adding confirmation to extra_content {self.confirm_add} {self.confirm_change}"
-        )
+        log(f"Adding confirmation to extra_content {self.confirm_add} {self.confirm_change}")
         return {
             **(extra_context or {}),
             "confirm_add": self.confirm_add,
             "confirm_change": self.confirm_change,
         }
 
-    def _get_changed_data(
-        self, form: ModelForm, model: Model, obj: object, add: bool
-    ) -> Dict:
+    def _get_changed_data(self, form: ModelForm, model: Model, obj: object, add: bool) -> Dict:
         """
         Given a form, detect the changes on the form from the default values (if add) or
         from the database values of the object (model instance)
@@ -261,9 +250,7 @@ class AdminConfirmMixin:
                 # If a file was uploaded, the field is omitted from the POST since it's in request.FILES
                 if not query_dict.get(field.name):
                     if not cached_file:
-                        log(
-                            f"Warning: Could not find file cached for field {field.name}"
-                        )
+                        log(f"Warning: Could not find file cached for field {field.name}")
                     else:
                         reconstructed_files[field.name] = cached_file
 
@@ -341,9 +328,7 @@ class AdminConfirmMixin:
         # https://github.com/django/django/blob/master/django/contrib/admin/options.py#L1575-L1592
         to_field = request.POST.get(TO_FIELD_VAR, request.GET.get(TO_FIELD_VAR))
         if to_field and not self.to_field_allowed(request, to_field):
-            raise DisallowedModelAdminToField(
-                "The field %s cannot be referenced." % to_field
-            )
+            raise DisallowedModelAdminToField("The field %s cannot be referenced." % to_field)
 
         model = self.model
         opts = model._meta
@@ -366,9 +351,7 @@ class AdminConfirmMixin:
                 raise PermissionDenied
 
         fieldsets = self.get_fieldsets(request, obj)
-        ModelForm = self.get_form(
-            request, obj, change=not add, fields=flatten_fieldsets(fieldsets)
-        )
+        ModelForm = self.get_form(request, obj, change=not add, fields=flatten_fieldsets(fieldsets))
 
         form = ModelForm(request.POST, request.FILES, instance=obj)
         form_validated = form.is_valid()
@@ -376,9 +359,7 @@ class AdminConfirmMixin:
             new_object = self.save_form(request, form, change=not add)
         else:
             new_object = form.instance
-        formsets, inline_instances = self._create_formsets(
-            request, new_object, change=not add
-        )
+        formsets, inline_instances = self._create_formsets(request, new_object, change=not add)
         # End code from super()._changeform_view
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
@@ -386,18 +367,16 @@ class AdminConfirmMixin:
             log("Invalid Form: return early")
             log(form.errors)
             # We must ensure that we ask for confirmation when showing errors
-            extra_context = self._add_confirmation_options_to_extra_context(
-                extra_context
-            )
+            extra_context = self._add_confirmation_options_to_extra_context(extra_context)
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
         changed_data = self._get_changed_data(form, model, obj, add_or_new)
 
-        changed_confirmation_fields = set(
-            self.get_confirmation_fields(request, obj)
-        ) & set(changed_data.keys())
+        changed_confirmation_fields = set(self.get_confirmation_fields(request, obj)) & set(
+            changed_data.keys()
+        )
         if not bool(changed_confirmation_fields):
             log("No change detected")
             # No confirmation required for changed fields, continue to save
@@ -419,9 +398,7 @@ class AdminConfirmMixin:
             # Save files as tempfiles
             for field_name in request.FILES:
                 file = request.FILES[field_name]
-                self._file_cache.set(
-                    format_cache_key(model=model.__name__, field=field_name), file
-                )
+                self._file_cache.set(format_cache_key(model=model.__name__, field=field_name), file)
 
             # Handle when files are cleared - since the `form` object would not hold that info
             cleared_fields = self._get_cleared_fields(request)
@@ -468,7 +445,7 @@ def confirm_action(func):
         # get_actions will only return the actions that are allowed
         has_perm = modeladmin.get_actions(request).get(func.__name__) is not None
 
-        __, __, action_display_name = modeladmin.get_action(request.POST['action'])
+        __, __, action_display_name = modeladmin.get_action(request.POST["action"])
 
         title = f"{_('Confirm Action')}: {action_display_name}"
 
