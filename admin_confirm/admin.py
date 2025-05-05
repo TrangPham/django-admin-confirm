@@ -53,15 +53,14 @@ class AdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
-
-        # default confirmation_fields to all fields on model
+        # default confirmation fields to all fields
         confirmation_fields = set([field.name for field in self.model._meta.fields])
 
         if self.confirmation_fields and self.confirmation_fields != "__all__":
-            # if specified, set confirmation fields
-            confirmation_fields = self.confirmation_fields
+            # set confirmation fields if specified
+            confirmation_fields = set(self.confirmation_fields)
 
-        # Valid fields which are visible on the admin page
+        # filter to valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
         return list(confirmation_fields & admin_fields)
 
