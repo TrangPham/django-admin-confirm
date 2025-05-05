@@ -53,11 +53,15 @@ class AdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
-        if self.confirmation_fields is not None:
-            return self.confirmation_fields
-
-        model_fields = set([field.name for field in self.model._meta.fields])
+        # Valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+
+        if self.confirmation_fields is not None and self.confirmation_fields != '__all__':
+            confirmation_fields = self.confirmation_fields
+        else:
+            # If no confirmation fields are specified or __all__ is specified, use all fields
+            confirmation_fields = set([field.name for field in self.model._meta.fields])
+        
         return list(model_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
