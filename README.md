@@ -66,7 +66,7 @@ Caching is used to cache files for confirmation. When change/add is submitted on
 
 - `confirm_change` _Optional[bool]_ - decides if changes should trigger confirmation
 - `confirm_add` _Optional[bool]_ - decides if additions should trigger confirmation
-- `confirmation_fields` _Optional[Array[string]]_ - sets which fields should trigger confirmation for add/change. For adding new instances, the field would only trigger a confirmation if it's set to a value that's not its default.
+- `confirmation_fields` _Optional[Array[string]]_ - sets which fields should trigger confirmation for add/change. If not set or set to `__all__`, it will trigger for all fields. For adding new instances, the field would only trigger a confirmation if the field is set to a value that's not its default.
 - `change_confirmation_template` _Optional[string]_ - path to custom html template to use for change/add
 - `action_confirmation_template` _Optional[string]_ - path to custom html template to use for actions
 
