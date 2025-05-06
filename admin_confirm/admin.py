@@ -52,8 +52,10 @@ class AdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
-        # default confirmation fields to all fields
-        confirmation_fields = set([field.name for field in self.model._meta.fields])
+        # default confirmation fields to all fields, including ManyToManyFields
+        confirmation_fields = set(
+            [field.name for field in self.model._meta.get_fields() if not field.auto_created]
+        )
 
         if self.confirmation_fields and self.confirmation_fields != "__all__":
             # set confirmation fields if specified

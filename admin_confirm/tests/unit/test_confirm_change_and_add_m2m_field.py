@@ -1,5 +1,6 @@
 from unittest import mock
 from django.urls import reverse
+from django.contrib.admin import AdminSite
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShoppingMallAdmin
@@ -192,3 +193,13 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         # Should not have updated inventory
         shopping_mall.refresh_from_db()
         self.assertEqual(shopping_mall.shops.count(), 0)
+
+    def test_get_confirmation_fields_includes_m2m_fields(self):
+        # Create a mock admin instance
+        admin = ShoppingMallAdmin(ShoppingMall, AdminSite())
+
+        # Call get_confirmation_fields
+        confirmation_fields = admin.get_confirmation_fields(self.factory.request())
+
+        # Assert that the M2M field 'shops' is included
+        self.assertIn("shops", confirmation_fields)
