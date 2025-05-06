@@ -10,6 +10,7 @@ Then send the rest of the changes to Django to handle
 This is arguably the most we fiddle with the Django request
 Thus we should test it extensively
 """
+
 from admin_confirm.utils import format_cache_key
 from admin_confirm.file_cache import FileCache
 import time
@@ -35,14 +36,17 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         ItemAdmin.save_as_continue = True
 
         self.image_path = "screenshot.png"
+        with open(self.image_path, "rb") as f:
+            self.image_content = f.read()
+
         f = SimpleUploadedFile(
             name="test_file.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         i = SimpleUploadedFile(
             name="test_image.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         self.item = ItemFactory(name="Not name", file=f, image=i)
@@ -57,7 +61,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
             name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Request.POST
@@ -90,9 +94,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -132,7 +134,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
             name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Request.POST
@@ -165,9 +167,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -231,9 +231,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -270,7 +268,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new file
         f2 = SimpleUploadedFile(
             name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
 
@@ -336,7 +334,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new file
         f2 = SimpleUploadedFile(
             name="test_file2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
 
@@ -515,7 +513,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
             name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Request.POST
@@ -552,9 +550,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -615,9 +611,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -676,9 +670,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -744,9 +736,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -777,7 +767,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
             name="test_image2.jpg",
-            content=open(self.image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Click "Save And Continue"
@@ -872,9 +862,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         data[CONFIRMATION_RECEIVED] = True
 
         with mock.patch.object(ItemAdmin, "message_user") as message_user:
-            response = self.client.post(
-                f"/admin/market/item/{self.item.id}/change/", data=data
-            )
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
             # Should show message to user with correct obj and path
             message_user.assert_called_once()
             message = message_user.call_args[0][1]
@@ -911,9 +899,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         response = self.client.post(f"/admin/market/shop/{shop.id}/change/", data=data)
 
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have set cache since not multipart form
         for key in CACHE_KEYS.values():

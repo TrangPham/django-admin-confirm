@@ -2,6 +2,7 @@
 Tests confirmation of add/change
 on ModelAdmin that utilize caches
 """
+
 import os
 import pytest
 import pkg_resources
@@ -30,9 +31,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_models_without_files_should_not_have_confirmation_received(self):
         mall = ShoppingMall.objects.create(name="mall")
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
@@ -59,9 +58,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_models_with_files_should_have_confirmation_received(self):
         item = Item.objects.create(name="item", price=1)
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
@@ -90,13 +87,9 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
 
-        item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0]
-        )
+        item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -104,9 +97,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element(By.ID, "id_file").send_keys(
-            os.getcwd() + "/screenshot.png"
-        )
+        self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
@@ -130,18 +121,18 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
 
-        file = SimpleUploadedFile(
-            name="old_file.jpg",
-            content=open("screenshot.png", "rb").read(),
-            content_type="image/jpeg",
-        )
+        with open("screenshot.png", "rb") as f:
+            file = SimpleUploadedFile(
+                name="old_file.jpg",
+                content=f.read(),
+                content_type="image/jpeg",
+            )
+
         item = Item.objects.create(
             name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
         )
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -149,9 +140,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         price.send_keys(2)
 
         # Upload a new file
-        self.selenium.find_element(By.ID, "id_file").send_keys(
-            os.getcwd() + "/screenshot.png"
-        )
+        self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 
@@ -169,18 +158,18 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_remove_file_if_clear_selected(self):
-        file = SimpleUploadedFile(
-            name="old_file.jpg",
-            content=open("screenshot.png", "rb").read(),
-            content_type="image/jpeg",
-        )
+        with open("screenshot.png", "rb") as f:
+            file = SimpleUploadedFile(
+                name="old_file.jpg",
+                content=f.read(),
+                content_type="image/jpeg",
+            )
+
         item = Item.objects.create(
             name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
         )
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/item/{item.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -190,9 +179,9 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         # Choose to clear the existing file
         self.selenium.find_element(By.ID, "file-clear_id").click()
         self.assertTrue(
-            self.selenium.find_element(
-                By.XPATH, ".//*[@id='file-clear_id']"
-            ).get_attribute("checked")
+            self.selenium.find_element(By.XPATH, ".//*[@id='file-clear_id']").get_attribute(
+                "checked"
+            )
         )
 
         self.selenium.find_element(By.NAME, "_continue").click()

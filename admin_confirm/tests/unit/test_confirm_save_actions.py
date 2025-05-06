@@ -13,6 +13,12 @@ from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmSaveActions(AdminConfirmTestCase):
+    def setUp(self):
+        image_path = "screenshot.png"
+        with open(image_path, "rb") as f:
+            self.image_content = f.read()
+        return super().setUp()
+
     def test_simple_add_with_save(self):
         # Load the Add Item Page
         ItemAdmin.confirm_add = True
@@ -137,15 +143,14 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertIn("_confirm_add", response.rendered_content)
 
         # Select files
-        image_path = "screenshot.png"
         f = SimpleUploadedFile(
             name="test_file.jpg",
-            content=open(image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         i = SimpleUploadedFile(
             name="test_image.jpg",
-            content=open(image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Click "Save"
@@ -176,9 +181,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         del confirmation_data["image"]
         del confirmation_data["file"]
         confirmation_data[CONFIRMATION_RECEIVED] = True
-        response = self.client.post(
-            reverse("admin:market_item_add"), data=confirmation_data
-        )
+        response = self.client.post(reverse("admin:market_item_add"), data=confirmation_data)
 
         # Should have redirected to changelist
         self.assertEqual(response.status_code, 302)
@@ -205,15 +208,14 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
     def test_file_and_image_change_with_saveasnew(self):
         item = ItemFactory(name="Not name")
         # Select files
-        image_path = "screenshot.png"
         f = SimpleUploadedFile(
             name="test_file.jpg",
-            content=open(image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         i = SimpleUploadedFile(
             name="test_image.jpg",
-            content=open(image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         item.file = f
@@ -234,7 +236,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
             name="test_image2.jpg",
-            content=open(image_path, "rb").read(),
+            content=self.image_content,
             content_type="image/jpeg",
         )
         # Click "Save And Continue"
@@ -325,9 +327,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             options=shops,
             selected_ids=data["shops"],
         )
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_save"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_save")
 
         # Should not have cached the unsaved object
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -390,9 +390,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_saveasnew": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
 
         # Should be shown confirmation page
         self._assertManyToManyFormHtml(
@@ -400,9 +398,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
             options=shops,
             selected_ids=data["shops"],
         )
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_saveasnew"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_saveasnew")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -427,9 +423,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         )
 
         # Should not have redirected to changelist
-        self.assertEqual(
-            response.url, f"/admin/market/shoppingmall/{mall.id + 1}/change/"
-        )
+        self.assertEqual(response.url, f"/admin/market/shoppingmall/{mall.id + 1}/change/")
 
         # Should have saved obj
         self.assertEqual(ShoppingMall.objects.count(), 2)

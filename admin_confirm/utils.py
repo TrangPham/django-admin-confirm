@@ -8,7 +8,7 @@ def snake_to_title_case(string: str) -> str:
 
 def get_admin_change_url(obj: object) -> str:
     return reverse(
-        "admin:%s_%s_change" % (obj._meta.app_label, obj._meta.model_name),
+        f"admin:{obj._meta.app_label}_{obj._meta.model_name}_change",
         args=(obj.pk,),
     )
 

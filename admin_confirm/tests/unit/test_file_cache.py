@@ -1,11 +1,12 @@
 from django.core.files.uploadedfile import SimpleUploadedFile
 from admin_confirm.file_cache import FileCache
 
-file = SimpleUploadedFile(
-    name="test_file.jpg",
-    content=open("screenshot.png", "rb").read(),
-    content_type="image/jpeg",
-)
+with open("screenshot.png", "rb") as f:
+    file = SimpleUploadedFile(
+        name="test_file.jpg",
+        content=f.read(),
+        content_type="image/jpeg",
+    )
 
 
 def test_should_set_file_cache():

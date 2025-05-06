@@ -172,10 +172,8 @@ class TestWithValidators(AdminConfirmTestCase):
             "admin/change_form.html",
         ]
         self.assertEqual(response.template_name, expected_templates)
-        self.assertTrue("error" in str(response.content))
-        self.assertTrue(
-            "Shop does not have enough of the item stocked" in str(response.content)
-        )
+        self.assertIn("error", str(response.content))
+        self.assertIn("Shop does not have enough of the item stocked", str(response.content))
 
         # Should still be asking for confirmation
         self.assertIn(CONFIRM_ADD, response.rendered_content)

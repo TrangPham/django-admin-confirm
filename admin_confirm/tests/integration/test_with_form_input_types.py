@@ -1,6 +1,7 @@
 """
 Tests with different form input types
 """
+
 from datetime import timedelta
 from django.utils import timezone
 from importlib import reload
@@ -36,7 +37,7 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
         return super().tearDownClass()
 
     def test_radio_input_should_work(self):
-        self.selenium.get(self.live_server_url + f"/admin/market/item/add/")
+        self.selenium.get(self.live_server_url + "/admin/market/item/add/")
         self.assertIn("radio", self.selenium.page_source)
 
         # Should ask for confirmation of add
@@ -76,9 +77,7 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
         mall = ShoppingMall.objects.create(name="mall", general_manager=gm1, town=town)
         mall.shops.set(shops)
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page

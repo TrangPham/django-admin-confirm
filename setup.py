@@ -3,7 +3,8 @@ import os
 from setuptools import setup
 
 here = os.path.abspath(os.path.dirname(__file__))
-README = open(os.path.join(here, "README.md")).read()
+with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
+    README = f.read()
 
 setup(
     name="django-admin-confirm",
