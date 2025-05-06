@@ -17,7 +17,6 @@ class ShopInline(StackedInline):
 class ShoppingMallAdmin(AdminConfirmMixin, ModelAdmin):
     confirm_add = True
     confirm_change = True
-    confirmation_fields = ["name"]
 
     inlines = [ShopInline]
     raw_id_fields = ["general_manager"]
