@@ -1,4 +1,4 @@
-""" FileCache - caches files for ModelAdmins with confirmations.
+"""FileCache - caches files for ModelAdmins with confirmations.
 
 Code modified from: https://github.com/MaistrenkoAnton/filefield-cache/blob/master/filefield_cache/cache.py
 Original copy date: April 22, 2021
@@ -27,6 +27,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 try:
@@ -40,7 +41,7 @@ from admin_confirm.constants import CACHE_TIMEOUT
 from admin_confirm.utils import log
 
 
-class FileCache(object):
+class FileCache:
     "Cache file data and retain the file upon confirmation."
 
     timeout = CACHE_TIMEOUT

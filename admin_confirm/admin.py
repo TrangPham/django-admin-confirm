@@ -145,7 +145,7 @@ class AdminConfirmMixin:
         """
 
         def _display_for_changed_data(field, initial_value, new_value):
-            if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+            if not isinstance(field, (FileField, ImageField)):
                 return [initial_value, new_value]
 
             if initial_value:
@@ -238,7 +238,7 @@ class AdminConfirmMixin:
             query_dict = request.POST
 
             for field in self.model._meta.get_fields():
-                if not (isinstance(field, FileField) or isinstance(field, ImageField)):
+                if not isinstance(field, (FileField, ImageField)):
                     continue
 
                 cached_file = self._file_cache.get(

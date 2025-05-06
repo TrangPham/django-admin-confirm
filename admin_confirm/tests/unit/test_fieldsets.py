@@ -7,6 +7,7 @@ method: `.fieldsets =`, `def get_fieldsets()`
 action: change, add
 fieldset: simple, with readonly fields, with custom fields
 """
+
 import pytest
 from importlib import reload
 from tests.market.admin import item_admin
@@ -94,21 +95,22 @@ def test_fieldsets(client, method, get_fieldset, action):
     request = RequestFactory().request
     assert admin_instance.get_fieldsets(request) == fs
 
-    user = User.objects.create_superuser(
-        username="super", email="super@email.org", password="pass"
-    )
+    user = User.objects.create_superuser(username="super", email="super@email.org", password="pass")
     client.force_login(user)
 
     url = "/admin/market/item/add/"
     image_path = "screenshot.png"
+    with open(image_path, "rb") as f:
+        image_content = f.read()
+
     f2 = SimpleUploadedFile(
         name="new_file.jpg",
-        content=open(image_path, "rb").read(),
+        content=image_content,
         content_type="image/jpeg",
     )
     i2 = SimpleUploadedFile(
         name="new_image.jpg",
-        content=open(image_path, "rb").read(),
+        content=image_content,
         content_type="image/jpeg",
     )
     data = {
@@ -127,12 +129,12 @@ def test_fieldsets(client, method, get_fieldset, action):
         url = "/admin/market/item/1/change/"
         f = SimpleUploadedFile(
             name="old_file.jpg",
-            content=open(image_path, "rb").read(),
+            content=image_content,
             content_type="image/jpeg",
         )
         i = SimpleUploadedFile(
             name="old_image.jpg",
-            content=open(image_path, "rb").read(),
+            content=image_content,
             content_type="image/jpeg",
         )
         item = ItemFactory(name="old name", price=1, currency="CAD", file=f, image=i)

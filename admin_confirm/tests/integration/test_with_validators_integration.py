@@ -2,33 +2,21 @@
 Ensures that confirmations work with validators on the Model and on the Modelform.
 """
 
-from logging import currentframe
+from importlib import reload
+from selenium.webdriver.common.by import By
 from unittest import mock
-from django.urls import reverse
-from django.utils import timezone
 
-from admin_confirm.tests.helpers import AdminConfirmTestCase
-from tests.market.models import Checkout, ItemSale
+from admin_confirm.constants import CONFIRM_ADD
+from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
+
+from tests.market.models import ItemSale
 from tests.factories import (
     InventoryFactory,
     ItemFactory,
     ShopFactory,
     TransactionFactory,
 )
-
-
-import pytest
-import pkg_resources
-from importlib import reload
-from tests.factories import ShopFactory
-from tests.market.models import GeneralManager, ShoppingMall, Town
-
-from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin import shoppingmall_admin
-
-from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.by import By
 
 
 class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
@@ -47,7 +35,7 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
         ItemFactory()
         TransactionFactory()
 
-        self.selenium.get(self.live_server_url + f"/admin/market/itemsale/add/")
+        self.selenium.get(self.live_server_url + "/admin/market/itemsale/add/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
 
@@ -81,7 +69,7 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
         InventoryFactory(shop=shop, item=item, quantity=10)
         TransactionFactory(shop=shop)
 
-        self.selenium.get(self.live_server_url + f"/admin/market/itemsale/add/")
+        self.selenium.get(self.live_server_url + "/admin/market/itemsale/add/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
 
@@ -124,7 +112,7 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
         InventoryFactory(shop=shop, item=item, quantity=10)
         transaction = TransactionFactory(shop=shop)
 
-        self.selenium.get(self.live_server_url + f"/admin/market/itemsale/add/")
+        self.selenium.get(self.live_server_url + "/admin/market/itemsale/add/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
 
@@ -163,7 +151,7 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
         InventoryFactory(shop=shop, item=item, quantity=1)
         TransactionFactory(shop=shop)
 
-        self.selenium.get(self.live_server_url + f"/admin/market/itemsale/add/")
+        self.selenium.get(self.live_server_url + "/admin/market/itemsale/add/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
 
@@ -177,9 +165,7 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
 
         # Should show errors and not confirmation page
         self.assertNotIn("Confirm", self.selenium.page_source)
-        self.assertIn(
-            "Shop does not have enough of the item stocked", self.selenium.page_source
-        )
+        self.assertIn("Shop does not have enough of the item stocked", self.selenium.page_source)
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
 
         # Should not have been added yet

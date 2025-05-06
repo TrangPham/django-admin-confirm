@@ -14,7 +14,7 @@ class Item(models.Model):
     currency = models.CharField(max_length=3, choices=VALID_CURRENCIES)
     image = models.ImageField(upload_to="tmp/items", null=True, blank=True)
     file = models.FileField(upload_to="tmp/files", null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
+    description = models.TextField(default="", blank=True)
 
     def __str__(self):
         return self.name
@@ -33,12 +33,10 @@ class Inventory(models.Model):
         ordering = ["shop", "item__name"]
         verbose_name_plural = "Inventory"
 
-    shop = models.ForeignKey(
-        to=Shop, on_delete=models.CASCADE, related_name="inventory"
-    )
+    shop = models.ForeignKey(to=Shop, on_delete=models.CASCADE, related_name="inventory")
     item = models.ForeignKey(to=Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0, null=True, blank=True)
-    notes = models.TextField(default="This is the default", null=True, blank=True)
+    notes = models.TextField(default="This is the default", blank=True)
 
 
 class GeneralManager(models.Model):
@@ -87,7 +85,7 @@ class ItemSale(models.Model):
         # check that shop has the stock
         shop = self.transaction.shop
         inventory = Inventory.objects.filter(shop=shop, item=self.item)
-        if not inventory:
+        if not inventory.exists():
             errors["item"] = "Shop does not have the item stocked"
         else:
             in_stock = inventory.aggregate(Sum("quantity")).get("quantity__sum", 0)
