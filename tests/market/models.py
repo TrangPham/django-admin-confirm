@@ -29,7 +29,7 @@ class Shop(models.Model):
 
 class Inventory(models.Model):
     shop = models.ForeignKey(to=Shop, on_delete=models.CASCADE, related_name="inventory")
-    item = models.ForeignKey(to=Item, on_delete=models.CASCADE)
+    item = models.ForeignKey(to=Item, on_delete=models.CASCADE, related_name="inventory")
     quantity = models.PositiveIntegerField(default=0, null=True, blank=True)
     notes = models.TextField(default="This is the default", blank=True)
 
@@ -54,7 +54,9 @@ class ShoppingMall(models.Model):
     general_manager = models.OneToOneField(
         GeneralManager, on_delete=models.CASCADE, null=True, blank=True, verbose_name="manager"
     )
-    town = models.ForeignKey(Town, on_delete=models.CASCADE, null=True, blank=True)
+    town = models.ForeignKey(
+        Town, on_delete=models.CASCADE, null=True, blank=True, related_name="shopping_malls"
+    )
 
     def __str__(self):
         return self.name
@@ -63,7 +65,7 @@ class ShoppingMall(models.Model):
 class Transaction(models.Model):
     total = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     currency = models.CharField(max_length=3, choices=VALID_CURRENCIES)
-    shop = models.ForeignKey(Shop, on_delete=models.CASCADE)
+    shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="transactions")
     timestamp = models.DateTimeField(auto_created=True)
     date = models.DateField()
 
@@ -75,7 +77,9 @@ class ItemSale(models.Model):
     transaction = models.ForeignKey(
         Transaction, on_delete=models.CASCADE, related_name="item_sales"
     )
-    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True)
+    item = models.ForeignKey(
+        Item, on_delete=models.SET_NULL, null=True, blank=True, related_name="item_sales"
+    )
     quantity = models.PositiveIntegerField(default=1)
     total = models.DecimalField(max_digits=5, decimal_places=2)
     currency = models.CharField(max_length=5, validators=[validate_currency])
