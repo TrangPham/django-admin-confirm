@@ -37,6 +37,13 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         # Delete all current files
         for obj in self.bucket.objects.all():
             obj.delete()
+
+        with open("screenshot.png", "rb") as f:
+            self.file = SimpleUploadedFile(
+                name="old_file.jpg",
+                content=f.read(),
+                content_type="image/jpeg",
+            )
         super().setUp()
 
     def tearDown(self):
@@ -109,13 +116,8 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
 
-        file = SimpleUploadedFile(
-            name="old_file.jpg",
-            content=open("screenshot.png", "rb").read(),
-            content_type="image/jpeg",
-        )
         item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=self.file
         )
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -152,13 +154,8 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(objects_by_last_modified[0].key, r"old_file.*\.jpg$")
 
     def test_should_remove_file_if_clear_selected(self):
-        file = SimpleUploadedFile(
-            name="old_file.jpg",
-            content=open("screenshot.png", "rb").read(),
-            content_type="image/jpeg",
-        )
         item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=self.file
         )
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")

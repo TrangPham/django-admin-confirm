@@ -28,15 +28,15 @@ class Shop(models.Model):
 
 
 class Inventory(models.Model):
-    class Meta:
-        unique_together = ["shop", "item"]
-        ordering = ["shop", "item__name"]
-        verbose_name_plural = "Inventory"
-
     shop = models.ForeignKey(to=Shop, on_delete=models.CASCADE, related_name="inventory")
     item = models.ForeignKey(to=Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0, null=True, blank=True)
     notes = models.TextField(default="This is the default", blank=True)
+
+    class Meta:
+        unique_together = ["shop", "item"]
+        ordering = ["shop", "item__name"]
+        verbose_name_plural = "Inventory"
 
 
 class GeneralManager(models.Model):
@@ -75,7 +75,7 @@ class ItemSale(models.Model):
     transaction = models.ForeignKey(
         Transaction, on_delete=models.CASCADE, related_name="item_sales"
     )
-    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True)
+    item = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.PositiveIntegerField(default=1)
     total = models.DecimalField(max_digits=5, decimal_places=2)
     currency = models.CharField(max_length=5, validators=[validate_currency])
