@@ -6,8 +6,8 @@ from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
-from tests.market.admin import ItemAdmin, InventoryAdmin, ShoppingMallAdmin
-from tests.market.models import Item, Inventory, ShoppingMall
+from tests.market.admin import ItemAdmin, InventoryAdmin, ShoppingMallAdmin, TransactionAdmin
+from tests.market.models import Item, Inventory, ShoppingMall, Transaction
 from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 
 
@@ -146,6 +146,14 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         shop.refresh_from_db()
         self.assertEqual(shop.name, "sally")
 
+    def test_get_confirmation_fields_respects___all__(self):
+        expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
+        ItemAdmin.confirmation_fields = "__all__"
+        admin = ItemAdmin(Item, AdminSite())
+        actual_fields = admin.get_confirmation_fields(self.factory.request())
+        for field in expected_fields:
+            self.assertIn(field, actual_fields)
+
     def test_get_confirmation_fields_should_default_if_not_set(self):
         expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
         ItemAdmin.confirmation_fields = None
@@ -160,29 +168,44 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     ):
         admin_fields = ["name", "price"]
         ItemAdmin.confirmation_fields = None
-        ItemAdmin.fields = admin_fields
-        admin = ItemAdmin(Item, AdminSite())
-        actual_fields = admin.get_confirmation_fields(self.factory.request())
-        for field in admin_fields:
-            self.assertIn(field, actual_fields)
+        with mock.patch.object(ItemAdmin, "fields", admin_fields):
+            admin = ItemAdmin(Item, AdminSite())
+            actual_fields = admin.get_confirmation_fields(self.factory.request())
+            self.assertCountEqual(admin_fields, actual_fields)
 
     def test_get_confirmation_fields_if_set(self):
         expected_fields = ["name", "currency"]
         ItemAdmin.confirmation_fields = expected_fields
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
-        self.assertEqual(expected_fields, actual_fields)
+        self.assertCountEqual(expected_fields, actual_fields)
+
+    def test_get_confirmation_fields_if_set_with_invalid_field(self):
+        set_fields = ["name", "currency", "invalid_field"]
+        ItemAdmin.confirmation_fields = set_fields
+        admin = ItemAdmin(Item, AdminSite())
+        actual_fields = admin.get_confirmation_fields(self.factory.request())
+        expected_fields = ["name", "currency"]  # should ignore invalid field
+        self.assertCountEqual(expected_fields, actual_fields)
+
+    def test_get_confirmation_fields_for_admin_with_custom_fields(self):
+        expected_fields = [f.name for f in Transaction._meta.fields if f.name != "id"]
+        TransactionAdmin.confirmation_fields = "__all__"
+        admin = TransactionAdmin(Transaction, AdminSite())
+        actual_fields = admin.get_confirmation_fields(self.factory.request())
+        self.assertCountEqual(expected_fields, actual_fields)
+        self.assertNotIn(
+            "my_custom_field", actual_fields
+        )  # Should not include readonly_fields in confirmation fields
 
     def test_custom_template(self):
         expected_template = "market/admin/my_custom_template.html"
-        ItemAdmin.change_confirmation_template = expected_template
-        admin = ItemAdmin(Item, AdminSite())
-        actual_template = admin.render_change_confirmation(
-            self.factory.request(), context={}
-        ).template_name
-        self.assertEqual(expected_template, actual_template)
-        # Clear our setting to not affect other tests
-        ItemAdmin.change_confirmation_template = None
+        with mock.patch.object(ItemAdmin, "change_confirmation_template", expected_template):
+            admin = ItemAdmin(Item, AdminSite())
+            actual_template = admin.render_change_confirmation(
+                self.factory.request(), context={}
+            ).template_name
+            self.assertEqual(expected_template, actual_template)
 
     def test_form_invalid(self):
         self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
