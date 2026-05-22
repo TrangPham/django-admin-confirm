@@ -5,7 +5,7 @@ on ModelAdmin that includes inlines
 Does not test confirmation of inline changes
 """
 import pytest
-import pkg_resources
+import django
 from importlib import reload
 from tests.factories import ShopFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
@@ -118,8 +118,8 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_should_respect_get_inlines(self):
         # New in Django 3.0
-        django_version = pkg_resources.get_distribution("Django").parsed_version
-        if django_version.major < 3:
+        django_major = django.VERSION[0]
+        if django_major < 3:
             pytest.skip(
                 "get_inlines() introducted in Django 3.0, and is not in this version"
             )
