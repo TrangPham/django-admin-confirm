@@ -65,9 +65,6 @@ jobs:
             django-version: 5.2
           - python-version: 3.14
             django-version: 5.2
-          - python-version: 3.15-dev
-            django-version: 5.2
-            experimental: true
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}

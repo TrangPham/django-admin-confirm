@@ -43,7 +43,6 @@ Install django-admin-confirm by running:
 ## Python Support
 
 - Supported: Python 3.8 - 3.14
-- Canary in CI (non-blocking): Python 3.15-dev
 
 Add to INSTALLED_APPS in your project settings before `django.contrib.admin`:
 
