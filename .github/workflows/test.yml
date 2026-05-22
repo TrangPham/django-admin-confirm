@@ -22,7 +22,7 @@ jobs:
           - "4444:4444" # Selenium
           - "5900:5900" # VNC
       localstack:
-        image: localstack/localstack:latest
+        image: localstack/localstack:1.4.0
         env:
           SERVICES: s3
           DEFAULT_REGION: us-west-1
