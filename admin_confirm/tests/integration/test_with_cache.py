@@ -5,9 +5,9 @@ on ModelAdmin that utilize caches
 
 import os
 import pytest
-import pkg_resources
 
 from importlib import reload
+from importlib.metadata import version as get_version
 from tests.market.models import Item, ShoppingMall
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
@@ -81,8 +81,8 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         item.refresh_from_db()
 
     def test_should_save_file_additions(self):
-        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
-        if selenium_version.major < 4:
+        selenium_major = int(get_version("selenium").split(".")[0])
+        if selenium_major < 4:
             pytest.skip(
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
@@ -115,8 +115,8 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
-        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
-        if selenium_version.major < 4:
+        selenium_major = int(get_version("selenium").split(".")[0])
+        if selenium_major < 4:
             pytest.skip(
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
