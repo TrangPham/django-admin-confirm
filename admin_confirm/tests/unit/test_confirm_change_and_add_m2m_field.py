@@ -192,3 +192,33 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         # Should not have updated inventory
         shopping_mall.refresh_from_db()
         self.assertEqual(shopping_mall.shops.count(), 0)
+
+    def test_post_change_with_default_confirmation_fields_for_m2m(self):
+        shops = [ShopFactory() for i in range(3)]
+        shopping_mall = ShoppingMall.objects.create(name="My Mall")
+        shopping_mall.shops.set([shops[0]])
+
+        data = {
+            "name": shopping_mall.name,
+            "shops": [shops[0].id, shops[1].id],
+            "id": shopping_mall.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+            "_save": True,
+        }
+
+        with mock.patch.object(ShoppingMallAdmin, "confirmation_fields", None):
+            response = self.client.post(
+                f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
+            )
+
+        self.assertEqual(response.status_code, 200)
+        expected_templates = [
+            "admin/market/shoppingmall/change_confirmation.html",
+            "admin/market/change_confirmation.html",
+            "admin/change_confirmation.html",
+        ]
+        self.assertEqual(response.template_name, expected_templates)
+
+        shopping_mall.refresh_from_db()
+        self.assertEqual(shopping_mall.shops.count(), 1)

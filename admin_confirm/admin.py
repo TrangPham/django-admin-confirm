@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model, ManyToManyField, FileField, ImageField
+from django.db.models import Model, ManyToManyField, FileField, ImageField, QuerySet
 from django.forms import ModelForm
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
@@ -52,8 +52,8 @@ class AdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
-        # default confirmation fields to all fields
-        confirmation_fields = set([field.name for field in self.model._meta.fields])
+        # default confirmation fields to all fields, including ManyToManyFields
+        confirmation_fields = set(field.name for field in self.model._meta.get_fields())
 
         if self.confirmation_fields and self.confirmation_fields != "__all__":
             # set confirmation fields if specified
@@ -188,11 +188,14 @@ class AdminConfirmMixin:
                 with suppress(FieldDoesNotExist):
 
                     field_object = model._meta.get_field(name)
-                    initial_value = getattr(obj, name)
 
                     # Note: getattr does not work on ManyToManyFields
                     if isinstance(field_object, ManyToManyField):
                         initial_value = field_object.value_from_object(obj)
+                        if isinstance(new_value, QuerySet):
+                            new_value = list(new_value)
+                    else:
+                        initial_value = getattr(obj, name)
 
                     if initial_value != new_value:
                         changed_data[name] = _display_for_changed_data(
