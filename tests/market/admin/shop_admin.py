@@ -1,5 +1,6 @@
 """ShopAdmin tests:
 - confirmation_actions should work through the @confirm_action decorator
+- confirm_action should respect @admin.actions and work with it
 """
 
 from django.contrib import admin
