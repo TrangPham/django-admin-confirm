@@ -162,8 +162,10 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             },
         )
         response.render()
-        # Note: 5F is the hex code for `_` 
-        self.assertIn('action="/admin/market/item/test_5Fmarket/change/"', response.rendered_content)
+        # Note: 5F is the hex code for `_`
+        self.assertIn(
+            'action="/admin/market/item/test_5Fmarket/change/"', response.rendered_content
+        )
         self.assertNotIn("test_5F5Fmarket", response.rendered_content)
 
     def test_post_change_without_confirm_change(self):
@@ -285,7 +287,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         inventory.refresh_from_db()
         self.assertEqual(inventory.shop, another_shop)
 
-    def test_changed_data_should_only_include_changed_confirmation_fields(self):
+    def test_changed_data_should_only_all_changed_fields(self):
         inventory = InventoryFactory(quantity=1)
         another_shop = ShopFactory()
         data = {
@@ -299,7 +301,12 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         response = self.client.post(f"/admin/market/inventory/{inventory.id}/change/", data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(set(response.context_data["changed_data"].keys()), {"quantity"})
+        self.assertEqual(
+            set(response.context_data["changed_data"].keys()), {"quantity", "notes", "shop"}
+        )
+        # Note: confirmation_fields will only include a subset of changed_data.keys()
+        # Meaning if a confirmation field was not changed, it would not be included
+        self.assertEqual(response.context_data["confirmation_fields"], {"quantity"})
 
     def test_confirmation_fields_set_with_confirm_add(self):
         self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])

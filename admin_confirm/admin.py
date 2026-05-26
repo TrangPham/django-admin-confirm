@@ -413,15 +413,14 @@ class AdminConfirmMixin:
             "app_label": opts.app_label,
             "model_name": opts.model_name,
             "opts": opts,
-            "changed_data": {
-                key: value for key, value in changed_data.items() if key in changed_confirmation_fields
-            },
+            "changed_data": changed_data,
             "add": add,
             "save_as_new": SAVE_AS_NEW in request.POST,
             "submit_name": save_action,
             "form": form,
             "cleared_fields": cleared_fields,
             "formsets": formsets,
+            "confirmation_fields": changed_confirmation_fields,
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)

@@ -16,16 +16,31 @@ test-integration:
 	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/unit
 
 docker-build:
-	docker-compose -f docker-compose.dev.yml build
+	docker compose -f docker-compose.dev.yml build
+
+docker-test:
+	docker compose -f docker-compose.dev.yml exec -T web pytest --ignore=admin_confirm/tests/integration
+
+docker-test-all:
+	make docker-exec COMMAND="make test-all"
+
+docker-rebuild:
+	docker compose -f docker-compose.dev.yml up -d --force-recreate
+
+docker-migrate:
+	docker compose -f docker-compose.dev.yml exec -T web ./tests/manage.py migrate
+
+docker-makemigrations:
+	docker compose -f docker-compose.dev.yml exec -T web ./tests/manage.py makemigrations
 
 docker-up:
-	docker-compose -f docker-compose.dev.yml up -d
+	docker compose -f docker-compose.dev.yml up -d
 
 docker-exec:
-	docker-compose -f docker-compose.dev.yml exec -T web ${COMMAND}
+	docker compose -f docker-compose.dev.yml exec -T web ${COMMAND}
 
 create-bucket:
-	docker-compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+	docker compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html
