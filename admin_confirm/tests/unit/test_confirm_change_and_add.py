@@ -135,6 +135,37 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         item.refresh_from_db()
         self.assertEqual(item.name, "item")
 
+    def test_change_confirmation_template_should_not_double_quote_object_id(self):
+        admin = ItemAdmin(Item, AdminSite())
+        request = self.factory.get("/")
+        request.user = self.superuser
+        form = admin.get_form(request)()
+
+        response = admin.render_change_confirmation(
+            request,
+            context={
+                **admin.admin_site.each_context(request),
+                "title": "Confirm changing item",
+                "subtitle": "item",
+                "object_name": "item",
+                "object_id": "test_5Fmarket",
+                "app_label": Item._meta.app_label,
+                "model_name": Item._meta.model_name,
+                "opts": Item._meta,
+                "changed_data": {"name": ["old", "new"]},
+                "add": False,
+                "save_as_new": False,
+                "submit_name": "_save",
+                "form": form,
+                "cleared_fields": [],
+                "formsets": [],
+            },
+        )
+        response.render()
+
+        self.assertIn('action="/admin/market/item/test_5Fmarket/change/"', response.rendered_content)
+        self.assertNotIn("test_5F5Fmarket", response.rendered_content)
+
     def test_post_change_without_confirm_change(self):
         shop = ShopFactory(name="bob")
         data = {"name": "sally"}
@@ -253,6 +284,22 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         # Should have updated inventory
         inventory.refresh_from_db()
         self.assertEqual(inventory.shop, another_shop)
+
+    def test_changed_data_should_only_include_changed_confirmation_fields(self):
+        inventory = InventoryFactory(quantity=1)
+        another_shop = ShopFactory()
+        data = {
+            "quantity": 2,
+            "id": inventory.id,
+            "item": inventory.item.id,
+            "shop": another_shop.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+        }
+        response = self.client.post(f"/admin/market/inventory/{inventory.id}/change/", data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(set(response.context_data["changed_data"].keys()), {"quantity"})
 
     def test_confirmation_fields_set_with_confirm_add(self):
         self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])

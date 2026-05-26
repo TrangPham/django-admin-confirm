@@ -1,11 +1,13 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Permission, User
+from django.http import HttpResponse
 from django.urls import reverse
 
 
 from tests.market.admin import ShopAdmin
 from tests.market.models import Shop
+from admin_confirm import confirm_action
 
 
 class TestConfirmActions(TestCase):
@@ -291,3 +293,39 @@ class TestConfirmActions(TestCase):
             follow=True,
         )
         self.assertIn("Confirm Action: foobar description", response.rendered_content)
+
+    def test_action_defined_outside_admin_class_should_show_confirmation_page(self):
+        @confirm_action
+        def external_action(modeladmin, request, queryset):
+            modeladmin.message_user(request, "external action")
+
+        external_action.allowed_permissions = ("delete",)
+
+        class DummyAdmin:
+            admin_site = AdminSite()
+            context = None
+
+            def get_actions(self, request):
+                return {external_action.__name__: (external_action, external_action.__name__, "External")}
+
+            def get_action(self, action):
+                return None
+
+            def render_action_confirmation(self, request, context):
+                self.context = context
+                return HttpResponse("ok")
+
+            def message_user(self, request, message):
+                pass
+
+        dummy_admin = DummyAdmin()
+        request = self.factory.post("/admin/market/shop/", data={"action": external_action.__name__})
+        request.user = self.superuser
+        response = external_action(
+            dummy_admin,
+            request,
+            Shop.objects.none(),
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(dummy_admin.context["action_display_name"], external_action.__name__)
