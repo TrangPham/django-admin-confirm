@@ -287,7 +287,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         inventory.refresh_from_db()
         self.assertEqual(inventory.shop, another_shop)
 
-    def test_changed_data_should_only_all_changed_fields(self):
+    def test_changed_data_should_include_all_changed_fields(self):
         inventory = InventoryFactory(quantity=1)
         another_shop = ShopFactory()
         data = {
