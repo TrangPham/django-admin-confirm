@@ -141,7 +141,6 @@ Install new version locally
 First you have to uninstall if you used `pip install -e` earlier
 
 ```
-pip uninstall django_admin_confirm
 make install-testpypi VERSION=<VERSION>
 ```
 
