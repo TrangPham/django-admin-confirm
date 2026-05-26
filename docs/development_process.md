@@ -113,27 +113,6 @@ Use `docker compose -f docker-compose.dev.yml up -d --force-recreate` if you nee
 
 Honestly this part is just for my reference. But who knows :) maybe we'll have another maintainer in the future.
 
-<!-- Note this is the old manual way
-Run tests, check coverage, check readme
-
-Install readme_render
-```
-pip install readme_renderer
-pip install 'readme_renderer[md]'
-```
-
-```
-docker compose -f docker-compose.dev.yml exec -T web make test-all
-make check-readme
-```
-
-Update version in `setup.py`
-
-```
-make package
-make upload-testpypi VERSION=<VERSION>
-``` -->
-
 1. Update version in `setup.py`
 2. Push this branch and dispatch the workflow for `Test Release`
 
@@ -160,7 +139,5 @@ make upload-testpypi VERSION=<VERSION>
 
 5. Merge the version change into main
 6. Then dispatch the workflow for `Publish Release`
-
-<!-- Go on github and make a release in UI -->
 
 To update supported version badges, use <https://shields.io> (Most of these are dynamic though)
