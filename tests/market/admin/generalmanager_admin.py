@@ -1,3 +1,7 @@
+"""GeneralManagerAdmin tests:
+- external actions should work with and without confirmation
+"""
+
 from django.contrib.admin import ModelAdmin
 from admin_confirm.admin import AdminConfirmMixin, confirm_action
 
@@ -23,4 +27,3 @@ class GeneralManagerAdmin(AdminConfirmMixin, ModelAdmin):
     confirmation_fields = ["name", "headshot"]
     list_display = ["name", "email"]
     actions = [external_action_no_confirmation, external_action_with_confirmation]
-    confirmation_actions = [external_action_with_confirmation]

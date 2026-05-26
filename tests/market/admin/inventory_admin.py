@@ -1,3 +1,7 @@
+"""InventoryAdmin tests:
+- confirmation_fields
+"""
+
 from django.contrib.admin import ModelAdmin
 from admin_confirm.admin import AdminConfirmMixin
 

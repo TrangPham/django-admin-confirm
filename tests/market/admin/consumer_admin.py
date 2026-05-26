@@ -1,3 +1,7 @@
+"""ConsumerAdmin tests:
+- confirm_change should work with pk which have "_" in them
+"""
+
 from django.contrib import admin
 from admin_confirm.admin import AdminConfirmMixin
 

@@ -1,3 +1,7 @@
+"""CheckoutAdmin tests:
+- confirm_add and confirm_change should work with custom form validation
+"""
+
 from django.core.exceptions import ValidationError
 from admin_confirm import AdminConfirmMixin
 
