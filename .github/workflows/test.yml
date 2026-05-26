@@ -14,6 +14,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.experimental || false }}
     services:
       selenium:
         image: selenium/standalone-firefox:latest
@@ -21,7 +22,7 @@ jobs:
           - "4444:4444" # Selenium
           - "5900:5900" # VNC
       localstack:
-        image: localstack/localstack:latest
+        image: localstack/localstack:1.4.0
         env:
           SERVICES: s3
           DEFAULT_REGION: us-west-1
@@ -43,6 +44,7 @@ jobs:
           - 4571:4571
         options: --health-cmd="curl http://localhost:4566/health?reload" --health-interval=10s --health-timeout=5s --health-retries=3
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.8, 3.9, 3.10.0]
         django-version: [3.2, 4.2]
@@ -60,6 +62,8 @@ jobs:
           - python-version: 3.12
             django-version: 5.2
           - python-version: 3.13
+            django-version: 5.2
+          - python-version: 3.14
             django-version: 5.2
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}

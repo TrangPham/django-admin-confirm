@@ -4,6 +4,8 @@
 
 Hello, friend! You have found the list of test cases that this package can benefit from.
 
+Current CI runtime matrix includes Python 3.8 - 3.14 as required support.
+
 You seem concerned about the stability and reliability of this package. You're probably wondering if you should include it in your production codebase. Well, although I have tried very hard to get 100% code coverage, there are so many permutations of ModelAdmins in the wild. And I'm only one person.
 
 So if you want to include this package in your production codebase, be aware that AdminConfirmMixin works best with simple unmodified ModelAdmins.

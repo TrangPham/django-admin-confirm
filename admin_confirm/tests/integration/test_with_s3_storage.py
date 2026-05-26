@@ -7,7 +7,7 @@ and S3 as a storage backend
 import os
 
 import pytest
-import pkg_resources
+from importlib.metadata import version as get_version
 import localstack_client.session
 import django
 
@@ -71,8 +71,8 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
             )
 
     def test_should_save_file_additions(self):
-        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
-        if selenium_version.major < 4:
+        selenium_major = int(get_version("selenium").split(".")[0])
+        if selenium_major < 4:
             pytest.skip(
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
@@ -110,8 +110,8 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(objects[0].key, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
-        selenium_version = pkg_resources.get_distribution("selenium").parsed_version
-        if selenium_version.major < 4:
+        selenium_major = int(get_version("selenium").split(".")[0])
+        if selenium_major < 4:
             pytest.skip(
                 "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
             )
