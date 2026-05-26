@@ -162,7 +162,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             },
         )
         response.render()
-
+        # Note: 5F is the hex code for `_` 
         self.assertIn('action="/admin/market/item/test_5Fmarket/change/"', response.rendered_content)
         self.assertNotIn("test_5F5Fmarket", response.rendered_content)
 
