@@ -1,3 +1,7 @@
+"""ShopAdmin tests:
+- confirmation_actions should work through the @confirm_action decorator
+"""
+
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from admin_confirm import AdminConfirmMixin, confirm_action
@@ -5,9 +9,7 @@ from admin_confirm import AdminConfirmMixin, confirm_action
 
 class ShopAdmin(AdminConfirmMixin, ModelAdmin):
     confirmation_fields = ["name"]
-    actions = [
-        "show_message", "show_message_no_confirmation", "show_description"
-    ]
+    actions = ["show_message", "show_message_no_confirmation", "show_description"]
     search_fields = ["name"]
 
     @confirm_action
@@ -28,6 +30,6 @@ class ShopAdmin(AdminConfirmMixin, ModelAdmin):
         return request.user.is_superuser
 
     @confirm_action
-    @admin.action(description='foobar description')
+    @admin.action(description="foobar description")
     def show_description(modeladmin, request, queryset):
         pass

@@ -9,6 +9,7 @@ from ..models import (
     ShoppingMall,
     Transaction,
     Checkout,
+    Consumer,
 )
 
 from .item_admin import ItemAdmin
@@ -19,6 +20,7 @@ from .generalmanager_admin import GeneralManagerAdmin
 from .item_sale_admin import ItemSaleAdmin
 from .transaction_admin import TransactionAdmin
 from .checkout_admin import CheckoutAdmin
+from .consumer_admin import ConsumerAdmin
 
 admin.site.register(Item, ItemAdmin)
 admin.site.register(Inventory, InventoryAdmin)
@@ -28,3 +30,4 @@ admin.site.register(GeneralManager, GeneralManagerAdmin)
 admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(ItemSale, ItemSaleAdmin)
 admin.site.register(Checkout, CheckoutAdmin)
+admin.site.register(Consumer, ConsumerAdmin)

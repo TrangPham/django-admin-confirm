@@ -77,8 +77,8 @@ Instead of local set-up, you can also use docker. You may have to delete `.pytho
 Install docker-compose (or Docker Desktop which installs this for you)
 
 ```
-docker-compose -f docker-compose.dev.yml build
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml build
+docker compose -f docker-compose.dev.yml up -d
 ```
 
 You should now be able to see the app running on `localhost:8000`
@@ -87,27 +87,27 @@ You should now be able to see the app running on `localhost:8000`
 > If you get NoSuchBucket error in the web container, execute `awslocal s3 mb s3://mybucket` in the localstack container and restart web container.
 
 ```
-docker-compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+docker compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
 ```
 
 If you haven't already done migrations and created a superuser, you'll want to do it here
 
 ```
-docker-compose -f docker-compose.dev.yml exec web tests/manage.py migrate
-docker-compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser
+docker compose -f docker-compose.dev.yml exec web tests/manage.py migrate
+docker compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser
 ```
 
 Running tests in docker:
 
 ```
-docker-compose -f docker-compose.dev.yml exec -T web make test-all
+docker compose -f docker-compose.dev.yml exec -T web make test-all
 ```
 
 The integration tests are set up within docker. I recommend running the integration tests only in docker.
 
 Docker is also set to mirror local folder so that you can edit code/tests and don't have to rebuild to run new code/tests.
 
-Use `docker-compose -f docker-compose.dev.yml up -d --force-recreate` if you need to restart the docker containers. For example when updating the docker-compose.yml file, but if you change `Dockerfile` you have to rebuild.
+Use `docker compose -f docker-compose.dev.yml up -d --force-recreate` if you need to restart the docker containers. For example when updating the docker-compose.yml file, but if you change `Dockerfile` you have to rebuild.
 
 ### Release process
 
@@ -117,7 +117,7 @@ Honestly this part is just for my reference. But who knows :) maybe we'll have a
 Run tests, check coverage, check readme
 
 ```
-docker-compose -f docker-compose.dev.yml exec -T web make test-all
+docker compose -f docker-compose.dev.yml exec -T web make test-all
 make check-readme
 ```
 

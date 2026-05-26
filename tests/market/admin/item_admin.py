@@ -1,3 +1,8 @@
+"""ItemAdmin tests:
+- file fields should work with confirmation
+- readonly fields should work with confirmation
+"""
+
 from django.contrib.admin import ModelAdmin, VERTICAL
 from django.utils.safestring import mark_safe
 from admin_confirm.admin import AdminConfirmMixin

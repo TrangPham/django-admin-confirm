@@ -420,6 +420,7 @@ class AdminConfirmMixin:
             "form": form,
             "cleared_fields": cleared_fields,
             "formsets": formsets,
+            "confirmation_fields": changed_confirmation_fields,
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)
@@ -436,14 +437,20 @@ def confirm_action(func):
 
     @functools.wraps(func)
     def func_wrapper(modeladmin, request, queryset):
+        action_name = request.POST.get("action", func.__name__)
+
         # First called by `Go` which would not have confirm_action in params
         if request.POST.get("_confirm_action"):
             return func(modeladmin, request, queryset)
 
         # get_actions will only return the actions that are allowed
-        has_perm = modeladmin.get_actions(request).get(func.__name__) is not None
+        has_perm = modeladmin.get_actions(request).get(action_name) is not None
 
-        __, __, action_display_name = modeladmin.get_action(request.POST["action"])
+        action_tuple = modeladmin.get_action(action_name)
+        if action_tuple:
+            __, __, action_display_name = action_tuple
+        else:
+            action_display_name = getattr(func, "short_description", func.__name__)
 
         title = f"{_('Confirm Action')}: {action_display_name}"
 
@@ -452,7 +459,7 @@ def confirm_action(func):
             "title": title,
             "queryset": queryset,
             "has_perm": has_perm,
-            "action": func.__name__,
+            "action": action_name,
             "action_display_name": action_display_name,
             "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
             "submit_name": "confirm_action",

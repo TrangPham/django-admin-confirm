@@ -21,7 +21,7 @@
 &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
 {% if not add %}
     &rsaquo; <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
-    &rsaquo; <a href="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}">{{ object_name|truncatewords:"18" }}</a>
+    &rsaquo; <a href="{% url opts|admin_urlname:'change' object_id %}">{{ object_name|truncatewords:"18" }}</a>
     &rsaquo; {% trans 'Confirm change' %}
 {% else %}
     &rsaquo; {% trans 'Confirm add' %}
@@ -39,7 +39,7 @@
 
     {% include "admin/change_data.html" %}
 
-    <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% url opts|admin_urlname:'add'%}" {% else %}action="{% url opts|admin_urlname:'change' object_id|admin_urlquote %}"{% endif %}>{% csrf_token %}
+    <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% url opts|admin_urlname:'add'%}" {% else %}action="{% url opts|admin_urlname:'change' object_id %}"{% endif %}>{% csrf_token %}
         <div class="hidden" id="hidden-form">
             {{form.as_p}}
             {% for cleared_field in cleared_fields %}

@@ -42,6 +42,7 @@ class Inventory(models.Model):
 class GeneralManager(models.Model):
     name = models.CharField(max_length=120)
     headshot = models.ImageField(upload_to="tmp/gm/headshots", null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
 
 
 class Town(models.Model):
@@ -68,6 +69,9 @@ class Transaction(models.Model):
     shop = models.ForeignKey(Shop, on_delete=models.CASCADE, related_name="transactions")
     timestamp = models.DateTimeField(auto_created=True)
     date = models.DateField()
+    consumer = models.ForeignKey(
+        "Consumer", on_delete=models.SET_NULL, null=True, blank=True, related_name="transactions"
+    )
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
@@ -107,3 +111,16 @@ class Checkout(Transaction):
 
     class Meta:
         proxy = True
+
+
+class Consumer(models.Model):
+    name = models.CharField(max_length=120)
+    id = models.CharField(max_length=120, primary_key=True)
+    email = models.EmailField(null=True, blank=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=20, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            self.id = f"consumer_{Consumer.objects.count() + 1}"
+        super().save(*args, **kwargs)

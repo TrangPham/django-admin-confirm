@@ -1,3 +1,7 @@
+"""TransactionAdmin tests:
+- confirm_add and confirm_change should work with custom readonly fields
+"""
+
 from admin_confirm.admin import AdminConfirmMixin
 
 
