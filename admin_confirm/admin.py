@@ -194,7 +194,10 @@ class AdminConfirmMixin:
                     if isinstance(field_object, ManyToManyField):
                         initial_value = field_object.value_from_object(obj)
 
-                    if initial_value != new_value:
+                    if (  # Consider 0 as a changed value, but not None to empty or vice versa
+                        (initial_value and new_value) or initial_value == 0 or new_value == 0
+                    ) and initial_value != new_value:
+                        log(f"Field {name} has changed from {initial_value} to {new_value}")
                         changed_data[name] = _display_for_changed_data(
                             field_object, initial_value, new_value
                         )

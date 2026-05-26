@@ -39,7 +39,10 @@
 
     {% include "admin/change_data.html" %}
 
-    <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% url opts|admin_urlname:'add'%}" {% else %}action="{% url opts|admin_urlname:'change' object_id %}"{% endif %}>{% csrf_token %}
+    {% url opts|admin_urlname:'add' as add_url %}
+    {% url opts|admin_urlname:'change' object_id as change_url %}
+
+    <form {% if form.is_multipart %}enctype="multipart/form-data"{% endif %} method="post" {% if add %}action="{% add_preserved_filters add_url %}" {% else %}action="{% add_preserved_filters change_url %}"{% endif %}>{% csrf_token %}
         <div class="hidden" id="hidden-form">
             {{form.as_p}}
             {% for cleared_field in cleared_fields %}
