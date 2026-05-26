@@ -116,6 +116,12 @@ Honestly this part is just for my reference. But who knows :) maybe we'll have a
 <!-- Note this is the old manual way
 Run tests, check coverage, check readme
 
+Install readme_render
+```
+pip install readme_renderer
+pip install 'readme_renderer[md]'
+```
+
 ```
 docker compose -f docker-compose.dev.yml exec -T web make test-all
 make check-readme

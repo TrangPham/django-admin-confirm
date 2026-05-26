@@ -8,7 +8,7 @@ with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="django-admin-confirm",
-    version="1.0.1",
+    version="1.2.0",
     packages=["admin_confirm"],
     description=("Adds confirmation to Django Admin changes, additions and actions"),
     long_description_content_type="text/markdown",
