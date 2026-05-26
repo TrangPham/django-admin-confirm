@@ -134,32 +134,32 @@ make package
 make upload-testpypi VERSION=<VERSION>
 ``` -->
 
-Update version in `setup.py`
-Push this branch and dispatch the workflow for `Test Release`
+1. Update version in `setup.py`
+2. Push this branch and dispatch the workflow for `Test Release`
 
-Install new version locally
-First you have to uninstall if you used `pip install -e` earlier
+3. Install new version locally
+   First you have to uninstall if you used `pip install -e` earlier
 
-```
-make install-testpypi VERSION=<VERSION>
-```
+   ```
+   make install-testpypi VERSION=<VERSION>
+   ```
 
-Add test locally
+   Add test locally
 
-```
-make run
-```
+   ```
+   make run
+   ```
 
-If the css is not applied, run:
+   If the css is not applied, run:
 
-```
-python tests/manage.py collectstatic
-```
+   ```
+   python tests/manage.py collectstatic
+   ```
 
-Manually smoke check changes
+4. Manually smoke check changes
 
-Merge the version change into main
-Then dispatch the workflow for `Release`
+5. Merge the version change into main
+6. Then dispatch the workflow for `Publish Release`
 
 <!-- Go on github and make a release in UI -->
 
