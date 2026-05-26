@@ -1,3 +1,4 @@
+import pytest
 from unittest import mock
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
@@ -403,3 +404,52 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
         # Should not have been added
         self.assertEqual(Inventory.objects.count(), 0)
+
+    def test_preserved_filters_in_redirect(self):
+        item = ItemFactory(name="bob")
+        data = {
+            "name": "bobby",
+            "price": 2.0,
+            "currency": Item.VALID_CURRENCIES[0],
+            "id": item.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+        }
+        changelist_filters = "q%3Dbo"
+        url = f"/admin/market/item/{item.id}/change/?_changelist_filters={changelist_filters}"
+        response = self.client.post(url, data)
+        # Should redirect to changelist with preserved filters
+        assert response.status_code == 302
+        assert f"_changelist_filters={changelist_filters}" in response.url
+
+    @pytest.mark.parametrize(
+        "initial,new,should_include",
+        [
+            ("foo", "foo", False),
+            ("foo", "bar", True),
+            (1, 1, False),
+            (1, 2, True),
+            (None, "", False),
+            (None, "something", True),
+            (0, 0, False),
+            (0, 1, True),
+            (None, 1, True),
+        ],
+    )
+    def test_changed_data_only_includes_actual_changes(self, initial, new, should_include):
+        # Note: This was added because files initial_values were empty while new values where None
+        item = ItemFactory(name=initial)
+        data = {
+            "name": new,
+            "price": item.price,
+            "currency": item.currency,
+            "id": item.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+        }
+        response = self.client.post(f"/admin/market/item/{item.id}/change/", data)
+        changed_data = response.context_data["changed_data"]
+        if should_include:
+            assert "name" in changed_data
+        else:
+            assert "name" not in changed_data
