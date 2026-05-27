@@ -4,15 +4,15 @@
 _You can skip this and just use docker if you want_
 
 Install pyenv
-pyenv install 3.9.9
+pyenv install 3.10
 
 Create **virtualenv** via pyenv
 
 ```
-pyenv virtualenv 3.9.9 django-admin-confirm-3.9.9
+pyenv virtualenv 3.10 django-admin-confirm-3.10
 ```
 
-Now your terminal should have `(django-admin-confirm-3.9.9)` prefix, because `.python-version` should have auto switch your virtual env
+Now your terminal should have `(django-admin-confirm-3.10)` prefix, because `.python-version` should have auto switch your virtual env
 
 Install requirements
 
@@ -71,8 +71,6 @@ To check if the bucket has been set up correctly, go to `http://localhost:4566/m
 To check if the static files have been set up correctly, go to `http://localhost:4566/mybucket/static/admin/css/base.css`
 
 **Docker:**
-
-Instead of local set-up, you can also use docker. You may have to delete `.python-version` to do this.
 
 Install docker-compose (or Docker Desktop which installs this for you)
 

@@ -18,9 +18,9 @@ setup(
     url="https://github.com/trangpham/django-admin-confirm/",
     license="Apache 2.0",
     install_requires=[
-        "Django>=3.2",
+        "Django>=4.2",
     ],
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     project_urls={
         "Release Notes": "https://github.com/TrangPham/django-admin-confirm/releases",
     },
@@ -28,12 +28,10 @@ setup(
     # list files in MANIFEST.in
     include_package_data=True,
     classifiers=[
-        "Framework :: Django :: 3.2",
-        "Framework :: Django :: 4.0",
         "Framework :: Django :: 4.2",
+        "Framework :: Django :: 5.0",
+        "Framework :: Django :: 5.1",
         "Framework :: Django :: 5.2",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
