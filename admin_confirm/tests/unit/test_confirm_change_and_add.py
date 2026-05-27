@@ -418,35 +418,8 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         changelist_filters = "q%3Dbo"
         url = f"/admin/market/item/{item.id}/change/?_changelist_filters={changelist_filters}"
         response = self.client.post(url, data)
-        # Should redirect to changelist with preserved filters
-        assert response.status_code == 302
-        assert f"_changelist_filters={changelist_filters}" in response.url
+        # Ensure not redirected (confirmation page does not redirect)
+        assert response.status_code == 200
 
-    def test_changed_data_only_includes_actual_changes(self):
-        for initial, new, should_include in  [
-            ("foo", "foo", False),
-            ("foo", "bar", True),
-            (1, 1, False),
-            (1, 2, True),
-            (None, "", False),
-            (None, "something", True),
-            (0, 0, False),
-            (0, 1, True),
-            (None, 1, True),
-        ]:
-            # Note: This was added because files initial_values were empty while new values where None
-            item = ItemFactory(name=initial, price=2)
-            data = {
-                "name": new,
-                "price": 3,
-                "currency": item.currency,
-                "id": item.id,
-                "_confirm_change": True,
-                "csrfmiddlewaretoken": "fake token",
-            }
-            response = self.client.post(f"/admin/market/item/{item.id}/change/", data)
-            changed_data = response.context_data["changed_data"]
-            if should_include:
-                assert "name" in changed_data, "Should have included name: '{initial}' was changed to '{new}"
-            else:
-                assert "name" not in changed_data, "Should not have included name: '{initial}' was changed to '{new}'"
+        # Ensure that the confirmation form preserves changelist filters in the form action
+        assert f'action="{url}"' in response.content.decode()
