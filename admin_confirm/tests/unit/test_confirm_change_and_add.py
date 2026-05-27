@@ -1,3 +1,4 @@
+import pytest
 from unittest import mock
 from django.contrib.auth.models import User
 from django.contrib.admin.sites import AdminSite
@@ -403,3 +404,22 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
         # Should not have been added
         self.assertEqual(Inventory.objects.count(), 0)
+
+    def test_preserved_filters_in_redirect(self):
+        item = ItemFactory(name="bob", price=2)
+        data = {
+            "name": "bobby",
+            "price": 6,
+            "currency": Item.VALID_CURRENCIES[0],
+            "id": item.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+        }
+        changelist_filters = "q%3Dbo"
+        url = f"/admin/market/item/{item.id}/change/?_changelist_filters={changelist_filters}"
+        response = self.client.post(url, data)
+        # Ensure not redirected (confirmation page does not redirect)
+        assert response.status_code == 200
+
+        # Ensure that the confirmation form preserves changelist filters in the form action
+        assert f'action="{url}"' in response.content.decode()
