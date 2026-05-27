@@ -4,6 +4,7 @@ on ModelAdmin that includes inlines
 
 Does not test confirmation of inline changes
 """
+
 import pytest
 import django
 from importlib import reload
@@ -21,8 +22,11 @@ from selenium.webdriver.common.by import By
 class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.admin = shoppingmall_admin.ShoppingMallAdmin
-        self.admin.inlines = [shoppingmall_admin.ShopInline]
         super().setUp()
+        self.setAdminAttributes(
+            shoppingmall_admin.ShoppingMallAdmin,
+            inlines=[shoppingmall_admin.ShopInline],
+        )
 
     def tearDown(self):
         reload(shoppingmall_admin)
@@ -30,9 +34,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_should_have_hidden_form(self):
         mall = ShoppingMall.objects.create(name="mall")
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
@@ -62,9 +64,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         mall = ShoppingMall.objects.create(name="mall", general_manager=gm, town=town)
         mall.shops.set(shops)
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -89,9 +89,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         shops = [ShopFactory(name=i) for i in range(3)]
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -99,9 +97,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         name.send_keys("New Name")
 
         # Change shops via inline form
-        select_shop = Select(
-            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
-        )
+        select_shop = Select(self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop"))
         select_shop.select_by_value(str(shops[2].id))
 
         self.selenium.find_element(By.NAME, "_continue").click()
@@ -120,14 +116,12 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         # New in Django 3.0
         django_major = django.VERSION[0]
         if django_major < 3:
-            pytest.skip(
-                "get_inlines() introducted in Django 3.0, and is not in this version"
-            )
+            pytest.skip("get_inlines() introducted in Django 3.0, and is not in this version")
 
         shoppingmall_admin.ShoppingMallAdmin.inlines = []
-        shoppingmall_admin.ShoppingMallAdmin.get_inlines = (
-            lambda self, request, obj=None: [shoppingmall_admin.ShopInline]
-        )
+        shoppingmall_admin.ShoppingMallAdmin.get_inlines = lambda self, request, obj=None: [
+            shoppingmall_admin.ShopInline
+        ]
 
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")
@@ -135,9 +129,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         shops = [ShopFactory(name=i) for i in range(3)]
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -145,9 +137,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         name.send_keys("New Name")
 
         # Change shops via inline form
-        select_shop = Select(
-            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
-        )
+        select_shop = Select(self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop"))
         select_shop.select_by_value(str(shops[2].id))
 
         self.selenium.find_element(By.NAME, "_continue").click()
@@ -175,9 +165,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         shops = [ShopFactory(name=i) for i in range(3)]
 
-        self.selenium.get(
-            self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/"
-        )
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/{mall.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
         # Make a change to trigger confirmation page
@@ -185,9 +173,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         name.send_keys("New Name")
 
         # Change shops via inline form
-        select_shop = Select(
-            self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop")
-        )
+        select_shop = Select(self.selenium.find_element(By.NAME, "ShoppingMall_shops-0-shop"))
         select_shop.select_by_value(str(shops[2].id))
 
         self.selenium.find_element(By.NAME, "_continue").click()

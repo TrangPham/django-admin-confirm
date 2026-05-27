@@ -15,7 +15,7 @@ from tests.factories import ItemFactory, ShopFactory, InventoryFactory
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     def test_get_add_without_confirm_add(self):
-        ItemAdmin.confirm_add = False
+        self.setAdminAttributes(ItemAdmin, confirm_add=False)
         response = self.client.get(reverse("admin:market_item_add"))
         self.assertFalse(response.context_data.get("confirm_add"))
         self.assertNotIn("_confirm_add", response.rendered_content)
@@ -182,7 +182,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
     def test_get_confirmation_fields_respects___all__(self):
         expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
-        ItemAdmin.confirmation_fields = "__all__"
+        self.setAdminAttributes(ItemAdmin, confirmation_fields="__all__")
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         for field in expected_fields:
@@ -190,8 +190,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
     def test_get_confirmation_fields_should_default_if_not_set(self):
         expected_fields = [f.name for f in Item._meta.fields if f.name != "id"]
-        ItemAdmin.confirmation_fields = None
-        ItemAdmin.fields = expected_fields
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=None, fields=expected_fields)
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         for field in expected_fields:
@@ -201,7 +200,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self,
     ):
         admin_fields = ["name", "price"]
-        ItemAdmin.confirmation_fields = None
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=None)
         with mock.patch.object(ItemAdmin, "fields", admin_fields):
             admin = ItemAdmin(Item, AdminSite())
             actual_fields = admin.get_confirmation_fields(self.factory.request())
@@ -209,14 +208,14 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
     def test_get_confirmation_fields_if_set(self):
         expected_fields = ["name", "currency"]
-        ItemAdmin.confirmation_fields = expected_fields
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=expected_fields)
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         self.assertCountEqual(expected_fields, actual_fields)
 
     def test_get_confirmation_fields_if_set_with_invalid_field(self):
         set_fields = ["name", "currency", "invalid_field"]
-        ItemAdmin.confirmation_fields = set_fields
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=set_fields)
         admin = ItemAdmin(Item, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         expected_fields = ["name", "currency"]  # should ignore invalid field
@@ -224,7 +223,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
 
     def test_get_confirmation_fields_for_admin_with_custom_fields(self):
         expected_fields = [f.name for f in Transaction._meta.fields if f.name != "id"]
-        TransactionAdmin.confirmation_fields = "__all__"
+        self.setAdminAttributes(TransactionAdmin, confirmation_fields="__all__")
         admin = TransactionAdmin(Transaction, AdminSite())
         actual_fields = admin.get_confirmation_fields(self.factory.request())
         self.assertCountEqual(expected_fields, actual_fields)

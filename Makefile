@@ -19,7 +19,7 @@ docker-build:
 	docker compose -f docker-compose.dev.yml build
 
 docker-test:
-	docker compose -f docker-compose.dev.yml exec -T web pytest --ignore=admin_confirm/tests/integration
+	docker compose -f docker-compose.dev.yml exec -T web pytest ${ARGS}
 
 docker-test-all:
 	make docker-exec COMMAND="make test-all"

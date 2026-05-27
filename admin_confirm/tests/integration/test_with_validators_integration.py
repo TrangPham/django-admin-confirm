@@ -22,8 +22,11 @@ from tests.market.admin import shoppingmall_admin
 class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.admin = shoppingmall_admin.ShoppingMallAdmin
-        self.admin.inlines = [shoppingmall_admin.ShopInline]
         super().setUp()
+        self.setAdminAttributes(
+            shoppingmall_admin.ShoppingMallAdmin,
+            inlines=[shoppingmall_admin.ShopInline],
+        )
 
     def tearDown(self):
         reload(shoppingmall_admin)

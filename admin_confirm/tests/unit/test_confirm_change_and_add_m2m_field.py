@@ -22,7 +22,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         self.assertEqual(ShoppingMall.objects.all().first().shops.count(), 3)
 
     def test_post_add_with_confirm_add_m2m(self):
-        ShoppingMallAdmin.confirmation_fields = ["shops"]
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shops = [ShopFactory() for i in range(3)]
 
         data = {
@@ -75,9 +75,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
             "csrfmiddlewaretoken": "fake token",
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
         # Ensure not redirected (confirmation page does not redirect)
         self.assertEqual(response.status_code, 200)
         expected_templates = [
@@ -95,9 +93,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
             options=shops,
             selected_ids=data["shops"],
         )
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Hasn't changed item yet
         shopping_mall.refresh_from_db()
@@ -106,14 +102,10 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         # Selecting to "Yes, I'm sure" on the confirmation page
         # Would post to the same endpoint
         del data["_confirm_change"]
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
         # will show the change page for this shopping_mall
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, f"/admin/market/shoppingmall/{shopping_mall.id}/change/"
-        )
+        self.assertEqual(response.url, f"/admin/market/shoppingmall/{shopping_mall.id}/change/")
         # Should not be the confirmation page, we already confirmed change
         self.assertNotEqual(response.templates, expected_templates)
         self.assertEqual(ShoppingMall.objects.count(), 1)
@@ -132,9 +124,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
             "csrfmiddlewaretoken": "fake token",
             "_save": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
         # Ensure not redirected (confirmation page does not redirect)
         self.assertEqual(response.status_code, 200)
         expected_templates = [
@@ -150,16 +140,14 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
 
     def test_post_change_without_confirm_change_m2m_value(self):
         # make the m2m the confirmation_field
-        ShoppingMallAdmin.confirmation_fields = ["shops"]
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shops = [ShopFactory() for i in range(3)]
         shopping_mall = ShoppingMall.objects.create(name="name")
         shopping_mall.shops.set(shops)
         assert shopping_mall.shops.count() == 3
 
         data = {"name": "name", "id": str(shopping_mall.id), "shops": ["1"]}
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
         # Redirects to changelist
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/admin/market/shoppingmall/")
@@ -168,7 +156,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         self.assertEqual(shopping_mall.shops.count(), 1)
 
     def test_form_invalid_m2m_value(self):
-        ShoppingMallAdmin.confirmation_fields = ["shops"]
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shopping_mall = ShoppingMall.objects.create(name="name")
 
         data = {
@@ -178,17 +166,13 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
             "_confirm_change": True,
             "csrfmiddlewaretoken": "fake token",
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
 
         # Form invalid should show errors on form
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.context_data.get("errors"))
         self.assertTrue(
-            str(response.context_data["errors"][0][0]).startswith(
-                "Select a valid choice."
-            )
+            str(response.context_data["errors"][0][0]).startswith("Select a valid choice.")
         )
         # Should not have updated inventory
         shopping_mall.refresh_from_db()
