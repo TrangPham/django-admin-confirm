@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import ForeignKey, Model, ManyToManyField, FileField, ImageField, QuerySet
+from django.db.models import ForeignKey, Model, ManyToManyField, FileField, ImageField
 from django.forms import ModelForm
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
