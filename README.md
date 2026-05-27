@@ -42,7 +42,7 @@ Install django-admin-confirm by running:
 
 ## Python Support
 
-- Supported: Python 3.8 - 3.14
+- Supported: Python 3.10 - 3.14
 
 Add to INSTALLED_APPS in your project settings before `django.contrib.admin`:
 
