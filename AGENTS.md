@@ -1,0 +1,8 @@
+- Code is in python. Use pythonic paradigms and conventions.
+- When adding imports, add at the top of exisitng file unless circular imports would be created.
+- Check that you're not adding duplicate code.
+- Do not increase the scope of work unless plan is given to user and user has approved.
+- Prefer working on default git worktree. When starting new work, ask user if they want to stash changes and start on a new branch off of main.
+- Prefer fully spelled out variables instead of 1-3 character variables. Prefer shorter methods which read like english.
+- When code might not be fully self-explainatory, include a human readable short comment with context.
+- Please read the development guide and make use of makefile commands whenever possible.
