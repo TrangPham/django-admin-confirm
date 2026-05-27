@@ -9,7 +9,7 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model, ManyToManyField, FileField, ImageField, QuerySet
+from django.db.models import ForeignKey, Model, ManyToManyField, FileField, ImageField, QuerySet
 from django.forms import ModelForm
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
@@ -53,7 +53,9 @@ class AdminConfirmMixin:
         Hook for specifying confirmation fields
         """
         # default confirmation fields to all fields, including ManyToManyFields
-        confirmation_fields = set(field.name for field in self.model._meta.get_fields())
+        confirmation_fields = set([field.name for field in self.model._meta.fields]) | set(
+            field.name for field in self.model._meta.get_fields()
+        )
 
         if self.confirmation_fields and self.confirmation_fields != "__all__":
             # set confirmation fields if specified
@@ -61,6 +63,7 @@ class AdminConfirmMixin:
 
         # filter to valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        log(f"Admin fields are {admin_fields} and confirmation fields are {confirmation_fields}")
         return list(confirmation_fields & admin_fields)
 
     def render_change_confirmation(self, request, context):
@@ -189,18 +192,37 @@ class AdminConfirmMixin:
 
                     field_object = model._meta.get_field(name)
 
-                    # Note: getattr does not work on ManyToManyFields
                     if isinstance(field_object, ManyToManyField):
                         initial_value = field_object.value_from_object(obj)
-                        if isinstance(new_value, QuerySet):
-                            new_value = list(new_value)
+                        initial_value_pks = set(initial_value)
+                        new_value_pks = set(new_value.values_list("pk", flat=True))
+                        if initial_value_pks != new_value_pks:
+                            log(
+                                f"ManyToManyField {name} has changed from {initial_value_pks} to {new_value_pks}"
+                            )
+                            changed_data[name] = _display_for_changed_data(
+                                field_object, initial_value, new_value
+                            )
+                    elif isinstance(field_object, ForeignKey):
+                        initial_value = getattr(obj, name)
+                        initial_pk = (
+                            initial_value.pk if isinstance(initial_value, Model) else initial_value
+                        )
+                        new_pk = new_value.pk if isinstance(new_value, Model) else new_value
+
+                        if initial_pk != new_pk:
+                            log(f"Field {name} PK has changed from {initial_pk} to {new_pk}")
+                            changed_data[name] = _display_for_changed_data(
+                                field_object, initial_value, new_value
+                            )
                     else:
                         initial_value = getattr(obj, name)
 
-                    if initial_value != new_value:
-                        changed_data[name] = _display_for_changed_data(
-                            field_object, initial_value, new_value
-                        )
+                        if initial_value != new_value:
+                            log(f"Field {name} has changed from {initial_value} to {new_value}")
+                            changed_data[name] = _display_for_changed_data(
+                                field_object, initial_value, new_value
+                            )
 
         return changed_data
 
@@ -375,9 +397,12 @@ class AdminConfirmMixin:
         # Get changed data to show on confirmation
         changed_data = self._get_changed_data(form, model, obj, add_or_new)
 
-        changed_confirmation_fields = set(self.get_confirmation_fields(request, obj)) & set(
-            changed_data.keys()
+        confirmation_fields = self.get_confirmation_fields(request, obj)
+        changed_confirmation_fields = set(confirmation_fields) & set(changed_data.keys())
+        log(
+            f"Confirmation fields are {confirmation_fields} and changed data fields are {changed_data.keys()}"
         )
+
         if not bool(changed_confirmation_fields):
             log("No change detected")
             # No confirmation required for changed fields, continue to save

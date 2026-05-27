@@ -29,11 +29,6 @@ from tests.factories import ItemFactory, ShopFactory
 
 class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def setUp(self):
-        # Load the Change Item Page
-        ItemAdmin.confirm_change = True
-        ItemAdmin.fields = ["name", "price", "file", "image", "currency"]
-        ItemAdmin.save_as = True
-        ItemAdmin.save_as_continue = True
 
         self.image_path = "screenshot.png"
         with open(self.image_path, "rb") as f:
@@ -51,12 +46,20 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         )
         self.item = ItemFactory(name="Not name", file=f, image=i)
 
-        return super().setUp()
+        super().setUp()
+        # Load the Change Item Page
+        self.setAdminAttributes(
+            ItemAdmin,
+            confirm_change=True,
+            fields=["name", "price", "file", "image", "currency"],
+            save_as=True,
+            save_as_continue=True,
+        )
 
     def test_save_as_continue_true_should_not_redirect_to_changelist(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = True
+        self.setAdminAttributes(ItemAdmin, save_as_continue=True)
 
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
@@ -129,7 +132,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_save_as_continue_false_should_redirect_to_changelist(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
@@ -508,7 +511,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_change_without_cached_post_should_save_file_changes(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Upload new image and remove file
         i2 = SimpleUploadedFile(
@@ -588,7 +591,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_change_without_cached_object_should_save_but_without_file_changes(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {
@@ -647,7 +650,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_change_without_any_cache_should_save_but_not_have_file_changes(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {

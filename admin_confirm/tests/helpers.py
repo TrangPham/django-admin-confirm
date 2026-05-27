@@ -1,4 +1,6 @@
+from contextlib import ExitStack
 import socket
+from unittest import mock
 
 from django.core.cache import cache
 from django.test import TestCase, RequestFactory, LiveServerTestCase
@@ -26,6 +28,18 @@ class AdminConfirmTestCase(TestCase):
         cache.clear()
         self.client.force_login(self.superuser)
         self.factory = RequestFactory()
+        self.exit_stack = ExitStack()
+
+    def tearDown(self):
+        self.exit_stack.close()
+
+    def setAdminAttributes(self, admin, **attrs):
+        """
+        Helper method to set admin attributes with automatic cleanup after test
+        Can only be called in setUp after super().setUp()
+        """
+        for attr, value in attrs.items():
+            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
 
     def _assertManyToManyFormHtml(self, rendered_content, options, selected_ids):
         # Form data should be embedded and hidden on confirmation page
@@ -85,6 +99,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
             username="super", email="super@email.org", password="pass"
         )
         self.client.force_login(self.superuser)
+        self.exit_stack = ExitStack()
 
         cookie = self.client.cookies["sessionid"]
         self.selenium.get(
@@ -96,9 +111,14 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
         return super().setUp()
 
     def tearDown(self):
+        self.exit_stack.close()
         cache.clear()
         self.selenium.get(self.live_server_url)
         return super().tearDown()
+
+    def setAdminAttributes(self, admin, **attrs):
+        for attr, value in attrs.items():
+            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
 
     @classmethod
     def tearDownClass(cls):

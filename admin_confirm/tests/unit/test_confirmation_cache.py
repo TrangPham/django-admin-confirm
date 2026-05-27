@@ -21,7 +21,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
 
     def test_simple_add(self):
         # Load the Add Item Page
-        ItemAdmin.confirm_add = True
+        self.setAdminAttributes(ItemAdmin, confirm_add=True)
         response = self.client.get(reverse("admin:market_item_add"))
 
         # Should be asked for confirmation
@@ -80,7 +80,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         item = ItemFactory(name="Not name")
 
         # Load the Change Item Page
-        ItemAdmin.confirm_change = True
+        self.setAdminAttributes(ItemAdmin, confirm_change=True)
         response = self.client.get(f"/admin/market/item/{item.id}/change/")
 
         # Should be asked for confirmation
@@ -135,7 +135,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
 
     def test_file_and_image_add(self):
         # Load the Add Item Page
-        ItemAdmin.confirm_add = True
+        self.setAdminAttributes(ItemAdmin, confirm_add=True)
         response = self.client.get(reverse("admin:market_item_add"))
 
         # Should be asked for confirmation
@@ -231,8 +231,9 @@ class TestConfirmationCache(AdminConfirmTestCase):
         item.save()
 
         # Load the Change Item Page
-        ItemAdmin.confirm_change = True
-        ItemAdmin.fields = ["name", "price", "file", "image", "currency"]
+        self.setAdminAttributes(
+            ItemAdmin, confirm_change=True, fields=["name", "price", "file", "image", "currency"]
+        )
         response = self.client.get(f"/admin/market/item/{item.id}/change/")
 
         # Should be asked for confirmation
@@ -307,7 +308,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         town = Town.objects.create(name="town")
 
         # Load the Add ShoppingMall Page
-        ShoppingMallAdmin.confirm_add = True
+        self.setAdminAttributes(ShoppingMallAdmin, confirm_add=True)
         response = self.client.get(reverse("admin:market_shoppingmall_add"))
 
         # Should be asked for confirmation
@@ -378,7 +379,7 @@ class TestConfirmationCache(AdminConfirmTestCase):
         town2 = Town.objects.create(name="town2")
 
         # Load the Change ShoppingMall Page
-        ShoppingMallAdmin.confirm_change = True
+        self.setAdminAttributes(ShoppingMallAdmin, confirm_change=True)
         response = self.client.get(f"/admin/market/shoppingmall/{mall.id}/change/")
 
         # Should be asked for confirmation

@@ -5,4 +5,5 @@
 - Prefer working on default git worktree. When starting new work, ask user if they want to stash changes and start on a new branch off of main.
 - Prefer fully spelled out variables instead of 1-3 character variables. Prefer shorter methods which read like english.
 - When code might not be fully self-explainatory, include a human readable short comment with context.
-- Please read the development guide and make use of makefile commands whenever possible.
+- Please read the development guide and make use of makefile commands whenever possible. For example don't do: `python -m pytest admin_confirm/tests/integration/test_with_inlines.py::ConfirmWithInlinesTests::test_should_have_saved_inline_changes -q` and instead use `make docker-test ARGS=...` Note: before running tests, make sure docker is running, use `make docker-build && make docker-up`
+- AVOID any non-functional churn such as formatting, whitespace changes, etc unless the user specifically asked you for it.
