@@ -10,9 +10,19 @@ from tests.factories import ShopFactory
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
+    """
+    These unit tests bypass the confirmation page and directly test
+    what clicking "Yes, I'm sure" on the confirmation page would do
+    for add and change with M2M fields
+
+    They do not test that the confirmation page gets rendered,
+    for that see the integration tests.
+    """
+
     def test_post_add_without_confirm_add_m2m(self):
         shops = [ShopFactory() for i in range(3)]
 
+        # Should be able to add without confirmation if _confirm_add not sent even if m2m field is in confirmation_fields
         data = {"name": "name", "shops": [s.id for s in shops]}
         response = self.client.post(reverse("admin:market_shoppingmall_add"), data)
         # Redirects to changelist and is added
@@ -66,7 +76,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         shops = [ShopFactory() for i in range(10)]
         shopping_mall = ShoppingMall.objects.create(name="My Mall")
         shopping_mall.shops.set(shops)
-        # Currently ShoppingMall configured with confirmation_fields = ['name']
+
         data = {
             "name": "Not My Mall",
             "shops": [1, 2],
@@ -115,7 +125,7 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         shops = [ShopFactory() for i in range(10)]
         shopping_mall = ShoppingMall.objects.create(name="My Mall")
         shopping_mall.shops.set(shops)
-        # Currently ShoppingMall configured with confirmation_fields = ['name']
+
         data = {
             "name": "Not My Mall",
             "shops": [1, 2, 3],
@@ -146,6 +156,8 @@ class TestConfirmChangeAndAddM2MField(AdminConfirmTestCase):
         shopping_mall.shops.set(shops)
         assert shopping_mall.shops.count() == 3
 
+        # _confirm_change not sent even though m2m field is in confirmation_fields
+        # Should be able to post change without confirmation if _confirm_change not sent
         data = {"name": "name", "id": str(shopping_mall.id), "shops": ["1"]}
         response = self.client.post(f"/admin/market/shoppingmall/{shopping_mall.id}/change/", data)
         # Redirects to changelist

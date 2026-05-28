@@ -194,7 +194,9 @@ class AdminConfirmMixin:
 
                     if isinstance(field_object, ManyToManyField):
                         initial_value = field_object.value_from_object(obj)
-                        initial_value_pks = set(initial_value)
+                        initial_value_pks = set(
+                            [initial_value_item.pk for initial_value_item in initial_value]
+                        )
                         new_value_pks = set(new_value.values_list("pk", flat=True))
                         if initial_value_pks != new_value_pks:
                             log(
