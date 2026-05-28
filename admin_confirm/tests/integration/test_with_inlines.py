@@ -14,7 +14,7 @@ from tests.market.models import GeneralManager, ShoppingMall, Town
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin import shoppingmall_admin
 
-from admin_confirm.constants import CONFIRM_CHANGE
+from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
 
@@ -222,7 +222,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertEqual(shopping_mall.shops.count(), 1)
         self.assertIn(shops[0], shopping_mall.shops.all())
 
-    def test_does_not_trigger_confirmation_if_m2m_field_in_confirmation_fields_but_m2m_field_not_changed(
+    def test_change_does_not_trigger_confirmation_if_m2m_field_in_confirmation_fields_but_m2m_field_not_changed(
         self,
     ):
         # make the m2m the only confirmation_field
@@ -247,3 +247,43 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         # Shops has not changed
         shopping_mall.refresh_from_db()
         self.assertEqual(shopping_mall.shops.count(), 3)
+
+    def test_add_does_not_trigger_confirmation_if_m2m_field_in_confirmation_fields_but_m2m_field_not_changed(
+        self,
+    ):
+        # make the m2m the only confirmation_field
+        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/add/")
+        self.assertIn(CONFIRM_ADD, self.selenium.page_source)
+
+        # Fill in required fields, but do not change m2m field
+        name = self.selenium.find_element(By.NAME, "name")
+        name.send_keys("name")
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Should not ask for confirmation since m2m field has not changed
+        self.assertNotIn("Confirm", self.selenium.page_source)
+
+    def test_add_does_trigger_confirmation_if_m2m_field_in_confirmation_fields_and_changed_from_default(
+        self,
+    ):
+        # make the m2m the only confirmation_field
+        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        shops = [ShopFactory() for i in range(3)]
+
+        self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/add/")
+        self.assertIn(CONFIRM_ADD, self.selenium.page_source)
+
+        # Fill in required fields
+        name = self.selenium.find_element(By.NAME, "name")
+        name.send_keys("name")
+
+        # Select a shop in the m2m field to change it from the default of empty
+        select_shop = Select(self.selenium.find_element(By.NAME, "shops"))
+        select_shop.select_by_value(str(shops[0].id))
+
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Should ask for confirmation since m2m field has changed from default
+        self.assertIn("Confirm", self.selenium.page_source)
