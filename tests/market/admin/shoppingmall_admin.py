@@ -1,6 +1,6 @@
 """ShoppingMallAdmin tests:
 - confirm_add and confirm_change should work when inlines are present and with raw_id_fields
-- default confirmation_fields should include inlines and trigger confirmation when M2M field changes
+- default confirmation_fields should include M2M fields and trigger confirmation when M2M field changes
 """
 
 from ..models import ShoppingMall
