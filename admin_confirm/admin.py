@@ -175,11 +175,29 @@ class AdminConfirmMixin:
                     # Don't consider default values as changed for adding
                     field_object = model._meta.get_field(name)
                     default_value = field_object.get_default()
-                    if new_value is not None and new_value != default_value:
-                        # Show what the default value is
-                        changed_data[name] = _display_for_changed_data(
-                            field_object, default_value, new_value
+                    if isinstance(field_object, ManyToManyField):
+                        default_value_pks = (
+                            set([item.pk for item in default_value]) if default_value else set()
                         )
+                        new_value_pks = (
+                            set(new_value.values_list("pk", flat=True)) if new_value else set()
+                        )
+                        log(
+                            f"ManyToManyField {name} default PKs are {default_value_pks} and new value PKs are {new_value_pks}"
+                        )
+                        log(
+                            f"ManyToManyField {name} has changed from {default_value} to {new_value}"
+                        )
+                        if default_value_pks != new_value_pks:
+                            changed_data[name] = _display_for_changed_data(
+                                field_object, default_value, new_value
+                            )
+                    else:
+                        if new_value is not None and new_value != default_value:
+                            # Show what the default value is
+                            changed_data[name] = _display_for_changed_data(
+                                field_object, default_value, new_value
+                            )
         else:
             # Since the form considers initial as the value first shown in the form
             # It could be incorrect when user hits save, and then hits "No, go back to edit"
