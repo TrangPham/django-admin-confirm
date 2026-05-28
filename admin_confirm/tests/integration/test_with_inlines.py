@@ -187,3 +187,63 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         mall.refresh_from_db()
         self.assertIn("New Name", mall.name)
         self.assertIn(shops[2], mall.shops.all())
+
+    def test_detects_changes_to_m2m_fields(self):
+        # make the m2m the only confirmation_field
+        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        shops = [ShopFactory() for i in range(3)]
+        shopping_mall = ShoppingMall.objects.create(name="name")
+        shopping_mall.refresh_from_db()
+        assert shopping_mall.shops.count() == 0
+
+        self.selenium.get(
+            self.live_server_url + f"/admin/market/shoppingmall/{shopping_mall.id}/change/"
+        )
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+        # Click on one of the shops in the m2m field to change it
+        select_shop = Select(self.selenium.find_element(By.NAME, "shops"))
+        select_shop.select_by_value(str(shops[0].id))
+
+        # Click save and continue to trigger confirmation page
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Should ask for confirmation since m2m field has changed
+        self.assertIn("Confirm", self.selenium.page_source)
+
+        # Shops has not changed until confirmation received
+        shopping_mall.refresh_from_db()
+        self.assertEqual(shopping_mall.shops.count(), 0)
+
+        # Click on "Yes, I'm sure" to confirm change
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        shopping_mall.refresh_from_db()
+        self.assertEqual(shopping_mall.shops.count(), 1)
+        self.assertIn(shops[0], shopping_mall.shops.all())
+
+    def test_does_not_trigger_confirmation_if_m2m_field_in_confirmation_fields_but_m2m_field_not_changed(
+        self,
+    ):
+        # make the m2m the only confirmation_field
+        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        shops = [ShopFactory() for i in range(3)]
+        shopping_mall = ShoppingMall.objects.create(name="name")
+        shopping_mall.shops.set(shops)
+        shopping_mall.refresh_from_db()
+        assert shopping_mall.shops.count() == 3
+
+        self.selenium.get(
+            self.live_server_url + f"/admin/market/shoppingmall/{shopping_mall.id}/change/"
+        )
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+        # Do nothing and submit form
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Should not ask for confirmation since m2m field has not changed
+        self.assertNotIn("Confirm", self.selenium.page_source)
+
+        # Shops has not changed
+        shopping_mall.refresh_from_db()
+        self.assertEqual(shopping_mall.shops.count(), 3)
