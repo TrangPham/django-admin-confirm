@@ -36,7 +36,7 @@ class AdminConfirmTestCase(TestCase):
     def setAdminAttributes(self, admin, **attrs):
         """
         Helper method to set admin attributes with automatic cleanup after test
-        Can only be called in setUp after super().setUp()
+        If used in setUp(), must be called after super().setUp()
         """
         for attr, value in attrs.items():
             self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
