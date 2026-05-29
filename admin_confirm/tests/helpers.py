@@ -58,9 +58,8 @@ class AdminConfirmTestCase(TestCase):
         Helper method to set admin attributes with automatic cleanup after test
         If used in setUp(), must be called after super().setUp()
         """
-        for target in _get_admin_patch_targets(admin):
-            for attr, value in attrs.items():
-                self.exit_stack.enter_context(mock.patch.object(target, attr, value))
+        for attr, value in attrs.items():
+            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
 
     def _assertManyToManyFormHtml(self, rendered_content, options, selected_ids):
         # Form data should be embedded and hidden on confirmation page
