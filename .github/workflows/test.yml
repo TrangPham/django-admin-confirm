@@ -60,6 +60,13 @@ jobs:
             django-version: 5.2
           - python-version: 3.14
             django-version: 5.2
+          # Django 6.0 supports Python 3.12-3.14
+          - python-version: 3.12
+            django-version: 6.0
+          - python-version: 3.13
+            django-version: 6.0
+          - python-version: 3.14
+            django-version: 6.0
     env:
       DJANGO_VERSION: ${{ matrix.django-version }}
       PYTHON_VERSION: ${{ matrix.python-version }}
