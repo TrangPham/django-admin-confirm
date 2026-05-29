@@ -15,9 +15,18 @@ from selenium.webdriver.common.by import By
 
 
 def _get_admin_patch_targets(admin):
+    """
+    Return admin objects to patch in tests.
+
+    Some tests reload admin modules, which can produce a new ModelAdmin class object
+    while Django admin still uses the previously registered ModelAdmin instance.
+    This helper patches both targets so test overrides are applied consistently.
+    """
     targets = [admin]
     model = getattr(admin, "model", None)
     if model:
+        # Django does not expose a public API for retrieving the registered
+        # ModelAdmin instance by model, so tests read from _registry directly.
         registered_admin = django_admin.site._registry.get(model)
         if registered_admin and registered_admin not in targets:
             targets.append(registered_admin)
