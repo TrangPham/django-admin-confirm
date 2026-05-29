@@ -2,6 +2,7 @@ from contextlib import ExitStack
 import socket
 from unittest import mock
 
+from django.contrib import admin as django_admin
 from django.core.cache import cache
 from django.test import TestCase, RequestFactory, LiveServerTestCase
 from django.contrib.auth.models import User
@@ -11,6 +12,16 @@ from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.by import By
+
+
+def _get_admin_patch_targets(admin):
+    targets = [admin]
+    model = getattr(admin, "model", None)
+    if model:
+        registered_admin = django_admin.site._registry.get(model)
+        if registered_admin and registered_admin not in targets:
+            targets.append(registered_admin)
+    return targets
 
 
 class AdminConfirmTestCase(TestCase):
@@ -38,8 +49,9 @@ class AdminConfirmTestCase(TestCase):
         Helper method to set admin attributes with automatic cleanup after test
         If used in setUp(), must be called after super().setUp()
         """
-        for attr, value in attrs.items():
-            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
+        for target in _get_admin_patch_targets(admin):
+            for attr, value in attrs.items():
+                self.exit_stack.enter_context(mock.patch.object(target, attr, value))
 
     def _assertManyToManyFormHtml(self, rendered_content, options, selected_ids):
         # Form data should be embedded and hidden on confirmation page
@@ -117,8 +129,9 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
         return super().tearDown()
 
     def setAdminAttributes(self, admin, **attrs):
-        for attr, value in attrs.items():
-            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
+        for target in _get_admin_patch_targets(admin):
+            for attr, value in attrs.items():
+                self.exit_stack.enter_context(mock.patch.object(target, attr, value))
 
     @classmethod
     def tearDownClass(cls):
