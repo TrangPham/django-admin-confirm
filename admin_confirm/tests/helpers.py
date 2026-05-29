@@ -110,7 +110,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
             {"name": "sessionid", "value": cookie.value, "secure": False, "path": "/"}
         )
         return super().setUp()
-
+    
     def tearDown(self):
         self.exit_stack.close()
         cache.clear()
