@@ -7,7 +7,6 @@ Does not test confirmation of inline changes
 
 import pytest
 import django
-from importlib import reload
 from tests.factories import ShopFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
 
@@ -27,10 +26,6 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
             shoppingmall_admin.ShoppingMallAdmin,
             inlines=[shoppingmall_admin.ShopInline],
         )
-
-    def tearDown(self):
-        reload(shoppingmall_admin)
-        super().tearDown()
 
     def test_should_have_hidden_form(self):
         mall = ShoppingMall.objects.create(name="mall")
@@ -118,10 +113,11 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         if django_major < 3:
             pytest.skip("get_inlines() introducted in Django 3.0, and is not in this version")
 
-        shoppingmall_admin.ShoppingMallAdmin.inlines = []
-        shoppingmall_admin.ShoppingMallAdmin.get_inlines = lambda self, request, obj=None: [
-            shoppingmall_admin.ShopInline
-        ]
+        self.setAdminAttributes(
+            shoppingmall_admin.ShoppingMallAdmin,
+            inlines=[],
+            get_inlines=lambda self, request, obj=None: [shoppingmall_admin.ShopInline],
+        )
 
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")
@@ -153,11 +149,12 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(shops[2], mall.shops.all())
 
     def test_should_respect_get_inline_instances(self):
-        shoppingmall_admin.ShoppingMallAdmin.inlines = []
-        shoppingmall_admin.ShoppingMallAdmin.get_inline_instances = (
-            lambda self, request, obj=None: shoppingmall_admin.ShopInline(
+        self.setAdminAttributes(
+            shoppingmall_admin.ShoppingMallAdmin,
+            inlines=[],
+            get_inline_instances=lambda self, request, obj=None: shoppingmall_admin.ShopInline(
                 self.model, self.admin_site
-            )
+            ),
         )
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")
