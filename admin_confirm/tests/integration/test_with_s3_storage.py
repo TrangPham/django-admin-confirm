@@ -11,7 +11,6 @@ from importlib.metadata import version as get_version
 import localstack_client.session
 import django
 
-from importlib import reload
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -47,7 +46,6 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         super().setUp()
 
     def tearDown(self):
-        reload(shoppingmall_admin)
         # Delete all current files
         for obj in self.bucket.objects.all():
             obj.delete()
@@ -71,12 +69,6 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
             )
 
     def test_should_save_file_additions(self):
-        selenium_major = int(get_version("selenium").split(".")[0])
-        if selenium_major < 4:
-            pytest.skip(
-                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
-            )
-
         item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -110,12 +102,6 @@ class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(objects[0].key, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
-        selenium_major = int(get_version("selenium").split(".")[0])
-        if selenium_major < 4:
-            pytest.skip(
-                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
-            )
-
         item = Item.objects.create(
             name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=self.file
         )

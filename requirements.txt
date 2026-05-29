@@ -8,15 +8,7 @@ twine~=6.2.0
 coveralls~=3.0.0
 Pillow~=10.4.0 # For ImageField
 wheel~=0.45.1
-
-### SELENIUM ###
-# Known issue: https://github.com/SeleniumHQ/selenium/issues/8762
-# Python 3.6 should use because selenium 4 doesn't work with py3.6
-# selenium~=3.141.0
-
-# Others should use
-selenium~=4.0.0.a5
-### END SELENIUM ###
+selenium~=4.0.0.a7
 
 ### S3 ###
 localstack~=1.0.0 # For testing with S3

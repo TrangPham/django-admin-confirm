@@ -2,7 +2,6 @@
 Ensures that confirmations work with validators on the Model and on the Modelform.
 """
 
-from importlib import reload
 from selenium.webdriver.common.by import By
 from unittest import mock
 
@@ -21,7 +20,6 @@ from tests.market.admin import shoppingmall_admin
 
 class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
-        self.admin = shoppingmall_admin.ShoppingMallAdmin
         super().setUp()
         self.setAdminAttributes(
             shoppingmall_admin.ShoppingMallAdmin,
@@ -29,7 +27,6 @@ class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
         )
 
     def tearDown(self):
-        reload(shoppingmall_admin)
         super().tearDown()
 
     @mock.patch("tests.market.models.ItemSale.clean")

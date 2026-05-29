@@ -4,12 +4,11 @@ Tests with different form input types
 
 from datetime import timedelta
 from django.utils import timezone
-from importlib import reload
 from tests.factories import ShopFactory, TransactionFactory
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
-from tests.market.admin import item_admin, shoppingmall_admin
+from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 
 from django.contrib.admin import VERTICAL
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
@@ -17,24 +16,23 @@ from selenium.webdriver.common.by import By
 
 
 class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
-    @classmethod
-    def setUpClass(cls):
-        i_admin = item_admin.ItemAdmin
-        i_admin.confirm_add = True
-        i_admin.confirm_change = True
-        i_admin.confirmation_fields = ["currency", "price", "name"]
-        i_admin.radio_fields = {"currency": VERTICAL}
+    def setUp(self):
+        super().setUpClass()
+        self.setAdminAttributes(
+            ItemAdmin,
+            confirm_add=True,
+            confirm_change=True,
+            confirmation_fields=["currency", "price", "name"],
+            radio_fields={"currency":VERTICAL}
+        )
+        self.setAdminAttributes(
+            ShoppingMallAdmin,
+            raw_id_fields=["general_manager"],
+            inlines=[]
+        )
 
-        mall_admin = shoppingmall_admin.ShoppingMallAdmin
-        mall_admin.raw_id_fields = ["general_manager"]
-        mall_admin.inlines = []
-        return super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        reload(shoppingmall_admin)
-        reload(item_admin)
-        return super().tearDownClass()
+    def tearDowns(self):
+        super().tearDown()
 
     def test_radio_input_should_work(self):
         self.selenium.get(self.live_server_url + "/admin/market/item/add/")
