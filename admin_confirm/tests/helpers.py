@@ -119,7 +119,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
 
     def setAdminAttributes(self, admin, **attrs):
         for attr, value in attrs.items():
-            self.exit_stack.enter_context(mock.patch.object(target, attr, value))
+            self.exit_stack.enter_context(mock.patch.object(admin, attr, value))
 
     @classmethod
     def tearDownClass(cls):
