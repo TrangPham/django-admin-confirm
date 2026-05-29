@@ -11,7 +11,7 @@ from tests.factories import ShopFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
-from tests.market.admin import ShoppingMallAdmin, ShopInline
+from tests.market.admin.shoppingmall_admin import ShoppingMallAdmin, ShopInline
 
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select
