@@ -6,7 +6,6 @@ on ModelAdmin that utilize caches
 import os
 import pytest
 
-from importlib import reload
 from importlib.metadata import version as get_version
 from tests.market.models import Item, ShoppingMall
 
@@ -26,7 +25,6 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         super().setUp()
 
     def tearDown(self):
-        reload(shoppingmall_admin)
         super().tearDown()
 
     def test_models_without_files_should_not_have_confirmation_received(self):
@@ -81,12 +79,6 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         item.refresh_from_db()
 
     def test_should_save_file_additions(self):
-        selenium_major = int(get_version("selenium").split(".")[0])
-        if selenium_major < 4:
-            pytest.skip(
-                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
-            )
-
         item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -115,12 +107,6 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_should_save_file_changes(self):
-        selenium_major = int(get_version("selenium").split(".")[0])
-        if selenium_major < 4:
-            pytest.skip(
-                "Known issue `https://github.com/SeleniumHQ/selenium/issues/8762` with this selenium version."
-            )
-
         with open("screenshot.png", "rb") as f:
             file = SimpleUploadedFile(
                 name="old_file.jpg",
