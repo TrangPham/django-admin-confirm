@@ -18,9 +18,9 @@ def _get_admin_patch_targets(admin):
     """
     Return admin objects to patch in tests.
 
-    Some tests reload admin modules, which can produce a new ModelAdmin class object
-    while Django admin still uses the previously registered ModelAdmin instance.
-    This helper patches both targets so test overrides are applied consistently.
+    Tests may hold a class reference that differs from the ModelAdmin instance
+    currently registered in Django admin. Patch both targets so test overrides
+    are applied consistently to the admin actually serving requests.
     """
     targets = [admin]
     model = getattr(admin, "model", None)
