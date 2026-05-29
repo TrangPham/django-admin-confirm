@@ -118,9 +118,8 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
         return super().tearDown()
 
     def setAdminAttributes(self, admin, **attrs):
-        for target in _get_admin_patch_targets(admin):
-            for attr, value in attrs.items():
-                self.exit_stack.enter_context(mock.patch.object(target, attr, value))
+        for attr, value in attrs.items():
+            self.exit_stack.enter_context(mock.patch.object(target, attr, value))
 
     @classmethod
     def tearDownClass(cls):
