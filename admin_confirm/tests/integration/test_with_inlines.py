@@ -11,7 +11,7 @@ from tests.factories import ShopFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
-from tests.market.admin import shoppingmall_admin
+from tests.market.admin import ShoppingMallAdmin, ShopInline
 
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select
@@ -20,11 +20,10 @@ from selenium.webdriver.common.by import By
 
 class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
-        self.admin = shoppingmall_admin.ShoppingMallAdmin
         super().setUp()
         self.setAdminAttributes(
-            shoppingmall_admin.ShoppingMallAdmin,
-            inlines=[shoppingmall_admin.ShopInline],
+            ShoppingMallAdmin,
+            inlines=[ShopInline],
         )
 
     def test_should_have_hidden_form(self):
@@ -114,9 +113,9 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
             pytest.skip("get_inlines() introducted in Django 3.0, and is not in this version")
 
         self.setAdminAttributes(
-            shoppingmall_admin.ShoppingMallAdmin,
+            ShoppingMallAdmin,
             inlines=[],
-            get_inlines=lambda self, request, obj=None: [shoppingmall_admin.ShopInline],
+            get_inlines=lambda self, request, obj=None: [ShopInline],
         )
 
         gm = GeneralManager.objects.create(name="gm")
@@ -150,11 +149,11 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_should_respect_get_inline_instances(self):
         self.setAdminAttributes(
-            shoppingmall_admin.ShoppingMallAdmin,
+            ShoppingMallAdmin,
             inlines=[],
-            get_inline_instances=lambda self, request, obj=None: shoppingmall_admin.ShopInline(
+            get_inline_instances=lambda self, request, obj=None: [ShopInline(
                 self.model, self.admin_site
-            ),
+            ),]
         )
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")
@@ -187,7 +186,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
     def test_detects_changes_to_m2m_fields(self):
         # make the m2m the only confirmation_field
-        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shops = [ShopFactory() for i in range(3)]
         shopping_mall = ShoppingMall.objects.create(name="name")
         shopping_mall.refresh_from_db()
@@ -223,7 +222,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self,
     ):
         # make the m2m the only confirmation_field
-        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shops = [ShopFactory() for i in range(3)]
         shopping_mall = ShoppingMall.objects.create(name="name")
         shopping_mall.shops.set(shops)
@@ -249,7 +248,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self,
     ):
         # make the m2m the only confirmation_field
-        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
 
         self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/add/")
         self.assertIn(CONFIRM_ADD, self.selenium.page_source)
@@ -266,7 +265,7 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self,
     ):
         # make the m2m the only confirmation_field
-        self.setAdminAttributes(shoppingmall_admin.ShoppingMallAdmin, confirmation_fields=["shops"])
+        self.setAdminAttributes(ShoppingMallAdmin, confirmation_fields=["shops"])
         shops = [ShopFactory() for i in range(3)]
 
         self.selenium.get(self.live_server_url + f"/admin/market/shoppingmall/add/")

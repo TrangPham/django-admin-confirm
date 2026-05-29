@@ -17,7 +17,7 @@ from selenium.webdriver.common.by import By
 
 class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
     def setUp(self):
-        super().setUpClass()
+        super().setUp()
         self.setAdminAttributes(
             ItemAdmin,
             confirm_add=True,
@@ -31,7 +31,7 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
             inlines=[]
         )
 
-    def tearDowns(self):
+    def tearDown(self):
         super().tearDown()
 
     def test_radio_input_should_work(self):
