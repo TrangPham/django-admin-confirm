@@ -107,11 +107,6 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertIn(shops[2], mall.shops.all())
 
     def test_should_respect_get_inlines(self):
-        # New in Django 3.0
-        django_major = django.VERSION[0]
-        if django_major < 3:
-            pytest.skip("get_inlines() introducted in Django 3.0, and is not in this version")
-
         self.setAdminAttributes(
             ShoppingMallAdmin,
             inlines=[],
