@@ -8,7 +8,7 @@ twine~=6.2.0
 coveralls~=4.1.0
 Pillow~=12.2.0 # For ImageField
 wheel~=0.47.0
-selenium~=4.0.0.a7
+selenium~=4.44.0.0
 
 ### S3 ###
 localstack~=1.0.0 # For testing with S3
