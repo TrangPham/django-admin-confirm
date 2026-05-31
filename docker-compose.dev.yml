@@ -14,12 +14,14 @@ services:
     command: >
       sh -c "export LOCALSTACK_HOST=host.docker.internal &&
              python tests/manage.py collectstatic --no-input &&
+             export PYDEVD_DISABLE_FILE_VALIDATION=1 &&
              export LOCALSTACK_HOST=localhost &&
-             python tests/manage.py runserver 0.0.0.0:8000"
+             python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client tests/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/code
     ports:
       - "8000:8000"
+      - "5678:5678" # debugpy
     depends_on:
       - selenium
       - localstack

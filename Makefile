@@ -24,7 +24,10 @@ docker-test:
 docker-test-all:
 	make docker-exec COMMAND="make test-all"
 
-docker-rebuild:
+docker-collect-static:
+	docker compose -f docker-compose.dev.yml exec -T web python tests/manage.py collectstatic --no-input
+
+docker-reup:
 	docker compose -f docker-compose.dev.yml up -d --force-recreate
 
 docker-migrate:
