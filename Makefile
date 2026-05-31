@@ -75,3 +75,10 @@ testpypi:
 	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
 	pip uninstall django_admin_confirm
 	python -m pip install --index-url https://test.pypi.org/simple/ django_admin_confirm==${VERSION}
+
+debugger:
+	docker compose -f docker-compose.dev.yml down
+	docker compose -f docker-compose.debug.yml up -d
+
+debugger-down:
+	docker compose -f docker-compose.debug.yml down
