@@ -60,7 +60,7 @@ These are some areas which might/probably have issues that are not currently tes
 
 ## ModelAdmin form template overrides?
 
-https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options
+<https://docs.djangoproject.com/en/3.1/ref/contrib/admin/#custom-template-options>
 (Maybe??? IDK this is esoteric)
 
 ## Function overrides to test
@@ -130,3 +130,9 @@ There are other possible combos of theses
 
 - [x] Local storage
 - [ ] S3
+
+### Tests for confirming actions
+
+- [x] On changelist page
+- [x] For site wide actions
+- [ ] For change page actions (added in 6.1)

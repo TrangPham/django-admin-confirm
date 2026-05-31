@@ -1,5 +1,10 @@
 from django.contrib import admin
 
+from .site_wide_action import (
+    site_wide_confirm_action,
+    site_wide_no_confirm_action,
+)
+
 from ..models import (
     GeneralManager,
     Item,
@@ -31,3 +36,5 @@ admin.site.register(Transaction, TransactionAdmin)
 admin.site.register(ItemSale, ItemSaleAdmin)
 admin.site.register(Checkout, CheckoutAdmin)
 admin.site.register(Consumer, ConsumerAdmin)
+admin.site.add_action(site_wide_no_confirm_action)
+admin.site.add_action(site_wide_confirm_action)

@@ -235,9 +235,7 @@ class TestConfirmActions(TestCase):
         self.assertIn("No action selected", response.rendered_content)
 
         # Remove our modification for ShopAdmin
-        ShopAdmin.has_delete_permission = (
-            lambda self, request, obj=None: request.user.is_superuser
-        )
+        ShopAdmin.has_delete_permission = lambda self, request, obj=None: request.user.is_superuser
 
     def test_confirm_action_submit_button_should_perform_action(self):
         """
@@ -306,7 +304,13 @@ class TestConfirmActions(TestCase):
             context = None
 
             def get_actions(self, request):
-                return {external_action.__name__: (external_action, external_action.__name__, "External")}
+                return {
+                    external_action.__name__: (
+                        external_action,
+                        external_action.__name__,
+                        "External",
+                    )
+                }
 
             def get_action(self, action):
                 return None
@@ -319,7 +323,9 @@ class TestConfirmActions(TestCase):
                 pass
 
         dummy_admin = DummyAdmin()
-        request = self.factory.post("/admin/market/shop/", data={"action": external_action.__name__})
+        request = self.factory.post(
+            "/admin/market/shop/", data={"action": external_action.__name__}
+        )
         request.user = self.superuser
         response = external_action(
             dummy_admin,
@@ -329,3 +335,31 @@ class TestConfirmActions(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(dummy_admin.context["action_display_name"], external_action.__name__)
+
+    def test_site_wide_confirm_action_should_show_confirmation_page(self):
+        response = self.client.post(
+            reverse("admin:market_shop_changelist"),
+            data={
+                "action": ["site_wide_confirm_action"],
+                "select_across": ["0"],
+                "index": ["0"],
+                "_selected_action": ["3", "2", "1"],
+            },
+            follow=True,
+        )
+        self.assertIn("Confirm Action: Site wide confirm action", response.rendered_content)
+        self.assertNotIn("Did action:site wide confirm action", response.rendered_content)
+
+    def test_site_wide_no_confirm_action_should_not_show_confirmation_page(self):
+        response = self.client.post(
+            reverse("admin:market_shop_changelist"),
+            data={
+                "action": ["site_wide_no_confirm_action"],
+                "select_across": ["0"],
+                "index": ["0"],
+                "_selected_action": ["3", "2", "1"],
+            },
+            follow=True,
+        )
+        self.assertNotIn("Confirm Action: Site wide no confirm action", response.rendered_content)
+        self.assertIn("Did action:site wide no confirm action", response.rendered_content)
