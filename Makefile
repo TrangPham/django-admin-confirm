@@ -78,7 +78,7 @@ testpypi:
 
 debugger:
 	docker compose -f docker-compose.dev.yml down
-	docker compose -f docker-compose.debug.yml up -d
+	docker compose -f docker-compose.debug.yml up --build -d
 
 debugger-down:
 	docker compose -f docker-compose.debug.yml down
