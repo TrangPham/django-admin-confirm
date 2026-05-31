@@ -24,7 +24,10 @@ docker-test:
 docker-test-all:
 	make docker-exec COMMAND="make test-all"
 
-docker-rebuild:
+docker-collect-static:
+	docker compose -f docker-compose.dev.yml exec -T web python tests/manage.py collectstatic --no-input
+
+docker-reup:
 	docker compose -f docker-compose.dev.yml up -d --force-recreate
 
 docker-migrate:
@@ -72,3 +75,10 @@ testpypi:
 	python3 -m twine upload --repository testpypi dist/django_admin_confirm-$(VERSION)*
 	pip uninstall django_admin_confirm
 	python -m pip install --index-url https://test.pypi.org/simple/ django_admin_confirm==${VERSION}
+
+debugger:
+	docker compose -f docker-compose.dev.yml down
+	docker compose -f docker-compose.debug.yml up -d
+
+debugger-down:
+	docker compose -f docker-compose.debug.yml down
