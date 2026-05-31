@@ -175,29 +175,15 @@ class AdminConfirmMixin:
                     # Don't consider default values as changed for adding
                     field_object = model._meta.get_field(name)
                     default_value = field_object.get_default()
-                    if isinstance(field_object, ManyToManyField):
-                        default_value_pks = (
-                            set([item.pk for item in default_value]) if default_value else set()
+                    if (
+                        name in form.changed_data
+                        and new_value is not None  # defaults to default value
+                        and new_value != default_value
+                    ):
+                        # Show what the default value is
+                        changed_data[name] = _display_for_changed_data(
+                            field_object, default_value, new_value
                         )
-                        new_value_pks = (
-                            set(new_value.values_list("pk", flat=True)) if new_value else set()
-                        )
-                        log(
-                            f"ManyToManyField {name} default PKs are {default_value_pks} and new value PKs are {new_value_pks}"
-                        )
-                        log(
-                            f"ManyToManyField {name} has changed from {default_value} to {new_value}"
-                        )
-                        if default_value_pks != new_value_pks:
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, default_value, new_value
-                            )
-                    else:
-                        if new_value is not None and new_value != default_value:
-                            # Show what the default value is
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, default_value, new_value
-                            )
         else:
             # Since the form considers initial as the value first shown in the form
             # It could be incorrect when user hits save, and then hits "No, go back to edit"
@@ -212,38 +198,16 @@ class AdminConfirmMixin:
 
                     if isinstance(field_object, ManyToManyField):
                         initial_value = field_object.value_from_object(obj)
-                        initial_value_pks = set(
-                            [initial_value_item.pk for initial_value_item in initial_value]
-                        )
-                        new_value_pks = set(new_value.values_list("pk", flat=True))
-                        if initial_value_pks != new_value_pks:
-                            log(
-                                f"ManyToManyField {name} has changed from {initial_value_pks} to {new_value_pks}"
-                            )
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, initial_value, new_value
-                            )
-                    elif isinstance(field_object, ForeignKey):
-                        initial_value = getattr(obj, name)
-                        initial_pk = (
-                            initial_value.pk if isinstance(initial_value, Model) else initial_value
-                        )
-                        new_pk = new_value.pk if isinstance(new_value, Model) else new_value
-
-                        if initial_pk != new_pk:
-                            log(f"Field {name} PK has changed from {initial_pk} to {new_pk}")
+                        if name in form.changed_data:
                             changed_data[name] = _display_for_changed_data(
                                 field_object, initial_value, new_value
                             )
                     else:
                         initial_value = getattr(obj, name)
-
-                        if initial_value != new_value:
-                            log(f"Field {name} has changed from {initial_value} to {new_value}")
+                        if name in form.changed_data:
                             changed_data[name] = _display_for_changed_data(
                                 field_object, initial_value, new_value
                             )
-
         return changed_data
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
@@ -402,6 +366,7 @@ class AdminConfirmMixin:
             new_object = self.save_form(request, form, change=not add)
         else:
             new_object = form.instance
+
         formsets, _inline_instances = self._create_formsets(request, new_object, change=not add)
         # End code from super()._changeform_view
         # form.is_valid() checks both errors and "is_bound"
@@ -417,6 +382,9 @@ class AdminConfirmMixin:
         # Get changed data to show on confirmation
         changed_data = self._get_changed_data(form, model, obj, add_or_new)
 
+        # Note: at this point in the form lifecycle, we could technically have used form.base_fields.keys()
+        #       but then get_confirmation_fields would be heavily state-dependent and hard to override.
+        #       Eg. here self.form != form as self.form doesn't have base_fields set yet
         confirmation_fields = self.get_confirmation_fields(request, obj)
         changed_confirmation_fields = set(confirmation_fields) & set(changed_data.keys())
         log(

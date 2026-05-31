@@ -287,6 +287,29 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         inventory.refresh_from_db()
         self.assertEqual(inventory.shop, another_shop)
 
+    def test_changed_data_respects_file_and_image_fields_not_changing(self):
+        # Regression test for if file/image not changed, shouldn't be included in changed_data, even if in confirmation_fields
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=["image"])
+        assert "image" in ItemAdmin(Item, AdminSite()).get_confirmation_fields(
+            self.factory.request()
+        )
+
+        item = ItemFactory(name="bob", price=2)
+        data = {
+            "name": item.name,
+            "price": item.price,
+            "currency": item.currency,
+            "id": item.id,
+            "_confirm_change": True,
+            "csrfmiddlewaretoken": "fake token",
+        }
+        url = f"/admin/market/item/{item.id}/change/"
+        response = self.client.post(url, data)
+
+        # Should not have shown confirmation page since image did not change
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("admin:market_item_changelist"))
+
     def test_changed_data_should_include_all_changed_fields(self):
         inventory = InventoryFactory(quantity=1)
         another_shop = ShopFactory()

@@ -30,14 +30,10 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
 
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -101,13 +97,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -172,9 +164,7 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should not be shown confirmation page
         # SInce we used "Save and Continue", should show change page
         self.assertEqual(response.status_code, 302)
@@ -212,9 +202,7 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should not be shown confirmation page
         # SInce we used "Save and Continue", should show change page
         self.assertEqual(response.status_code, 302)
@@ -252,13 +240,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])

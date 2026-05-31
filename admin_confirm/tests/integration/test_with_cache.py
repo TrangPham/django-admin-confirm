@@ -4,22 +4,20 @@ on ModelAdmin that utilize caches
 """
 
 import os
-import pytest
 
-from importlib.metadata import version as get_version
+from tests.market.admin.item_admin import ItemAdmin
 from tests.market.models import Item, ShoppingMall
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
-from tests.market.admin import shoppingmall_admin
 
-from admin_confirm.constants import CONFIRM_CHANGE
+from admin_confirm.constants import CONFIRM_CHANGE, CONFIRM_ADD
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
-class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
+class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.selenium.file_detector = LocalFileDetector()
         super().setUp()
@@ -185,3 +183,69 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.assertEqual(21, int(item.price))
         # Should have cleared `file` since clear was selected
         self.assertFalse(item.file)
+
+    def test_should_correctly_trigger_confirmation_only_when_file_changes(self):
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=["image"])
+
+        with self.subTest("New item with no image upload, should not trigger confirmation"):
+            self.selenium.get(self.live_server_url + "/admin/market/item/add/")
+            # Should be configured to ask for confirm on add
+            self.assertIn(CONFIRM_ADD, self.selenium.page_source)
+
+            self.selenium.find_element(By.NAME, "name").send_keys("New Item")
+            self.selenium.find_element(By.NAME, "price").send_keys(1)
+            self.selenium.find_element(By.ID, "id_currency_0").click()
+            self.selenium.find_element(By.NAME, "_continue").click()
+            # Redirected to change page without confirmation since no image was uploaded
+            self.assertIn("/admin/market/item/", self.selenium.current_url)
+            item = Item.objects.get(name="New Item")
+            self.assertEqual(item.price, 1)
+
+        # Upload an image, should trigger confirmation (Detects change from no image to image)
+        with self.subTest("Upload an image, should trigger confirmation"):
+            self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
+            self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+            self.selenium.find_element(By.ID, "id_image").send_keys(
+                os.getcwd() + "/screenshot_confirm_add.png"
+            )
+            self.selenium.find_element(By.NAME, "_continue").click()
+            # Should be on confirmation page since image was uploaded
+            self.assertIn("Confirm", self.selenium.page_source)
+
+            # Click "Yes, I'm sure" to confirm change
+            self.selenium.find_element(By.NAME, "_confirmation_received")
+            self.selenium.find_element(By.NAME, "_continue").click()
+
+            item.refresh_from_db()
+            self.assertIsNotNone(item.image)
+            self.assertRegex(item.image.name, r"screenshot_confirm_add.*\.png$")
+
+        # Make a change to another field without changing image, should not trigger confirmation
+        with self.subTest(
+            "Make a change to another field without changing image, should not trigger confirmation"
+        ):
+            self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
+            self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+            price = self.selenium.find_element(By.NAME, "price")
+            price.send_keys(2)
+            self.selenium.find_element(By.NAME, "_continue").click()
+            # Should redirect to change page without confirmation since image was not changed
+            self.assertIn("/admin/market/item/", self.selenium.current_url)
+
+        # Upload a new image, should trigger confirmation (detects change from image to another image)
+        with self.subTest("Upload a new image, should trigger confirmation"):
+            self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
+            self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+            self.selenium.find_element(By.ID, "id_image").send_keys(os.getcwd() + "/screenshot.png")
+            self.selenium.find_element(By.NAME, "_continue").click()
+            # Should be on confirmation page since image was changed
+            self.assertIn("Confirm", self.selenium.page_source)
+            self.selenium.find_element(By.NAME, "_confirmation_received")
+            self.selenium.find_element(By.NAME, "_continue").click()
+
+            item.refresh_from_db()
+            self.assertIsNotNone(item.image)
+            self.assertRegex(item.image.name, r"screenshot.*\.png$")
