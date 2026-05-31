@@ -186,7 +186,7 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
 
     def test_should_correctly_trigger_confirmation_only_when_file_changes(self):
         self.setAdminAttributes(ItemAdmin, confirmation_fields=["image"])
-
+        item = None
         with self.subTest("New item with no image upload, should not trigger confirmation"):
             self.selenium.get(self.live_server_url + "/admin/market/item/add/")
             # Should be configured to ask for confirm on add
@@ -195,9 +195,10 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.selenium.find_element(By.NAME, "name").send_keys("New Item")
             self.selenium.find_element(By.NAME, "price").send_keys(1)
             self.selenium.find_element(By.ID, "id_currency_0").click()
-            self.selenium.find_element(By.NAME, "_continue").click()
+            self.selenium.find_element(By.NAME, "_save").click()
             # Redirected to change page without confirmation since no image was uploaded
-            self.assertIn("/admin/market/item/", self.selenium.current_url)
+            self.assertTrue(self.selenium.current_url.endswith("/admin/market/item/"))
+
             item = Item.objects.get(name="New Item")
             self.assertEqual(item.price, 1)
 
@@ -209,6 +210,7 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.selenium.find_element(By.ID, "id_image").send_keys(
                 os.getcwd() + "/screenshot_confirm_add.png"
             )
+            # Selecting "Save and continue editing" to stay on confirmation page after confirming change
             self.selenium.find_element(By.NAME, "_continue").click()
             # Should be on confirmation page since image was uploaded
             self.assertIn("Confirm", self.selenium.page_source)
@@ -216,6 +218,10 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             # Click "Yes, I'm sure" to confirm change
             self.selenium.find_element(By.NAME, "_confirmation_received")
             self.selenium.find_element(By.NAME, "_continue").click()
+            # Because we selected "Save and continue editing", should be on change page after confirming
+            self.assertTrue(
+                self.selenium.current_url.endswith(f"/admin/market/item/{item.id}/change/")
+            )
 
             item.refresh_from_db()
             self.assertIsNotNone(item.image)
@@ -230,9 +236,9 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
 
             price = self.selenium.find_element(By.NAME, "price")
             price.send_keys(2)
-            self.selenium.find_element(By.NAME, "_continue").click()
+            self.selenium.find_element(By.NAME, "_save").click()
             # Should redirect to change page without confirmation since image was not changed
-            self.assertIn("/admin/market/item/", self.selenium.current_url)
+            self.assertTrue(self.selenium.current_url.endswith("/admin/market/item/"))
 
         # Upload a new image, should trigger confirmation (detects change from image to another image)
         with self.subTest("Upload a new image, should trigger confirmation"):
