@@ -65,7 +65,8 @@ def get_changed_data(form: ModelForm, add: bool) -> Dict:
                         field_object, default_value, new_value
                     )
     else:
-        # Parse the changed data - Note that form.changed_data only returns a list of the changed fields, not the old vs new values
+        # Parse the changed data - Note that form.changed_data only returns
+        # a list of the changed fields, not the old vs new values
         for name, new_value in form.cleaned_data.items():
             # Ignore custom fields
             with suppress(FieldDoesNotExist):
