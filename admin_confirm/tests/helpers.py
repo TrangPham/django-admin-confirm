@@ -5,7 +5,7 @@ from unittest import mock
 from django.contrib import admin as django_admin
 from django.core.cache import cache
 from django.test import TestCase, RequestFactory
-from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.contrib.staticfiles.testing import ThreadedStaticLiveServerTestCase
 from django.contrib.auth.models import User
 from tests.test_project.settings import SELENIUM_HOST
 
@@ -85,7 +85,7 @@ class AdminConfirmTestCase(TestCase):
                 self.assertIn("apple", rendered_content)
 
 
-class AdminConfirmIntegrationTestCase(StaticLiveServerTestCase):
+class AdminConfirmIntegrationTestCase(ThreadedStaticLiveServerTestCase):
     # Setup/Teardown Methods
     @classmethod
     def setUpClass(cls):
