@@ -24,7 +24,6 @@ services:
       - selenium
       - localstack
     environment:
-      - USE_LOCALSTACK=true
       - LOCALSTACK_HOST=host.docker.internal
       - SELENIUM_HOST=host.docker.internal
 

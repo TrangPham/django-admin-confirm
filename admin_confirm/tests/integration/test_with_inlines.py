@@ -14,7 +14,8 @@ from tests.market.admin.consumer_admin import ConsumerAdmin, TransactionInline
 
 
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support.ui import Select, WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 
@@ -296,7 +297,10 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         # Add inline with invalid data (transaction requires currency and we haven't selected one yet)
         # Note: This test fails if collectstatic is not working because the JS that adds inlines relies on static files
-        self.selenium.find_element(By.CLASS_NAME, "add-row").find_element(By.TAG_NAME, "a").click()
+        add_row_element = WebDriverWait(self.selenium, 10).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "add-row"))
+        )
+        add_row_element.find_element(By.TAG_NAME, "a").click()
 
         # Set the transaction total
         self.selenium.find_element(By.ID, "id_transactions-0-total").send_keys("10")

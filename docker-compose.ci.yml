@@ -11,9 +11,6 @@ services:
         SELENIUM_VERSION: "$SELENIUM_VERSION"
     command: >
       python tests/manage.py runserver 0.0.0.0:8000
-    environment:
-      - USE_LOCALSTACK=true
-      - LOCALSTACK_HOST=localhost
     volumes:
       - .:/code
     network_mode: host
