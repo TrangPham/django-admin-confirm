@@ -4,7 +4,8 @@ from unittest import mock
 
 from django.contrib import admin as django_admin
 from django.core.cache import cache
-from django.test import TestCase, RequestFactory, LiveServerTestCase
+from django.test import TestCase, RequestFactory
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.contrib.auth.models import User
 from tests.test_project.settings import SELENIUM_HOST
 
@@ -84,7 +85,7 @@ class AdminConfirmTestCase(TestCase):
                 self.assertIn("apple", rendered_content)
 
 
-class AdminConfirmIntegrationTestCase(LiveServerTestCase):
+class AdminConfirmIntegrationTestCase(StaticLiveServerTestCase):
     # Setup/Teardown Methods
     @classmethod
     def setUpClass(cls):
@@ -110,7 +111,7 @@ class AdminConfirmIntegrationTestCase(LiveServerTestCase):
             {"name": "sessionid", "value": cookie.value, "secure": False, "path": "/"}
         )
         return super().setUp()
-    
+
     def tearDown(self):
         self.exit_stack.close()
         cache.clear()
