@@ -5,13 +5,13 @@ on ModelAdmin that includes inlines
 Does not test confirmation of inline changes
 """
 
-import pytest
-import django
-from tests.factories import ShopFactory
+from tests.factories import ShopFactory, ConsumerFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
 
 from admin_confirm.tests.helpers import AdminConfirmIntegrationTestCase
 from tests.market.admin.shoppingmall_admin import ShoppingMallAdmin, ShopInline
+from tests.market.admin.consumer_admin import ConsumerAdmin, TransactionInline
+
 
 from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select
@@ -146,9 +146,9 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.setAdminAttributes(
             ShoppingMallAdmin,
             inlines=[],
-            get_inline_instances=lambda self, request, obj=None: [ShopInline(
-                self.model, self.admin_site
-            ),]
+            get_inline_instances=lambda self, request, obj=None: [
+                ShopInline(self.model, self.admin_site),
+            ],
         )
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")
@@ -278,3 +278,33 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
 
         # Should ask for confirmation since m2m field has changed from default
         self.assertIn("Confirm", self.selenium.page_source)
+
+    def test_cannot_confirm_if_inlines_invalid(self):
+        self.setAdminAttributes(
+            ConsumerAdmin,
+            inlines=[TransactionInline],
+            confirm_change=True,
+            confirmation_fields=["name", "email"],
+        )
+        consumer = ConsumerFactory.create()
+
+        self.selenium.get(self.live_server_url + f"/admin/market/consumer/{consumer.id}/change/")
+        # Should ask for confirmation of change
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+        self.set_value(by=By.NAME, by_value="name", value="Bob9171")
+
+        # Add inline with invalid data (transaction requires currency and we haven't selected one yet)
+        # Note: This test fails if collectstatic is not working because the JS that adds inlines relies on static files
+        self.selenium.find_element(By.CLASS_NAME, "add-row").find_element(By.TAG_NAME, "a").click()
+
+        # Set the transaction total
+        self.selenium.find_element(By.ID, "id_transactions-0-total").send_keys("10")
+
+        self.selenium.find_element(By.NAME, "_continue").click()
+
+        # Should show errors and not confirmation page
+        self.assertNotIn("Confirm", self.selenium.page_source)
+        self.assertIn("This field is required", self.selenium.page_source)
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+        self.selenium.find_element(By.ID, "id_transactions-0-currency_error")

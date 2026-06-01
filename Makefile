@@ -79,6 +79,7 @@ testpypi:
 debugger:
 	docker compose -f docker-compose.dev.yml down
 	docker compose -f docker-compose.debug.yml up --build -d
+	docker compose -f docker-compose.debug.yml exec -T web python tests/manage.py collectstatic --no-input
 
 debugger-down:
 	docker compose -f docker-compose.debug.yml down

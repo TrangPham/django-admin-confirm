@@ -1,16 +1,14 @@
-from contextlib import suppress
 import functools
-from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist
+from django.core.exceptions import PermissionDenied
+from django.forms.formsets import all_valid
 from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import ForeignKey, Model, ManyToManyField, FileField, ImageField
-from django.forms import ModelForm
+from django.db.models import FileField, ImageField
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
 from admin_confirm.utils import (
@@ -30,6 +28,7 @@ from admin_confirm.constants import (
     CACHE_TIMEOUT,
 )
 from admin_confirm.file_cache import FileCache
+from admin_confirm.form import get_changed_data
 
 
 class AdminConfirmMixin:
@@ -133,82 +132,6 @@ class AdminConfirmMixin:
             "confirm_add": self.confirm_add,
             "confirm_change": self.confirm_change,
         }
-
-    def _get_changed_data(self, form: ModelForm, model: Model, obj: object, add: bool) -> Dict:
-        """
-        Given a form, detect the changes on the form from the default values (if add) or
-        from the database values of the object (model instance)
-
-        form - Submitted form that is attempting to alter the obj
-        model - the model class of the obj
-        obj - instance of model which is being altered
-        add - are we attempting to add the obj or does it already exist in the database
-
-        Returns a dictionary of the fields and their changed values if any
-        """
-
-        def _display_for_changed_data(field, initial_value, new_value):
-            if not isinstance(field, (FileField, ImageField)):
-                return [initial_value, new_value]
-
-            if initial_value:
-                if new_value is False:
-                    # Clear has been selected
-                    return [initial_value.name, None]
-                elif new_value:
-                    return [initial_value.name, new_value.name]
-                else:
-                    # No cover: Technically doesn't get called in current code because
-                    # This function is only called if there was a difference in the data
-                    return [initial_value.name, initial_value.name]  # pragma: no cover
-
-            if new_value:
-                return [None, new_value.name]
-
-            return [None, None]
-
-        changed_data = {}
-        if add:
-            for name, new_value in form.cleaned_data.items():
-                # Ignore custom fields
-                with suppress(FieldDoesNotExist):
-                    # Don't consider default values as changed for adding
-                    field_object = model._meta.get_field(name)
-                    default_value = field_object.get_default()
-                    if (
-                        name in form.changed_data
-                        and new_value is not None  # defaults to default value
-                        and new_value != default_value
-                    ):
-                        # Show what the default value is
-                        changed_data[name] = _display_for_changed_data(
-                            field_object, default_value, new_value
-                        )
-        else:
-            # Since the form considers initial as the value first shown in the form
-            # It could be incorrect when user hits save, and then hits "No, go back to edit"
-            obj.refresh_from_db()
-
-            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-            for name, new_value in form.cleaned_data.items():
-                # Ignore custom fields
-                with suppress(FieldDoesNotExist):
-
-                    field_object = model._meta.get_field(name)
-
-                    if isinstance(field_object, ManyToManyField):
-                        initial_value = field_object.value_from_object(obj)
-                        if name in form.changed_data:
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, initial_value, new_value
-                            )
-                    else:
-                        initial_value = getattr(obj, name)
-                        if name in form.changed_data:
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, initial_value, new_value
-                            )
-        return changed_data
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
         """
@@ -371,7 +294,7 @@ class AdminConfirmMixin:
         # End code from super()._changeform_view
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
-        if not form_validated:
+        if not (all_valid(formsets) and form_validated):
             log("Invalid Form: return early")
             log(form.errors)
             # We must ensure that we ask for confirmation when showing errors
@@ -380,8 +303,7 @@ class AdminConfirmMixin:
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, add_or_new)
-
+        changed_data = get_changed_data(form, add_or_new)
         # Note: at this point in the form lifecycle, we could technically have used form.base_fields.keys()
         #       but then get_confirmation_fields would be heavily state-dependent and hard to override.
         #       Eg. here self.form != form as self.form doesn't have base_fields set yet
@@ -390,6 +312,20 @@ class AdminConfirmMixin:
         log(
             f"Confirmation fields are {confirmation_fields} and changed data fields are {changed_data.keys()}"
         )
+        # formsets_changed_data = {} # Key: prefix, Value: list[dict[field, [initial, new]]]]
+        # for formset in formsets:
+        #     formset_changed_data = []
+        #     for form in formset.forms:
+        #         if not form.has_changed():
+        #             continue
+        #         formset_changed_data.append(
+        #             {
+        #                 field: [form.initial.get(field), form.cleaned_data.get(field)]
+        #                 for field in form.changed_data
+        #             }
+        #         )
+        #     if formset_changed_data:
+        #         formsets_changed_data[formset.prefix] = formset_changed_data
 
         if not bool(changed_confirmation_fields):
             log("No change detected")
@@ -485,3 +421,38 @@ def confirm_action(func):
         return modeladmin.render_action_confirmation(request, context)
 
     return func_wrapper
+
+
+class InlineAdminConfirmMixin:
+    # Should we ask for confirmation for changes?
+    confirm_change = None
+
+    # Should we ask for confirmation for additions?
+    confirm_add = None
+
+    # If asking for confirmation, which fields should we confirm for?
+    confirmation_fields = None
+
+    # Django doesn't seem to confirm deletions on inlines natively for inlines
+    # Should we ask for confirmation for deletions?
+    confirm_delete = None
+
+    def get_confirmation_fields(self, request, obj=None):
+        """
+        Hook for specifying confirmation fields
+        """
+        # default confirmation fields to all fields, including ManyToManyFields
+        confirmation_fields = set([field.name for field in self.model._meta.fields]) | set(
+            field.name for field in self.model._meta.get_fields()
+        )
+
+        if self.confirmation_fields and self.confirmation_fields != "__all__":
+            # set confirmation fields if specified
+            confirmation_fields = set(self.confirmation_fields)
+
+        # filter to valid fields which are visible on the admin page
+        admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
+        log(
+            f"Inline: Admin fields are {admin_fields} and confirmation fields are {confirmation_fields}"
+        )
+        return list(confirmation_fields & admin_fields)
