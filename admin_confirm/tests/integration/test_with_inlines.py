@@ -5,7 +5,7 @@ on ModelAdmin that includes inlines
 Does not test confirmation of inline changes
 """
 
-import os
+import pytest
 
 from tests.factories import ShopFactory, ConsumerFactory
 from tests.market.models import GeneralManager, ShoppingMall, Town
@@ -19,8 +19,6 @@ from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from selenium.webdriver.support.ui import Select, WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
-
-from tests.test_project import settings
 
 
 class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
