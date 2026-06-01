@@ -74,6 +74,8 @@ jobs:
       AWS_ACCESS_KEY_ID: test
       AWS_SECRET_ACCESS_KEY: test
       AWS_DEFAULT_REGION: us-west-1
+      USE_LOCALSTACK: true
+      LOCALSTACK_HOST: localhost
     steps:
       - name: Update Permissions
         run: |
