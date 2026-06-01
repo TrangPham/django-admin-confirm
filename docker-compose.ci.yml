@@ -10,8 +10,7 @@ services:
         DJANGO_VERSION: "$DJANGO_VERSION"
         SELENIUM_VERSION: "$SELENIUM_VERSION"
     command: >
-      sh -c "python tests/manage.py collectstatic --no-input &&
-        python tests/manage.py runserver 0.0.0.0:8000"
+      python tests/manage.py runserver 0.0.0.0:8000
     environment:
       - USE_LOCALSTACK=true
       - LOCALSTACK_HOST=localhost

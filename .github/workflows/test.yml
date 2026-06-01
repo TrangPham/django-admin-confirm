@@ -93,6 +93,7 @@ jobs:
         # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
       - name: Integration Test
         run: |
+          docker exec -t web_main python tests/manage.py collectstatic --no-input
           docker exec -t web_main make test-all
         # Known Issue: docker-compose cannot run/exec in container via service name when in host network_mode.
         # See: https://github.com/docker/compose/issues/4548
