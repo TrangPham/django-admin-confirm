@@ -1,12 +1,8 @@
 services:
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        PYTHON_VERSION: "$PYTHON_VERSION"
-        DJANGO_VERSION: "$DJANGO_VERSION"
-        SELENIUM_VERSION: "$SELENIUM_VERSION"
+    extends:
+      file: docker-compose.dev.yml
+      service: web
     # Note: collectstatic runs from inside the docker container and needs
     #       to access localstack through the host machine using host.docker.internal
     #       BUT when we access the django server from our host machine, we need to access
@@ -17,41 +13,15 @@ services:
              export PYDEVD_DISABLE_FILE_VALIDATION=1 &&
              export LOCALSTACK_HOST=localhost &&
              python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client tests/manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - .:/code
     ports:
-      - "8000:8000"
       - "5678:5678" # debugpy
-    depends_on:
-      - selenium
-      - localstack
-    environment:
-      - LOCALSTACK_HOST=host.docker.internal
-      ### Note: selenium and integration tests don't work quite right when using dbeugpy. Use docker-compose.dev.yml without debugpy for that. See
-      - SELENIUM_HOST=host.docker.internal
 
   selenium:
-    image: selenium/standalone-firefox
-    ports:
-      - "4444:4444" # Selenium
-      - "5900:5900" # VNC
-    volumes:
-      - .:/code
+    extends:
+      file: docker-compose.dev.yml
+      service: selenium
 
   localstack:
-    image: localstack/localstack
-    ports:
-      - "4566:4566"
-      - "4571:4571"
-    environment:
-      - SERVICES=s3
-      - DEBUG=true
-      # enable persistance
-      - PERSISTENCE=1
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - LOCALSTACK_HOST=localstack
-    volumes:
-      # /docker-entrypoint-initaws.d deprecated in Localstack 2.0
-      - "./docker-entrypoint-initaws.d:/etc/localstack/init/ready.d"
-      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
-      - "/var/run/docker.sock:/var/run/docker.sock"
+    extends:
+      file: docker-compose.dev.yml
+      service: localstack
