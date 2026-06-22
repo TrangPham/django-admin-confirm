@@ -22,7 +22,7 @@ jobs:
           - "4444:4444" # Selenium
           - "5900:5900" # VNC
       localstack:
-        image: localstack/localstack:1.4.0
+        image: floci/floci:latest-compat
         env:
           SERVICES: s3
           DEFAULT_REGION: us-west-1
@@ -34,9 +34,7 @@ jobs:
           DOCKER_HOST: unix:///var/run/docker.sock
           DEBUG: true
         volumes:
-          # It doesn't seem like the scripts in entrypoint are being ran... or they are not copied over since
-          # the checkout action happens after init services on Github Actions
-          # - "${{ github.workspace }}/docker-entrypoint-initaws.d:/docker-entrypoint-initaws.d"
+          - "${{ github.workspace }}/docker-entrypoint-initaws.d:/etc/localstack/init/ready.d"
           - "${{ github.workspace }}/volume:/var/lib/localstack"
           - "/var/run/docker.sock:/var/run/docker.sock"
         ports:
@@ -86,11 +84,11 @@ jobs:
         run: |
           export SELENIUM_VERSION=4.0.0a7
           docker compose -f docker-compose.ci.yml up -d --build
-      - name: Attempt to connect to localstack and create bucket
-        run: |
-          curl -X GET http://localhost:4566/_localstack/health
-          aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
-        # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
+      # - name: Attempt to connect to localstack and create bucket
+      #   run: |
+      #     curl -X GET http://localhost:4566/_localstack/health
+      #     aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket 2> /dev/null || true
+      # Since docker-entrypoint-initaws.d can't be used to create the s3 bucket on CI
       - name: Integration Test
         run: |
           docker exec -t web_main make test-all
