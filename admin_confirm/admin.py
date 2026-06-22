@@ -9,8 +9,8 @@ from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import ForeignKey, Model, ManyToManyField, FileField, ImageField
-from django.forms import ModelForm
+from django.db.models import Model, ManyToManyField, FileField, ImageField
+from django.forms import ModelForm, all_valid
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
 from admin_confirm.utils import (
@@ -371,7 +371,7 @@ class AdminConfirmMixin:
         # End code from super()._changeform_view
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
-        if not form_validated:
+        if not (all_valid(formsets) and form_validated):
             log("Invalid Form: return early")
             log(form.errors)
             # We must ensure that we ask for confirmation when showing errors

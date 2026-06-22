@@ -41,3 +41,11 @@ class TransactionFactory(factory.django.DjangoModelFactory):
     date = factory.LazyAttribute(lambda _: timezone.now().date())
     timestamp = factory.LazyAttribute(lambda _: timezone.now())
     shop = factory.SubFactory(ShopFactory)
+
+
+class ConsumerFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "market.Consumer"
+
+    name = factory.Faker("name")
+    email = factory.Faker("email")

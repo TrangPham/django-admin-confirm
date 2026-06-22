@@ -4,6 +4,12 @@
 
 from django.contrib import admin
 from admin_confirm.admin import AdminConfirmMixin
+from ..models import Transaction
+
+
+class TransactionInline(admin.TabularInline):
+    model = Transaction
+    extra = 0
 
 
 class ConsumerAdmin(AdminConfirmMixin, admin.ModelAdmin):
@@ -13,3 +19,4 @@ class ConsumerAdmin(AdminConfirmMixin, admin.ModelAdmin):
 
     confirm_change = True
     confirmation_fields = ["name"]
+    inlines = [TransactionInline]

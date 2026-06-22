@@ -9,8 +9,8 @@ test-all:
 	coverage run --source admin_confirm --branch -m pytest
 	coverage report -m
 
-t:
-	python -m pytest --last-failed -x
+dt:
+	docker compose -f docker-compose.dev.yml exec -T web python -m pytest --last-failed -x --pdb
 
 test-integration:
 	coverage run --source admin_confirm --branch -m pytest --ignore=admin_confirm/tests/unit
