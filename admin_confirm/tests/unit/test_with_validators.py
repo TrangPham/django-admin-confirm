@@ -5,7 +5,7 @@ NOTE: These unit tests are not enough to ensure that confirmations work with val
     Please ensure to add integration tests too!
 """
 
-from admin_confirm.constants import CONFIRM_ADD
+from admin_confirm.constants import CONFIRM_ADD, CONFIRM_CHANGE
 from unittest import mock
 from django.urls import reverse
 from django.utils import timezone
@@ -13,6 +13,7 @@ from django.utils import timezone
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.models import Checkout, ItemSale
 from tests.factories import (
+    ConsumerFactory,
     InventoryFactory,
     ItemFactory,
     ShopFactory,
@@ -307,3 +308,48 @@ class TestWithValidators(AdminConfirmTestCase):
         self.assertIn("Invalid Total 222", str(response.rendered_content))
         # Should still ask for confirmation
         self.assertIn(CONFIRM_ADD, response.rendered_content)
+
+    def test_cannot_confirm_if_inline_has_errors(self):
+        consumer = ConsumerFactory(name="John Doe")
+        data = {
+            "consumer": consumer.id,
+            "name": "John McDowley",
+            "email": consumer.email,
+            "transactions-TOTAL_FORMS": "1",
+            "transactions-INITIAL_FORMS": ["0"],
+            "transactions-MIN_NUM_FORMS": ["0"],
+            "transactions-MAX_NUM_FORMS": ["1000"],
+            "transactions-0-id": ["12"],
+            "transactions-0-consumer": [f"consumer_{consumer.id}"],
+            "transactions-0-timestamp_0": ["2026-06-07"],
+            "transactions-0-timestamp_1": ["23:10:49"],
+            "transactions-0-total": ["12"],
+            "transactions-0-currency": ["USD"],
+            "transactions-0-shop": [""],  # Required
+            "transactions-0-date": ["2026-06-07"],
+            "transactions-__prefix__-id": [""],
+            "transactions-__prefix__-consumer": [f"consumer_{consumer.id}"],
+            "transactions-__prefix__-timestamp_0": [""],
+            "transactions-__prefix__-timestamp_1": [""],
+            "transactions-__prefix__-total": ["0"],
+            "transactions-__prefix__-currency": [""],
+            "transactions-__prefix__-shop": [""],
+            "transactions-__prefix__-date": [""],
+            "_confirm_change": ["True"],
+            "_save": ["Save"],
+        }
+        response = self.client.post(
+            reverse("admin:market_consumer_change", args=[consumer.id]), data
+        )
+        # Should show form with error and not confirmation page
+        self.assertEqual(response.status_code, 200)
+        expected_templates = [
+            "admin/market/consumer/change_form.html",
+            "admin/market/change_form.html",
+            "admin/change_form.html",
+        ]
+        self.assertEqual(response.template_name, expected_templates)
+        self.assertIn("error", str(response.rendered_content))
+        self.assertIn("This field is required", str(response.rendered_content))
+        # Should still ask for confirmation
+        self.assertIn(CONFIRM_CHANGE, response.rendered_content)
