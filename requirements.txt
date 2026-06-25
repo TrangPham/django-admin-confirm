@@ -1,6 +1,6 @@
 Django>=1.7.0
 factory-boy~=3.3.3
-coverage~=5.4
+coverage~=7.14
 pytest>=9.0.3
 pytest-django>=4.8.0
 readme-renderer~=44.0
