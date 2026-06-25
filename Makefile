@@ -43,7 +43,7 @@ docker-exec:
 	docker compose -f docker-compose.dev.yml exec -T web ${COMMAND}
 
 create-bucket:
-	docker compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+	docker compose -f docker-compose.dev.yml exec -T localstack aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html

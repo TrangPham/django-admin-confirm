@@ -8,7 +8,7 @@ import os
 
 import pytest
 from importlib.metadata import version as get_version
-import localstack_client.session
+import boto3
 import django
 
 from selenium.webdriver.remote.file_detector import LocalFileDetector
@@ -30,8 +30,13 @@ DJANGO_VERSION = django.__version__
 class ConfirmWithS3StorageTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.selenium.file_detector = LocalFileDetector()
-        session = localstack_client.session.Session(region_name="us-west-1")
-        self.s3 = session.resource("s3")
+        self.s3 = boto3.resource(
+            "s3",
+            endpoint_url=settings.AWS_S3_ENDPOINT_URL,
+            region_name="us-west-1",
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        )
         self.bucket = self.s3.Bucket(settings.AWS_STORAGE_BUCKET_NAME)
         # Delete all current files
         for obj in self.bucket.objects.all():
