@@ -12,10 +12,10 @@ docker compose -f docker-compose.dev.yml up -d
 You should now be able to see the app running on `localhost:8000`
 
 > Note:
-> If you get NoSuchBucket error in the web container, execute `awslocal s3 mb s3://mybucket` in the localstack container and restart web container.
+> If you get NoSuchBucket error in the web container, execute `aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket` in the localstack/floci container and restart web container.
 
 ```
-docker compose -f docker-compose.dev.yml exec -T localstack awslocal s3 mb s3://mybucket
+make create-bucket
 ```
 
 If you haven't already done migrations and created a superuser, you'll want to do it here
@@ -51,8 +51,8 @@ from admin_confirm.utils import log
 log('Message to send to stdout')
 ```
 
-**Localstack**:
-Localstack is used for integration testing and also in the test project.
+**Floci (Localstack-compatible)**:
+Floci is used for integration testing and also in the test project.
 
 To check if localstack is running correctly, go to `http://localhost:4566`
 To check if the bucket has been set up correctly, go to `http://localhost:4566/mybucket`
