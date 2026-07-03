@@ -15,15 +15,15 @@ from tests.factories import (
     ShopFactory,
     TransactionFactory,
 )
-from tests.market.admin import shoppingmall_admin
+from tests.market.admin.shoppingmall_admin import ShoppingMallAdmin, ShopInline
 
 
 class ConfirmWithValidatorsTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         super().setUp()
         self.setAdminAttributes(
-            shoppingmall_admin.ShoppingMallAdmin,
-            inlines=[shoppingmall_admin.ShopInline],
+            ShoppingMallAdmin,
+            inlines=[ShopInline],
         )
 
     def tearDown(self):

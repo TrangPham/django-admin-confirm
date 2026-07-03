@@ -1,16 +1,14 @@
-from contextlib import suppress
 import functools
-from typing import Dict
 from django.contrib.admin.exceptions import DisallowedModelAdminToField
 from django.contrib.admin.utils import flatten_fieldsets, unquote
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied, FieldDoesNotExist
+from django.core.exceptions import PermissionDenied
+from django.forms.formsets import all_valid
 from django.template.response import TemplateResponse
 from django.contrib.admin.options import TO_FIELD_VAR
 from django.utils.translation import gettext as _
 from django.contrib.admin import helpers
-from django.db.models import Model, ManyToManyField, FileField, ImageField
-from django.forms import ModelForm, all_valid
+from django.db.models import FileField, ImageField
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
 from admin_confirm.utils import (
@@ -30,9 +28,10 @@ from admin_confirm.constants import (
     CACHE_TIMEOUT,
 )
 from admin_confirm.file_cache import FileCache
+from admin_confirm.form import get_changed_data
 
 
-class AdminConfirmMixin:
+class BaseAdminConfirmMixin:
     # Should we ask for confirmation for changes?
     confirm_change = None
 
@@ -41,12 +40,6 @@ class AdminConfirmMixin:
 
     # If asking for confirmation, which fields should we confirm for?
     confirmation_fields = None
-
-    # Custom templates (designed to be over-ridden in subclasses)
-    change_confirmation_template = None
-    action_confirmation_template = None
-
-    _file_cache = FileCache()
 
     def get_confirmation_fields(self, request, obj=None):
         """
@@ -63,8 +56,22 @@ class AdminConfirmMixin:
 
         # filter to valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
-        log(f"Admin fields are {admin_fields} and confirmation fields are {confirmation_fields}")
+        log(f"[Admin fields are {admin_fields} and confirmation fields are {confirmation_fields}")
         return list(confirmation_fields & admin_fields)
+
+
+class InlineAdminConfirmMixin(BaseAdminConfirmMixin):
+    # Should we ask for confirmation for deletions?
+    # (Only applicable for inlines - Django has built-in confirmation for deletions on the main model)
+    confirm_delete = False
+
+
+class AdminConfirmMixin(BaseAdminConfirmMixin):
+    # Custom templates (designed to be over-ridden in subclasses)
+    change_confirmation_template = None
+    action_confirmation_template = None
+
+    _file_cache = FileCache()
 
     def render_change_confirmation(self, request, context):
         opts = self.model._meta
@@ -109,106 +116,41 @@ class AdminConfirmMixin:
 
     @method_decorator(cache_control(private=True))
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
+        confirmation_options = self._get_confirmation_options(
+            request, self.get_object(request, unquote(object_id)) or None
+        )
         if request.method == "POST":
-            if (not object_id and CONFIRM_ADD in request.POST) or (
-                object_id and CONFIRM_CHANGE in request.POST
-            ):
-                log("confirmation is asked for")
-                self._file_cache.delete_all()
-                cache.delete_many(CACHE_KEYS.values())
-                return self._change_confirmation_view(request, object_id, form_url, extra_context)
-            elif CONFIRMATION_RECEIVED in request.POST:
+            if CONFIRMATION_RECEIVED in request.POST:
                 return self._confirmation_received_view(request, object_id, form_url, extra_context)
-            else:
-                self._file_cache.delete_all()
-                cache.delete_many(CACHE_KEYS.values())
 
-        extra_context = self._add_confirmation_options_to_extra_context(extra_context)
+            self._file_cache.delete_all()
+            cache.delete_many(CACHE_KEYS.values())
+
+            if request.POST.keys() & set(confirmation_options):
+                log("confirmation configured")
+                return self._change_confirmation_view(request, object_id, form_url, extra_context)
+
+        extra_context = {
+            **(extra_context or {}),
+            "confirmation_options": confirmation_options,
+        }
         return super().changeform_view(request, object_id, form_url, extra_context)
 
-    def _add_confirmation_options_to_extra_context(self, extra_context):
-        log(f"Adding confirmation to extra_content {self.confirm_add} {self.confirm_change}")
-        return {
-            **(extra_context or {}),
-            "confirm_add": self.confirm_add,
-            "confirm_change": self.confirm_change,
-        }
+    def _get_confirmation_options(self, request, obj=None) -> list[str]:
+        options = []
+        if self.confirm_add:
+            options.append(CONFIRM_ADD)
+        if self.confirm_change:
+            options.append(CONFIRM_CHANGE)
 
-    def _get_changed_data(self, form: ModelForm, model: Model, obj: object, add: bool) -> Dict:
-        """
-        Given a form, detect the changes on the form from the default values (if add) or
-        from the database values of the object (model instance)
-
-        form - Submitted form that is attempting to alter the obj
-        model - the model class of the obj
-        obj - instance of model which is being altered
-        add - are we attempting to add the obj or does it already exist in the database
-
-        Returns a dictionary of the fields and their changed values if any
-        """
-
-        def _display_for_changed_data(field, initial_value, new_value):
-            if not isinstance(field, (FileField, ImageField)):
-                return [initial_value, new_value]
-
-            if initial_value:
-                if new_value is False:
-                    # Clear has been selected
-                    return [initial_value.name, None]
-                elif new_value:
-                    return [initial_value.name, new_value.name]
-                else:
-                    # No cover: Technically doesn't get called in current code because
-                    # This function is only called if there was a difference in the data
-                    return [initial_value.name, initial_value.name]  # pragma: no cover
-
-            if new_value:
-                return [None, new_value.name]
-
-            return [None, None]
-
-        changed_data = {}
-        if add:
-            for name, new_value in form.cleaned_data.items():
-                # Ignore custom fields
-                with suppress(FieldDoesNotExist):
-                    # Don't consider default values as changed for adding
-                    field_object = model._meta.get_field(name)
-                    default_value = field_object.get_default()
-                    if (
-                        name in form.changed_data
-                        and new_value is not None  # defaults to default value
-                        and new_value != default_value
-                    ):
-                        # Show what the default value is
-                        changed_data[name] = _display_for_changed_data(
-                            field_object, default_value, new_value
-                        )
-        else:
-            # Since the form considers initial as the value first shown in the form
-            # It could be incorrect when user hits save, and then hits "No, go back to edit"
-            obj.refresh_from_db()
-
-            # Parse the changed data - Note that using form.changed_data would not work because initial is not set
-            for name, new_value in form.cleaned_data.items():
-                # Ignore custom fields
-                with suppress(FieldDoesNotExist):
-
-                    field_object = model._meta.get_field(name)
-
-                    if isinstance(field_object, ManyToManyField):
-                        initial_value = field_object.value_from_object(obj)
-                        if name in form.changed_data:
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, initial_value, new_value
-                            )
-                    else:
-                        initial_value = getattr(obj, name)
-                        if name in form.changed_data:
-                            changed_data[name] = _display_for_changed_data(
-                                field_object, initial_value, new_value
-                            )
-        return changed_data
+        inlines = self.get_inline_instances(request, obj)
+        for inline in inlines:
+            if isinstance(inline, InlineAdminConfirmMixin):
+                if inline.confirm_add:
+                    options.append(f"{inline.model.__name__}{CONFIRM_ADD}")
+                if inline.confirm_change:
+                    options.append(f"{inline.model.__name__}{CONFIRM_CHANGE}")
+        return options
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):
         """
@@ -268,13 +210,6 @@ class AdminConfirmMixin:
             log(f"Found reconstructed files for fields: {reconstructed_files.keys()}")
             obj = None
 
-            # remove the _confirm_add and _confirm_change from post
-            modified_post = request.POST.copy()
-            if CONFIRM_ADD in modified_post:
-                del modified_post[CONFIRM_ADD]  # pragma: no cover
-            if CONFIRM_CHANGE in modified_post:
-                del modified_post[CONFIRM_CHANGE]  # pragma: no cover
-
             if object_id and SAVE_AS_NEW not in request.POST:
                 # Update the obj with the new uploaded files
                 # then pass rest of changes to Django
@@ -285,6 +220,12 @@ class AdminConfirmMixin:
                 # Note that this results in the "Yes, I'm Sure" submission
                 #   act as a `change` not an `add`
                 obj = cache.get(CACHE_KEYS["object"])
+
+            # remove the confirmation options from post
+            modified_post = request.POST.copy()
+            for key in self._get_confirmation_options(request, obj):
+                if key in modified_post:
+                    del modified_post[key]
 
             # No cover: __reconstruct_request_files currently checks for cached obj so obj won't be None
             if obj:  # pragma: no cover
@@ -367,21 +308,24 @@ class AdminConfirmMixin:
         else:
             new_object = form.instance
 
-        formsets, _inline_instances = self._create_formsets(request, new_object, change=not add)
+        formsets, inline_instances = self._create_formsets(request, new_object, change=not add)
         # End code from super()._changeform_view
+
         # form.is_valid() checks both errors and "is_bound"
         # If form has errors, show the errors on the form instead of showing confirmation page
         if not (all_valid(formsets) and form_validated):
             log("Invalid Form: return early")
             log(form.errors)
             # We must ensure that we ask for confirmation when showing errors
-            extra_context = self._add_confirmation_options_to_extra_context(extra_context)
+            extra_context = {
+                **(extra_context or {}),
+                "confirmation_options": self._get_confirmation_options(request, new_object),
+            }
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
         add_or_new = add or SAVE_AS_NEW in request.POST
         # Get changed data to show on confirmation
-        changed_data = self._get_changed_data(form, model, obj, add_or_new)
-
+        changed_data = get_changed_data(form)
         # Note: at this point in the form lifecycle, we could technically have used form.base_fields.keys()
         #       but then get_confirmation_fields would be heavily state-dependent and hard to override.
         #       Eg. here self.form != form as self.form doesn't have base_fields set yet
@@ -390,8 +334,61 @@ class AdminConfirmMixin:
         log(
             f"Confirmation fields are {confirmation_fields} and changed data fields are {changed_data.keys()}"
         )
+        is_confirmation_required = False
+        if changed_confirmation_fields:
+            is_confirmation_required = (
+                is_confirmation_required
+                or (add_or_new and self.confirm_add)
+                or (not add_or_new and self.confirm_change)
+            )
 
-        if not bool(changed_confirmation_fields):
+        formsets_changed_data = {}  # Key: prefix, Value: list[dict[field, [initial, new]]]]
+        for formset, inline in zip(formsets, inline_instances):
+            # each formset corresponds to an inline in inline_instances
+            if not isinstance(inline, InlineAdminConfirmMixin):
+                continue
+
+            inline_confirmation_fields = inline.get_confirmation_fields(request, obj)
+
+            # formset.model
+            formset_changed_data = {}
+            for index, inline_form in enumerate(formset.forms):
+                inline_delete = inline_form.cleaned_data.get("DELETE", False)
+                if inline_delete and inline.confirm_delete:
+                    formset_changed_data[inline_form.prefix] = (
+                        {},
+                        f"DELETE {str(inline_form.instance)}",
+                        [],
+                    )
+                    is_confirmation_required = True
+                    continue
+
+                # form._meta.model
+                inline_add = inline_form.instance.id is None
+                form_changed_data = get_changed_data(inline_form)
+                if form_changed_data:
+                    form_changed_confirmation_fields = set(inline_confirmation_fields) & set(
+                        form_changed_data.keys()
+                    )
+                    title = str(inline_form.instance) if not inline_add else f"#{index + 1}"
+                    log(
+                        f"Inline confirmation fields are {inline_confirmation_fields} and changed data fields are {form_changed_data.keys()}"
+                    )
+                    formset_changed_data[inline_form.prefix] = (
+                        form_changed_data,
+                        title,
+                        form_changed_confirmation_fields,
+                    )
+                    if form_changed_confirmation_fields:
+                        is_confirmation_required = (
+                            is_confirmation_required
+                            or (inline_add and inline.confirm_add)
+                            or (not inline_add and inline.confirm_change)
+                        )
+            if formset_changed_data:
+                formsets_changed_data[formset.prefix] = formset_changed_data
+
+        if not is_confirmation_required:
             log("No change detected")
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
@@ -440,6 +437,7 @@ class AdminConfirmMixin:
             "model_name": opts.model_name,
             "opts": opts,
             "changed_data": changed_data,
+            "formsets_changed_data": formsets_changed_data,
             "add": add,
             "save_as_new": SAVE_AS_NEW in request.POST,
             "submit_name": save_action,
