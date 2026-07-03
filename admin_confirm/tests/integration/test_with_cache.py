@@ -4,7 +4,6 @@ on ModelAdmin that utilize caches
 """
 
 import os
-
 from django import forms
 
 from tests.market.admin.item_admin import ItemAdmin
@@ -17,14 +16,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
-
-
-class RequiredFileForm(forms.ModelForm):
-    class Meta:
-        model = Item
-        fields = "__all__"
-
-    file = forms.FileField(required=True)
 
 
 class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
@@ -63,7 +54,14 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         self.assertIn("New Name", mall.name)
 
     def test_models_with_files_should_have_confirmation_received(self):
-        item = Item.objects.create(name="item", price=1)
+        with open("screenshot.png", "rb") as f:
+            image = SimpleUploadedFile(
+                name="old_file.jpg",
+                content=f.read(),
+                content_type="image/jpeg",
+            )
+
+        item = Item.objects.create(name="item", price=1, image=image)
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
@@ -115,7 +113,6 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_confirmation_page_should_not_render_required_hidden_file_input(self):
-        self.setAdminAttributes(ItemAdmin, form=RequiredFileForm)
         item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -178,8 +175,9 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
                 content_type="image/jpeg",
             )
 
+        # Note: ItemAdmin requires `image` to be uploaded, so we must provide an image to create the item.
         item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file
+            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file, image=file
         )
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -214,9 +212,9 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         self.assertFalse(item.file)
 
     def test_should_correctly_trigger_confirmation_only_when_file_changes(self):
-        self.setAdminAttributes(ItemAdmin, confirmation_fields=["image"])
+        self.setAdminAttributes(ItemAdmin, confirmation_fields=["file"])
         item = None
-        with self.subTest("New item with no image upload, should not trigger confirmation"):
+        with self.subTest("New item with no file upload, should not trigger confirmation"):
             self.selenium.get(self.live_server_url + "/admin/market/item/add/")
             # Should be configured to ask for confirm on add
             self.assertIn(CONFIRM_ADD, self.selenium.page_source)
@@ -224,6 +222,8 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.selenium.find_element(By.NAME, "name").send_keys("New Item")
             self.selenium.find_element(By.NAME, "price").send_keys(1)
             self.selenium.find_element(By.ID, "id_currency_0").click()
+            # Image is required field
+            self.selenium.find_element(By.ID, "id_image").send_keys(os.getcwd() + "/screenshot.png")
             self.selenium.find_element(By.NAME, "_save").click()
             # Redirected to change page without confirmation since no image was uploaded
             self.assertTrue(self.selenium.current_url.endswith("/admin/market/item/"))
@@ -232,11 +232,11 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.assertEqual(item.price, 1)
 
         # Upload an image, should trigger confirmation (Detects change from no image to image)
-        with self.subTest("Upload an image, should trigger confirmation"):
+        with self.subTest("Upload a file, should trigger confirmation"):
             self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
             self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
-            self.selenium.find_element(By.ID, "id_image").send_keys(
+            self.selenium.find_element(By.ID, "id_file").send_keys(
                 os.getcwd() + "/screenshot_confirm_add.png"
             )
             # Selecting "Save and continue editing" to stay on confirmation page after confirming change
@@ -253,8 +253,8 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             )
 
             item.refresh_from_db()
-            self.assertIsNotNone(item.image)
-            self.assertRegex(item.image.name, r"screenshot_confirm_add.*\.png$")
+            self.assertIsNotNone(item.file)
+            self.assertRegex(item.file.name, r"screenshot_confirm_add.*\.png$")
 
         # Make a change to another field without changing image, should not trigger confirmation
         with self.subTest(
@@ -269,12 +269,12 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             # Should redirect to change page without confirmation since image was not changed
             self.assertTrue(self.selenium.current_url.endswith("/admin/market/item/"))
 
-        # Upload a new image, should trigger confirmation (detects change from image to another image)
+        # Upload a new file, should trigger confirmation (detects change from image to another image)
         with self.subTest("Upload a new image, should trigger confirmation"):
             self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
             self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
 
-            self.selenium.find_element(By.ID, "id_image").send_keys(os.getcwd() + "/screenshot.png")
+            self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
             self.selenium.find_element(By.NAME, "_continue").click()
             # Should be on confirmation page since image was changed
             self.assertIn("Confirm", self.selenium.page_source)
@@ -282,5 +282,5 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.selenium.find_element(By.NAME, "_continue").click()
 
             item.refresh_from_db()
-            self.assertIsNotNone(item.image)
-            self.assertRegex(item.image.name, r"screenshot.*\.png$")
+            self.assertIsNotNone(item.file)
+            self.assertRegex(item.file.name, r"screenshot.*\.png$")

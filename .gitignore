@@ -40,3 +40,6 @@ tmp/
 
 .python-version
 volume/*
+
+# Understand Anything Claude Plugin
+.understand-anything/*
