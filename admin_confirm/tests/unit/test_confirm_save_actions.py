@@ -57,10 +57,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(Item.objects.count(), 0)
 
         # Click "Yes, I'm Sure"
-        confirmation_data = data.copy()
-        del confirmation_data["_confirm_add"]
-        confirmation_data[CONFIRMATION_RECEIVED] = True
-        response = self.client.post(reverse("admin:market_item_add"), data=confirmation_data)
+        del data["_confirm_add"]
+        data[CONFIRMATION_RECEIVED] = True
+        response = self.client.post(reverse("admin:market_item_add"), data=data)
 
         # Should have redirected to changelist
         self.assertEqual(response.status_code, 302)
@@ -116,10 +115,9 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(item.name, "Not name")
 
         # Click "Yes, I'm Sure"
-        confirmation_data = data.copy()
-        del confirmation_data["_confirm_change"]
-        confirmation_data[CONFIRMATION_RECEIVED] = True
-        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=confirmation_data)
+        del data["_confirm_change"]
+        data[CONFIRMATION_RECEIVED] = True
+        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
 
         # Should not have redirected to changelist
         self.assertEqual(response.url, f"/admin/market/item/{item.id}/change/")

@@ -23,10 +23,14 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
             confirm_add=True,
             confirm_change=True,
             confirmation_fields=["currency", "price", "name"],
-            radio_fields={"currency": VERTICAL},
+            radio_fields={"currency":VERTICAL}
         )
-        self.setAdminAttributes(ShoppingMallAdmin, raw_id_fields=["general_manager"], inlines=[])
-
+        self.setAdminAttributes(
+            ShoppingMallAdmin,
+            raw_id_fields=["general_manager"],
+            inlines=[]
+        )
+        
     def tearDown(self):
         super().tearDown()
 
