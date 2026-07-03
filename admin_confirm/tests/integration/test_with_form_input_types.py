@@ -2,8 +2,6 @@
 Tests with different form input types
 """
 
-import os
-
 from datetime import timedelta
 from django.utils import timezone
 from tests.factories import ShopFactory, TransactionFactory
@@ -48,9 +46,6 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
         currency = self.selenium.find_element(By.ID, "id_currency_0")
         currency.click()
         expected_value = currency.get_attribute("value")
-
-        # ItemAdmin requires file upload.
-        self.selenium.find_element(By.ID, "id_image").send_keys(os.getcwd() + "/screenshot.png")
 
         self.selenium.find_element(By.NAME, "_continue").click()
 

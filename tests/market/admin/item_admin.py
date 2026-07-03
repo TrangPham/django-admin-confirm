@@ -16,7 +16,6 @@ class ItemAdmin(AdminConfirmMixin, ModelAdmin):
 
     list_display = ("name", "price", "currency")
     readonly_fields = ["image_preview"]
-    required_fields = ["image"]
 
     save_as = True
     save_as_continue = False

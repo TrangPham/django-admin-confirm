@@ -8,7 +8,7 @@ from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
+from admin_confirm.constants import CACHE_KEY_PREFIX, CACHE_KEYS, CONFIRMATION_RECEIVED
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
@@ -57,9 +57,10 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(Item.objects.count(), 0)
 
         # Click "Yes, I'm Sure"
-        del data["_confirm_add"]
-        data[CONFIRMATION_RECEIVED] = True
-        response = self.client.post(reverse("admin:market_item_add"), data=data)
+        confirmation_data = data.copy()
+        del confirmation_data["_confirm_add"]
+        confirmation_data[CONFIRMATION_RECEIVED] = True
+        response = self.client.post(reverse("admin:market_item_add"), data=confirmation_data)
 
         # Should have redirected to changelist
         self.assertEqual(response.status_code, 302)
@@ -115,9 +116,10 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(item.name, "Not name")
 
         # Click "Yes, I'm Sure"
-        del data["_confirm_change"]
-        data[CONFIRMATION_RECEIVED] = True
-        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=data)
+        confirmation_data = data.copy()
+        del confirmation_data["_confirm_change"]
+        confirmation_data[CONFIRMATION_RECEIVED] = True
+        response = self.client.post(f"/admin/market/item/{item.id}/change/", data=confirmation_data)
 
         # Should not have redirected to changelist
         self.assertEqual(response.url, f"/admin/market/item/{item.id}/change/")
@@ -174,6 +176,10 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)
+
+        # Should have cached the unsaved file and image
+        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__file", ItemAdmin._file_cache.cached_keys)
+        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__image", ItemAdmin._file_cache.cached_keys)
 
         # Click "Yes, I'm Sure"
         confirmation_data = data.copy()

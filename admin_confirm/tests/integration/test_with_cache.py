@@ -18,6 +18,14 @@ from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 
+class RequiredFileForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = "__all__"
+
+    file = forms.FileField(required=True)
+
+
 class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
     def setUp(self):
         self.selenium.file_detector = LocalFileDetector()
@@ -54,14 +62,7 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         self.assertIn("New Name", mall.name)
 
     def test_models_with_files_should_have_confirmation_received(self):
-        with open("screenshot.png", "rb") as f:
-            image = SimpleUploadedFile(
-                name="old_file.jpg",
-                content=f.read(),
-                content_type="image/jpeg",
-            )
-
-        item = Item.objects.create(name="item", price=1, image=image)
+        item = Item.objects.create(name="item", price=1)
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         # Should ask for confirmation of change
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
@@ -113,6 +114,7 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
 
     def test_confirmation_page_should_not_render_required_hidden_file_input(self):
+        self.setAdminAttributes(ItemAdmin, form=RequiredFileForm)
         item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
@@ -175,10 +177,7 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
                 content_type="image/jpeg",
             )
 
-        # Note: ItemAdmin requires `image` to be uploaded, so we must provide an image to create the item.
-        item = Item.objects.create(
-            name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file, image=file
-        )
+        item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0], file=file)
 
         self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
         self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
@@ -222,10 +221,8 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
             self.selenium.find_element(By.NAME, "name").send_keys("New Item")
             self.selenium.find_element(By.NAME, "price").send_keys(1)
             self.selenium.find_element(By.ID, "id_currency_0").click()
-            # Image is required field
-            self.selenium.find_element(By.ID, "id_image").send_keys(os.getcwd() + "/screenshot.png")
             self.selenium.find_element(By.NAME, "_save").click()
-            # Redirected to change page without confirmation since no image was uploaded
+            # Redirected to change page without confirmation since file was not uploaded
             self.assertTrue(self.selenium.current_url.endswith("/admin/market/item/"))
 
             item = Item.objects.get(name="New Item")
