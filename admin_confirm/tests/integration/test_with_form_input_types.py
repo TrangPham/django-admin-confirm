@@ -30,7 +30,7 @@ class ConfirmWithFormInputTypes(AdminConfirmIntegrationTestCase):
             raw_id_fields=["general_manager"],
             inlines=[]
         )
-        
+
     def tearDown(self):
         super().tearDown()
 
