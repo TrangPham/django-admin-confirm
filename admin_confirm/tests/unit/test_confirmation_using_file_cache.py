@@ -23,6 +23,7 @@ from admin_confirm.tests.helpers import AdminConfirmTestCase
 from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 from tests.market.admin import ItemAdmin
+from tests.market.admin.shop_admin import ShopAdmin
 from tests.market.models import Item, Shop
 from tests.factories import ItemFactory, ShopFactory
 
@@ -709,7 +710,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_change_without_changing_file_should_save_changes(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {
@@ -840,7 +841,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_cache_with_incorrect_model_should_not_be_used(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {
@@ -891,6 +892,8 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
 
     def test_form_without_files_should_not_use_cache(self):
         cache.delete_many(CACHE_KEYS.values())
+
+        self.setAdminAttributes(ShopAdmin, confirm_change=True, confirmation_fields=["name"])
         shop = ShopFactory()
         # Click "Save And Continue"
         data = {

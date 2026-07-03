@@ -1,26 +1,16 @@
-from django.test import TestCase, RequestFactory
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import Permission, User
 from django.http import HttpResponse
 from django.urls import reverse
 
 
+from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShopAdmin
 from tests.market.models import Shop
 from admin_confirm import confirm_action
 
 
-class TestConfirmActions(TestCase):
-    @classmethod
-    def setUpTestData(cls):
-        cls.superuser = User.objects.create_superuser(
-            username="super", email="super@email.org", password="pass"
-        )
-
-    def setUp(self):
-        self.client.force_login(self.superuser)
-        self.factory = RequestFactory()
-
+class TestConfirmActions(AdminConfirmTestCase):
     def test_get_changelist_should_not_be_affected(self):
         response = self.client.get(reverse("admin:market_shop_changelist"))
         self.assertIsNotNone(response)
@@ -204,7 +194,10 @@ class TestConfirmActions(TestCase):
         #   def has_delete_permission(self, request, obj=None):
         #       return request.user.is_superuser
 
-        ShopAdmin.has_delete_permission = lambda self, request, obj=None: False
+        self.setAdminAttributes(
+            ShopAdmin, has_delete_permission=lambda self, request, obj=None: False
+        )
+
         post_params = {
             "action": ["show_message"],
             "select_across": ["0"],
@@ -233,9 +226,6 @@ class TestConfirmActions(TestCase):
 
         # Django won't show the action as an option to you
         self.assertIn("No action selected", response.rendered_content)
-
-        # Remove our modification for ShopAdmin
-        ShopAdmin.has_delete_permission = lambda self, request, obj=None: request.user.is_superuser
 
     def test_confirm_action_submit_button_should_perform_action(self):
         """
@@ -270,14 +260,12 @@ class TestConfirmActions(TestCase):
 
     def test_should_use_action_confirmation_template_if_set(self):
         expected_template = "market/admin/my_custom_template.html"
-        ShopAdmin.action_confirmation_template = expected_template
+        self.setAdminAttributes(ShopAdmin, action_confirmation_template=expected_template)
         admin = ShopAdmin(Shop, AdminSite())
         actual_template = admin.render_action_confirmation(
             self.factory.request(), context={}
         ).template_name
         self.assertEqual(expected_template, actual_template)
-        # Clear our setting to not affect other tests
-        ShopAdmin.action_confirmation_template = None
 
     def test_action_confirm_title_equal_description_field(self):
         response = self.client.post(

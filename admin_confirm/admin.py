@@ -17,6 +17,7 @@ from admin_confirm.utils import (
     format_cache_key,
 )
 from admin_confirm.constants import (
+    CONFIRMATION_OPTIONS,
     CONFIRMATION_RECEIVED,
     CONFIRM_ADD,
     CONFIRM_CHANGE,
@@ -117,7 +118,7 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
     @method_decorator(cache_control(private=True))
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
         confirmation_options = self._get_confirmation_options(
-            request, self.get_object(request, unquote(object_id)) or None
+            request, self.get_object(request, unquote(object_id) if object_id else None) or None
         )
         if request.method == "POST":
             if CONFIRMATION_RECEIVED in request.POST:
@@ -132,7 +133,7 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
 
         extra_context = {
             **(extra_context or {}),
-            "confirmation_options": confirmation_options,
+            CONFIRMATION_OPTIONS: confirmation_options,
         }
         return super().changeform_view(request, object_id, form_url, extra_context)
 
@@ -319,7 +320,7 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
             # We must ensure that we ask for confirmation when showing errors
             extra_context = {
                 **(extra_context or {}),
-                "confirmation_options": self._get_confirmation_options(request, new_object),
+                CONFIRMATION_OPTIONS: self._get_confirmation_options(request, new_object),
             }
             return super()._changeform_view(request, object_id, form_url, extra_context)
 

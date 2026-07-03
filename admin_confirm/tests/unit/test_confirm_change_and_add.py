@@ -6,6 +6,7 @@ from django.contrib.admin.options import TO_FIELD_VAR
 from django.http import HttpResponseForbidden, HttpResponseBadRequest
 from django.urls import reverse
 
+from admin_confirm.constants import CONFIRMATION_OPTIONS
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ItemAdmin, InventoryAdmin, ShoppingMallAdmin, TransactionAdmin
 from tests.market.models import Item, Inventory, ShoppingMall, Transaction
@@ -17,22 +18,22 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
     def test_get_add_without_confirm_add(self):
         self.setAdminAttributes(ItemAdmin, confirm_add=False)
         response = self.client.get(reverse("admin:market_item_add"))
-        self.assertFalse(response.context_data.get("confirm_add"))
+        self.assertNotIn("_confirm_add", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertNotIn("_confirm_add", response.rendered_content)
 
     def test_get_add_with_confirm_add(self):
         response = self.client.get(reverse("admin:market_inventory_add"))
-        self.assertTrue(response.context_data.get("confirm_add"))
+        self.assertIn("_confirm_add", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_add", response.rendered_content)
 
     def test_get_change_without_confirm_change(self):
         response = self.client.get(reverse("admin:market_shop_add"))
-        self.assertFalse(response.context_data.get("confirm_change"))
+        self.assertNotIn("_confirm_change", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertNotIn("_confirm_change", response.rendered_content)
 
     def test_get_change_with_confirm_change(self):
         response = self.client.get(reverse("admin:market_inventory_add"))
-        self.assertTrue(response.context_data.get("confirm_change"))
+        self.assertIn("_confirm_change", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_change", response.rendered_content)
 
     def test_post_add_without_confirm_add(self):
@@ -241,7 +242,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
             self.assertEqual(expected_template, actual_template)
 
     def test_form_invalid(self):
-        self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
+        self.setAdminAttributes(InventoryAdmin, confirmation_fields=["quantity"])
 
         inventory = InventoryFactory(quantity=1)
         data = {
@@ -266,7 +267,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self.assertEqual(inventory.quantity, 1)
 
     def test_confirmation_fields_set_with_confirm_change(self):
-        self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
+        self.setAdminAttributes(InventoryAdmin, confirmation_fields=["quantity"])
 
         inventory = InventoryFactory()
         another_shop = ShopFactory()
@@ -332,7 +333,7 @@ class TestConfirmChangeAndAdd(AdminConfirmTestCase):
         self.assertEqual(response.context_data["confirmation_fields"], {"quantity"})
 
     def test_confirmation_fields_set_with_confirm_add(self):
-        self.assertEqual(InventoryAdmin.confirmation_fields, ["quantity"])
+        self.setAdminAttributes(InventoryAdmin, confirmation_fields=["quantity"])
 
         item = ItemFactory()
         shop = ShopFactory()
