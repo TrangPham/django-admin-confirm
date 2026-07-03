@@ -8,7 +8,7 @@ from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
-from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
+from admin_confirm.constants import CACHE_KEY_PREFIX, CACHE_KEYS, CONFIRMATION_RECEIVED
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
@@ -174,6 +174,10 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
 
         # Should not have saved the item yet
         self.assertEqual(Item.objects.count(), 0)
+
+        # Should have cached the unsaved file and image
+        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__file", ItemAdmin._file_cache.cached_keys)
+        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__image", ItemAdmin._file_cache.cached_keys)
 
         # Click "Yes, I'm Sure"
         confirmation_data = data.copy()

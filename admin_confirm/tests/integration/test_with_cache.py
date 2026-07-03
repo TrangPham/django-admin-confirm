@@ -4,6 +4,7 @@ on ModelAdmin that utilize caches
 """
 
 import os
+from django import forms
 
 from tests.market.admin.item_admin import ItemAdmin
 from tests.market.models import Item, ShoppingMall
@@ -15,6 +16,14 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.file_detector import LocalFileDetector
 from selenium.webdriver.common.by import By
 from django.core.files.uploadedfile import SimpleUploadedFile
+
+
+class RequiredFileForm(forms.ModelForm):
+    class Meta:
+        model = Item
+        fields = "__all__"
+
+    file = forms.FileField(required=True)
 
 
 class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
@@ -103,6 +112,25 @@ class ConfirmWithCacheTests(AdminConfirmIntegrationTestCase):
         item.refresh_from_db()
         self.assertEqual(21, int(item.price))
         self.assertRegex(item.file.name, r"screenshot.*\.png$")
+
+    def test_confirmation_page_should_not_render_required_hidden_file_input(self):
+        self.setAdminAttributes(ItemAdmin, form=RequiredFileForm)
+        item = Item.objects.create(name="item", price=1, currency=Item.VALID_CURRENCIES[0][0])
+
+        self.selenium.get(self.live_server_url + f"/admin/market/item/{item.id}/change/")
+        self.assertIn(CONFIRM_CHANGE, self.selenium.page_source)
+
+        # Change a regular field and upload file so we reach confirmation flow.
+        self.selenium.find_element(By.NAME, "price").send_keys(2)
+        self.selenium.find_element(By.ID, "id_file").send_keys(os.getcwd() + "/screenshot.png")
+        self.selenium.find_element(By.NAME, "_continue").click()
+        self.assertIn("Confirm", self.selenium.page_source)
+
+        hidden_form = self.selenium.find_element(By.ID, "hidden-form")
+        hidden_file_input = hidden_form.find_element(By.NAME, "file")
+
+        # Regression expectation: hidden form must not carry browser-required file control.
+        self.assertIsNone(hidden_file_input.get_attribute("required"))
 
     def test_should_save_file_changes(self):
         with open("screenshot.png", "rb") as f:
