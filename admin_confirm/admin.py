@@ -396,6 +396,16 @@ class AdminConfirmMixin:
             # No confirmation required for changed fields, continue to save
             return super()._changeform_view(request, object_id, form_url, extra_context)
 
+        # Confirmation page renders the bound form inside a hidden container.
+        # Keep browser validation from blocking submit on hidden required controls;
+        # server-side validation has already run above.
+        # Addresses: https://github.com/TrangPham/django-admin-confirm/issues/50
+        form.use_required_attribute = False
+        for formset in formsets:
+            for inline_form in formset.forms:
+                inline_form.use_required_attribute = False
+            formset.empty_form.use_required_attribute = False
+
         # Parse the original save action from request
         save_action = None
         # No cover: There would not be a case of not request.POST.keys() and form is valid
