@@ -17,6 +17,7 @@ from admin_confirm.utils import (
     format_cache_key,
 )
 from admin_confirm.constants import (
+    CONFIRM_DELETE,
     CONFIRMATION_OPTIONS,
     CONFIRMATION_RECEIVED,
     CONFIRM_ADD,
@@ -62,6 +63,12 @@ class BaseAdminConfirmMixin:
 
 
 class InlineAdminConfirmMixin(BaseAdminConfirmMixin):
+    """InlineAdminConfirmMixin
+
+    Mixin for Django InlineModelAdmin to add confirmation for changes, additions, and deletions of inline objects.
+    Must be used in conjunction with AdminConfirmMixin on the parent ModelAdmin.
+    """
+
     # Should we ask for confirmation for deletions?
     # (Only applicable for inlines - Django has built-in confirmation for deletions on the main model)
     confirm_delete = False
@@ -117,9 +124,8 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
 
     @method_decorator(cache_control(private=True))
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        confirmation_options = self._get_confirmation_options(
-            request, self.get_object(request, unquote(object_id) if object_id else None) or None
-        )
+        object = self.get_object(request, unquote(object_id) if object_id else None) or None
+        confirmation_options = self._get_confirmation_options(request, object)
         if request.method == "POST":
             if CONFIRMATION_RECEIVED in request.POST:
                 return self._confirmation_received_view(request, object_id, form_url, extra_context)
@@ -151,6 +157,8 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
                     options.append(f"{inline.model.__name__}{CONFIRM_ADD}")
                 if inline.confirm_change:
                     options.append(f"{inline.model.__name__}{CONFIRM_CHANGE}")
+                if inline.confirm_delete:
+                    options.append(f"{inline.model.__name__}{CONFIRM_DELETE}")
         return options
 
     def _confirmation_received_view(self, request, object_id, form_url, extra_context):

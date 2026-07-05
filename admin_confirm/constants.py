@@ -8,6 +8,7 @@ SAVE_ACTIONS = [SAVE, SAVE_AS_NEW, ADD_ANOTHER, SAVE_AND_CONTINUE]
 
 CONFIRM_ADD = "_confirm_add"
 CONFIRM_CHANGE = "_confirm_change"
+CONFIRM_DELETE = "_confirm_delete"
 CONFIRMATION_RECEIVED = "_confirmation_received"
 
 # This is the key used to pass in confirmation options to template context.

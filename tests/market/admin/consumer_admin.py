@@ -3,11 +3,11 @@
 """
 
 from django.contrib import admin
-from admin_confirm.admin import AdminConfirmMixin
+from admin_confirm.admin import AdminConfirmMixin, InlineAdminConfirmMixin
 from ..models import Transaction
 
 
-class TransactionInline(admin.TabularInline):
+class TransactionInline(InlineAdminConfirmMixin, admin.TabularInline):
     model = Transaction
     extra = 0
 

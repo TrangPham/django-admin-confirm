@@ -83,6 +83,21 @@ class AdminConfirmTestCase(TestCase):
             for field in inline.fields:
                 self.assertIn("apple", rendered_content)
 
+    def _inspect_form_submission_errors(self, response):
+        """
+        Helper method to inspect form submission errors in the response
+        """
+        adminform = response.context_data.get("adminform")
+        if adminform:
+            form = adminform.form
+            if form.errors:
+                print("Form errors:", form.errors)
+            inlines = response.context_data.get("inline_admin_formsets", [])
+            for index, inline_admin_form in enumerate(inlines):
+                inline_formset = inline_admin_form.formset
+                if inline_formset.errors:
+                    print(f"Inline formset errors at index {index}:", inline_formset.errors)
+
 
 class AdminConfirmIntegrationTestCase(LiveServerTestCase):
     # Setup/Teardown Methods
