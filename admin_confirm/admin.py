@@ -47,14 +47,14 @@ class BaseAdminConfirmMixin:
         """
         Hook for specifying confirmation fields
         """
-        # default confirmation fields to all fields, including ManyToManyFields
-        confirmation_fields = set([field.name for field in self.model._meta.fields]) | set(
-            field.name for field in self.model._meta.get_fields()
-        )
-
-        if self.confirmation_fields and self.confirmation_fields != "__all__":
+        if self.confirmation_fields and str(self.confirmation_fields) != "__all__":
             # set confirmation fields if specified
             confirmation_fields = set(self.confirmation_fields)
+        else:
+            # default confirmation fields to all fields, including ManyToManyFields
+            confirmation_fields = set([field.name for field in self.model._meta.fields]) | set(
+                field.name for field in self.model._meta.get_fields()
+            )
 
         # filter to valid fields which are visible on the admin page
         admin_fields = set(flatten_fieldsets(self.get_fieldsets(request, obj)))
