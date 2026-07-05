@@ -381,7 +381,8 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
                     )
                     title = str(inline_form.instance) if not inline_add else f"#{index + 1}"
                     log(
-                        f"Inline confirmation fields are {inline_confirmation_fields} and changed data fields are {form_changed_data.keys()}"
+                        f"Inline confirmation fields are {inline_confirmation_fields} "
+                        f"and changed data fields are {form_changed_data.keys()}"
                     )
                     formset_changed_data[inline_form.prefix] = (
                         form_changed_data,
