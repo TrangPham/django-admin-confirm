@@ -238,6 +238,40 @@ class TestConfirmOnInlines(AdminConfirmTestCase):
         self.transaction.refresh_from_db()
         self.assertEqual(self.transaction.total, 999.00)
 
+    def test_post_inline_without_changes_should_not_require_confirmation(self):
+        self.setAdminAttributes(TransactionInline, confirm_change=True)
+        self.transaction.save()
+        expected_total = self.transaction.total
+        data = {
+            "name": self.consumer.name,
+            "email": self.consumer.email,
+            "transactions-TOTAL_FORMS": "1",
+            "transactions-INITIAL_FORMS": "1",
+            "transactions-MIN_NUM_FORMS": "0",
+            "transactions-MAX_NUM_FORMS": "1000",
+            "transactions-0-id": self.transaction.id,
+            "transactions-0-consumer": self.consumer.id,
+            "transactions-0-timestamp_0": self.transaction.timestamp.strftime("%Y-%m-%d"),
+            "transactions-0-timestamp_1": self.transaction.timestamp.strftime("%H:%M:%S"),
+            "transactions-0-total": str(self.transaction.total),
+            "transactions-0-currency": self.transaction.currency,
+            "transactions-0-shop": f"{self.shop.id}",
+            "transactions-0-date": self.transaction.date.strftime("%Y-%m-%d"),
+            "Transaction_confirm_change": True,
+            "_save": "Save",
+        }
+
+        response = self.client.post(
+            reverse("admin:market_consumer_change", args=[self.consumer.id]), data=data
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, "/admin/market/consumer/")
+
+        self.transaction.refresh_from_db()
+        self.assertEqual(Transaction.objects.count(), 1)
+        self.assertEqual(self.transaction.total, expected_total)
+
     def test_post_inline_delete_with_confirm_delete(self):
         self.setAdminAttributes(TransactionInline, confirm_delete=True)
         self.transaction.save()

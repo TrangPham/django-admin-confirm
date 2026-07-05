@@ -1,5 +1,7 @@
 from unittest import mock
+from django.contrib.admin.sites import AdminSite
 from django.core.cache import cache
+from django.test import RequestFactory
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShoppingMallAdmin
@@ -11,9 +13,18 @@ from admin_confirm.constants import CACHE_KEYS
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
 class TestAdminOptions(AdminConfirmTestCase):
-    @mock.patch.object(ShoppingMallAdmin, "confirmation_fields", ["name"])
-    @mock.patch.object(ShoppingMallAdmin, "fields", ["name", "town"])
+    def test_get_cleared_fields_without_clear_inputs_should_return_empty_list(self):
+        request = RequestFactory().post("/", data={"name": "name", "town": "1"})
+        admin = ShoppingMallAdmin(ShoppingMall, AdminSite())
+
+        self.assertEqual(admin._get_cleared_fields(request), [])
+
     def test_change_model_with_m2m_field_without_input_for_m2m_field_should_work(self):
+        self.setAdminAttributes(
+            ShoppingMallAdmin,
+            confirmation_fields=["name"],
+            fields=["name", "town"],
+        )
         gm = GeneralManager.objects.create(name="gm")
         shops = [ShopFactory() for i in range(3)]
         town = Town.objects.create(name="town")
@@ -30,14 +41,10 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
 
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -101,13 +108,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
@@ -172,9 +175,7 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should not be shown confirmation page
         # SInce we used "Save and Continue", should show change page
         self.assertEqual(response.status_code, 302)
@@ -212,9 +213,7 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should not be shown confirmation page
         # SInce we used "Save and Continue", should show change page
         self.assertEqual(response.status_code, 302)
@@ -252,13 +251,9 @@ class TestAdminOptions(AdminConfirmTestCase):
             "_confirm_change": True,
             "_continue": True,
         }
-        response = self.client.post(
-            f"/admin/market/shoppingmall/{mall.id}/change/", data=data
-        )
+        response = self.client.post(f"/admin/market/shoppingmall/{mall.id}/change/", data=data)
         # Should be shown confirmation page
-        self._assertSubmitHtml(
-            rendered_content=response.rendered_content, save_action="_continue"
-        )
+        self._assertSubmitHtml(rendered_content=response.rendered_content, save_action="_continue")
 
         # Should not have cached the unsaved obj
         cached_item = cache.get(CACHE_KEYS["object"])
