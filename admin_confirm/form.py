@@ -34,12 +34,11 @@ def get_changed_data(form: ModelForm) -> Dict:
     Given a form, detect the changes on the form from the default values (if add) or
     from the database values of the object (model instance)
 
-    form - Submitted form that is attempting to alter the obj
-    model - the model class of the obj
-    obj - instance of model which is being altered
-    add - are we attempting to add the obj or does it already exist in the database
+    Expects a bound ModelForm with valid cleaned_data (typically after form.is_valid()).
 
-    Returns a dictionary of the fields and their changed values if any
+    form - Submitted form that is attempting to alter the obj
+
+    Returns a mapping of changed field names to [initial_value, new_value] display pairs.
     """
 
     if not form.is_bound:

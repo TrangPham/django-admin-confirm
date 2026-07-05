@@ -124,8 +124,8 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
 
     @method_decorator(cache_control(private=True))
     def changeform_view(self, request, object_id=None, form_url="", extra_context=None):
-        object = self.get_object(request, unquote(object_id) if object_id else None) or None
-        confirmation_options = self._get_confirmation_options(request, object)
+        obj = self.get_object(request, unquote(object_id) if object_id else None) or None
+        confirmation_options = self._get_confirmation_options(request, obj)
         if request.method == "POST":
             if CONFIRMATION_RECEIVED in request.POST:
                 return self._confirmation_received_view(request, object_id, form_url, extra_context)

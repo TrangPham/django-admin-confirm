@@ -181,8 +181,12 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(Item.objects.count(), 0)
 
         # Should have cached the unsaved file and image
-        self.assertIn(format_cache_key(Item, "file"), ItemAdmin._file_cache.cached_keys)
-        self.assertIn(format_cache_key(Item, "image"), ItemAdmin._file_cache.cached_keys)
+        self.assertIn(
+            format_cache_key(model="Item", field="file"), ItemAdmin._file_cache.cached_keys
+        )
+        self.assertIn(
+            format_cache_key(model="Item", field="image"), ItemAdmin._file_cache.cached_keys
+        )
 
         # Click "Yes, I'm Sure"
         confirmation_data = data.copy()

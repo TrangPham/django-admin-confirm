@@ -26,34 +26,31 @@
   {% endif %}
 
   {% for formset_name, formset_changed_data in formsets_changed_data.items %}
-  <div class="module aligned">
-    <h2 class="fieldset-heading">{{ formset_name|upper }}</h2>
-    {% for prefix, inline_form in formset_changed_data.items %}
-    <h3 class="fieldset-heading">{{ formset_name|capfirst }}: {{ inline_form.1 }}</h3>
-    {% if "DELETE" in inline_form.1 %}
-    {% endif %}
-
-    {% if inline_form.0.items %}
-    <table>
-      <tr>
-        <th>Field</th>
-        <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
-        <th>New Value</th>
-      </tr>
-      {% for field, values in inline_form.0.items %}
-      <tr
-        style="{% if field in inline_form.2 %} font-weight: bold; {% endif %}"
-      >
-        <td>{{ field }}</td>
-        <td>{{ values.0|format_change_data_field_value }}</td>
-        <td>{{ values.1|format_change_data_field_value }}</td>
-      </tr>
+    <div class="module aligned">
+      <h2 class="fieldset-heading">{{ formset_name|upper }}</h2>
+      {% for prefix, inline_form in formset_changed_data.items %}
+        <h3 class="fieldset-heading">{{ formset_name|capfirst }}: {{ inline_form.1 }}</h3>
+        {% if inline_form.0.items %}
+          <table>
+            <tr>
+              <th>Field</th>
+              <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
+              <th>New Value</th>
+            </tr>
+            {% for field, values in inline_form.0.items %}
+              <tr
+                style="{% if field in inline_form.2 %} font-weight: bold; {% endif %}"
+              >
+                <td>{{ field }}</td>
+                <td>{{ values.0|format_change_data_field_value }}</td>
+                <td>{{ values.1|format_change_data_field_value }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endif %}
+        </br>
       {% endfor %}
-    </table>
-    {% endif %}
-  </br>
-    {% endfor %}
-  </br>
+      </br>
+    </div>
   {% endfor %}
-  </div>
 </div>
