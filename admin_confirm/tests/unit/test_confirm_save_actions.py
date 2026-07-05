@@ -4,11 +4,16 @@ from django.core.cache import cache
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
+from admin_confirm.utils import format_cache_key
 from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
-from admin_confirm.constants import CACHE_KEY_PREFIX, CACHE_KEYS, CONFIRMATION_RECEIVED
+from admin_confirm.constants import (
+    CACHE_KEYS,
+    CONFIRMATION_OPTIONS,
+    CONFIRMATION_RECEIVED,
+)
 
 
 @mock.patch.object(ShoppingMallAdmin, "inlines", [])
@@ -25,7 +30,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(reverse("admin:market_item_add"))
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_add"))
+        self.assertIn("_confirm_add", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_add", response.rendered_content)
 
         # Click "Save"
@@ -84,7 +89,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(f"/admin/market/item/{item.id}/change/")
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_change"))
+        self.assertIn("_confirm_change", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_change", response.rendered_content)
 
         # Click "Save And Continue"
@@ -139,7 +144,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(reverse("admin:market_item_add"))
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_add"))
+        self.assertIn("_confirm_add", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_add", response.rendered_content)
 
         # Select files
@@ -176,8 +181,12 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(Item.objects.count(), 0)
 
         # Should have cached the unsaved file and image
-        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__file", ItemAdmin._file_cache.cached_keys)
-        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__image", ItemAdmin._file_cache.cached_keys)
+        self.assertIn(
+            format_cache_key(model="Item", field="file"), ItemAdmin._file_cache.cached_keys
+        )
+        self.assertIn(
+            format_cache_key(model="Item", field="image"), ItemAdmin._file_cache.cached_keys
+        )
 
         # Click "Yes, I'm Sure"
         confirmation_data = data.copy()
@@ -237,7 +246,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(f"/admin/market/item/{item.id}/change/")
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_change"))
+        self.assertIn("_confirm_change", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_change", response.rendered_content)
 
         # Upload new image and remove file
@@ -314,7 +323,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(reverse("admin:market_shoppingmall_add"))
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_add"))
+        self.assertIn("_confirm_add", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_add", response.rendered_content)
 
         # Click "Save"
@@ -384,7 +393,7 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         response = self.client.get(f"/admin/market/shoppingmall/{mall.id}/change/")
 
         # Should be asked for confirmation
-        self.assertTrue(response.context_data.get("confirm_change"))
+        self.assertIn("_confirm_change", response.context_data.get(CONFIRMATION_OPTIONS))
         self.assertIn("_confirm_change", response.rendered_content)
 
         # Click "Save"

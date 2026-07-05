@@ -1,6 +1,5 @@
 """
-Tests confirmation of add/change
-on ModelAdmin that includes inlines
+Tests confirmation of add/change on ModelAdmin that includes inlines
 
 Does not test confirmation of inline changes
 """
@@ -146,9 +145,9 @@ class ConfirmWithInlinesTests(AdminConfirmIntegrationTestCase):
         self.setAdminAttributes(
             ShoppingMallAdmin,
             inlines=[],
-            get_inline_instances=lambda self, request, obj=None: [ShopInline(
-                self.model, self.admin_site
-            ),]
+            get_inline_instances=lambda self, request, obj=None: [
+                ShopInline(self.model, self.admin_site),
+            ],
         )
         gm = GeneralManager.objects.create(name="gm")
         town = Town.objects.create(name="town")

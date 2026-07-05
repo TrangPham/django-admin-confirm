@@ -1,0 +1,2 @@
+class FormNotBoundException(Exception):
+    pass

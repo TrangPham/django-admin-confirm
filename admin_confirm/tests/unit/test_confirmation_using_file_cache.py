@@ -23,6 +23,7 @@ from admin_confirm.tests.helpers import AdminConfirmTestCase
 from admin_confirm.constants import CACHE_KEYS, CONFIRMATION_RECEIVED
 
 from tests.market.admin import ItemAdmin
+from tests.market.admin.shop_admin import ShopAdmin
 from tests.market.models import Item, Shop
 from tests.factories import ItemFactory, ShopFactory
 
@@ -709,7 +710,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_change_without_changing_file_should_save_changes(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {
@@ -840,7 +841,7 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
     def test_cache_with_incorrect_model_should_not_be_used(self):
         item = self.item
         # Load the Change Item Page
-        ItemAdmin.save_as_continue = False
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
 
         # Request.POST
         data = {
@@ -891,6 +892,8 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
 
     def test_form_without_files_should_not_use_cache(self):
         cache.delete_many(CACHE_KEYS.values())
+
+        self.setAdminAttributes(ShopAdmin, confirm_change=True, confirmation_fields=["name"])
         shop = ShopFactory()
         # Click "Save And Continue"
         data = {
@@ -907,3 +910,78 @@ class TestConfirmationUsingFileCache(AdminConfirmTestCase):
         # Should not have set cache since not multipart form
         for key in CACHE_KEYS.values():
             self.assertIsNone(cache.get(key))
+
+    def test_confirmation_received_with_confirmation_key_should_still_save(self):
+        item = self.item
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
+
+        i2 = SimpleUploadedFile(
+            name="test_image2.jpg",
+            content=self.image_content,
+            content_type="image/jpeg",
+        )
+        data = {
+            "id": item.id,
+            "name": "name",
+            "price": 2.0,
+            "file": "",
+            "file-clear": "on",
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_confirm_change": True,
+            "_save": True,
+        }
+
+        cache_item = Item(
+            name=data["name"],
+            price=data["price"],
+            currency=data["currency"],
+            image=i2,
+        )
+        file_cache = FileCache()
+        file_cache.set(format_cache_key(model="Item", field="image"), i2)
+
+        cache.set(CACHE_KEYS["object"], cache_item)
+        cache.set(CACHE_KEYS["post"], data)
+
+        # Keep _confirm_change in post to verify it is stripped during confirmation_received flow.
+        data[CONFIRMATION_RECEIVED] = True
+
+        with mock.patch.object(ItemAdmin, "message_user") as message_user:
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
+            message_user.assert_called_once()
+
+        self.assertEqual(response.url, "/admin/market/item/")
+        self.assertEqual(Item.objects.count(), 1)
+
+        item.refresh_from_db()
+        self.assertEqual(item.name, "name")
+        self.assertFalse(item.file)
+        self.assertIn("test_image2", item.image.name)
+
+    def test_confirmation_received_should_skip_missing_cache_lookup_when_field_in_post(self):
+        item = self.item
+        self.setAdminAttributes(ItemAdmin, save_as_continue=False)
+
+        data = {
+            "id": item.id,
+            "name": "name",
+            "price": 2.0,
+            "file": "already-present",
+            "image": "already-present",
+            "currency": Item.VALID_CURRENCIES[0][0],
+            "_save": True,
+            CONFIRMATION_RECEIVED: True,
+        }
+
+        cache.set(CACHE_KEYS["object"], self.item)
+
+        with mock.patch("admin_confirm.admin.log") as log_message:
+            response = self.client.post(f"/admin/market/item/{self.item.id}/change/", data=data)
+
+        self.assertEqual(response.url, "/admin/market/item/")
+        missing_cache_logs = [
+            args[0]
+            for args, _ in log_message.call_args_list
+            if "Could not find file cached for field" in args[0]
+        ]
+        self.assertEqual(missing_cache_logs, [])
