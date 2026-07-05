@@ -2,55 +2,59 @@
 
 {% block after_related_objects %}{% endblock %}
 <div class="changed-data">
-  <p><b>Confirm Values:</b></p>
+  <p class="confirm-values-title"><strong>Confirm Values:</strong></p>
   {% if changed_data %}
-  <div class="module aligned">
+  <div class="module aligned confirmation-section">
     <h2 class="fieldset-heading">Basic Information</h2>
-    <table>
-      <tr>
-        <th>Field</th>
-        <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
-        <th>New Value</th>
-      </tr>
-      {% for field, values in changed_data.items %}
-      <tr
-        style="{% if field in confirmation_fields %} font-weight: bold; {% endif %}"
-      >
-        <td>{% verbose_name opts field %}</td>
-        <td>{{ values.0|format_change_data_field_value }}</td>
-        <td>{{ values.1|format_change_data_field_value }}</td>
-      </tr>
-      {% endfor %}
+    <table class="confirmation-table listing results">
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
+          <th>New Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for field, values in changed_data.items %}
+        <tr class="{% if field in confirmation_fields %}important-change{% endif %}">
+          <td>{% verbose_name opts field %}</td>
+          <td>{{ values.0|format_change_data_field_value }}</td>
+          <td>{{ values.1|format_change_data_field_value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
   {% endif %}
 
   {% for formset_name, formset_changed_data in formsets_changed_data.items %}
-    <div class="module aligned">
+    <div class="module aligned confirmation-section">
       <h2 class="fieldset-heading">{{ formset_name|upper }}</h2>
       {% for prefix, inline_form in formset_changed_data.items %}
+        <div class="inline-change-block">
         <h3 class="fieldset-heading">{{ formset_name|capfirst }}: {{ inline_form.1 }}</h3>
         {% if inline_form.0.items %}
-          <table>
-            <tr>
-              <th>Field</th>
-              <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
-              <th>New Value</th>
-            </tr>
-            {% for field, values in inline_form.0.items %}
-              <tr
-                style="{% if field in inline_form.2 %} font-weight: bold; {% endif %}"
-              >
-                <td>{{ field }}</td>
-                <td>{{ values.0|format_change_data_field_value }}</td>
-                <td>{{ values.1|format_change_data_field_value }}</td>
-              </tr>
-            {% endfor %}
-          </table>
+            <table class="confirmation-table listing results">
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>{% if add %} Default {% else %} Current {% endif %}Value</th>
+                  <th>New Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for field, values in inline_form.0.items %}
+                  <tr class="{% if field in inline_form.2 %}important-change{% endif %}">
+                    <td>{{ field }}</td>
+                    <td>{{ values.0|format_change_data_field_value }}</td>
+                    <td>{{ values.1|format_change_data_field_value }}</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
         {% endif %}
-        </br>
+        </div>
       {% endfor %}
-      </br>
     </div>
   {% endfor %}
 </div>
