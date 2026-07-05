@@ -43,7 +43,8 @@ def get_changed_data(form: ModelForm) -> Dict:
     """
 
     if not form.is_bound:
-        raise FormNotBoundException("Form must be bound to get changed data")
+        # No cover: This should never happen because the form should be bound when this function is called.
+        raise FormNotBoundException("Form must be bound to get changed data")  # pragma: no cover
 
     model = form._meta.model
     changed_data = {}

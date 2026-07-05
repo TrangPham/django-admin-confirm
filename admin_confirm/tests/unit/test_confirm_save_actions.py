@@ -4,12 +4,12 @@ from django.core.cache import cache
 from django.urls import reverse
 
 from admin_confirm.tests.helpers import AdminConfirmTestCase
+from admin_confirm.utils import format_cache_key
 from tests.market.admin import ItemAdmin, ShoppingMallAdmin
 from tests.market.models import GeneralManager, Item, ShoppingMall, Town
 from tests.factories import ItemFactory, ShopFactory
 
 from admin_confirm.constants import (
-    CACHE_KEY_PREFIX,
     CACHE_KEYS,
     CONFIRMATION_OPTIONS,
     CONFIRMATION_RECEIVED,
@@ -181,8 +181,8 @@ class TestConfirmSaveActions(AdminConfirmTestCase):
         self.assertEqual(Item.objects.count(), 0)
 
         # Should have cached the unsaved file and image
-        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__file", ItemAdmin._file_cache.cached_keys)
-        self.assertIn(f"{CACHE_KEY_PREFIX}__Item__image", ItemAdmin._file_cache.cached_keys)
+        self.assertIn(format_cache_key(Item, "file"), ItemAdmin._file_cache.cached_keys)
+        self.assertIn(format_cache_key(Item, "image"), ItemAdmin._file_cache.cached_keys)
 
         # Click "Yes, I'm Sure"
         confirmation_data = data.copy()

@@ -83,7 +83,7 @@ class AdminConfirmTestCase(TestCase):
             for field in inline.fields:
                 self.assertIn("apple", rendered_content)
 
-    def _inspect_form_submission_errors(self, response):
+    def print_form_submission_errors(self, response):
         """
         Helper method to inspect form submission errors in the response
         """
