@@ -123,6 +123,7 @@ USE_TZ = True
 # and can be accessed at localhost. See: https://docs.github.com/en/actions/guides/about-service-containers#communicating-with-service-containers
 
 LOCALSTACK_HOST = os.getenv("LOCALSTACK_HOST", "localhost")
+LOCALSTACK_PUBLIC_HOST = os.getenv("LOCALSTACK_PUBLIC_HOST", LOCALSTACK_HOST)
 SELENIUM_HOST = os.getenv("SELENIUM_HOST", "localhost")
 
 # Static files (CSS, JavaScript, Images)
@@ -137,11 +138,15 @@ USE_S3 = os.getenv("USE_S3", "true").lower() == "true"
 if USE_S3:
     # aws settings
     AWS_S3_ENDPOINT_URL = f"http://{LOCALSTACK_HOST}:4566"
+    AWS_S3_PUBLIC_URL = f"http://{LOCALSTACK_PUBLIC_HOST}:4566"
     AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "test")
     AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "test")
     AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "mybucket")
     AWS_DEFAULT_ACL = None
-    # AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    # Used by django-storages to determine the URL of the static files
+    AWS_S3_CUSTOM_DOMAIN = f"{LOCALSTACK_PUBLIC_HOST}:4566/{AWS_STORAGE_BUCKET_NAME}"
+    AWS_S3_URL_PROTOCOL = "http:"
+    AWS_QUERYSTRING_AUTH = False
     AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
 
     if DJANGO_VERSION >= "4.2":
@@ -168,10 +173,10 @@ if USE_S3:
         DEFAULT_FILE_STORAGE = "tests.storage_backends.PublicMediaStorage"
 
     # s3 static settings
-    STATIC_URL = f"{AWS_S3_ENDPOINT_URL}/staticfiles/"
+    STATIC_URL = f"{AWS_S3_PUBLIC_URL}/staticfiles/"
     STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
     # s3 public media settings
-    MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/mediafiles/"
+    MEDIA_URL = f"{AWS_S3_PUBLIC_URL}/mediafiles/"
     MEDIA_ROOT = os.path.join(BASE_DIR, "mediafiles")
 
 else:

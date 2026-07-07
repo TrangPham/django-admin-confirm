@@ -3,15 +3,13 @@ services:
     extends:
       file: docker-compose.dev.yml
       service: web
-    # Note: collectstatic runs from inside the docker container and needs
-    #       to access localstack through the host machine using host.docker.internal
-    #       BUT when we access the django server from our host machine, we need to access
-    #       the stored staticfiles via localhost, so export LOCALSTACK_HOST before and after
+    # Keep internal and public LocalStack hosts split so collectstatic, uploads,
+    # and browser asset URLs all work in docker debug mode.
     command: >
       sh -c "export LOCALSTACK_HOST=host.docker.internal &&
+             export LOCALSTACK_PUBLIC_HOST=localhost &&
              python tests/manage.py collectstatic --no-input &&
              export PYDEVD_DISABLE_FILE_VALIDATION=1 &&
-             export LOCALSTACK_HOST=localhost &&
              python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client tests/manage.py runserver 0.0.0.0:8000"
     ports:
       - "5678:5678" # debugpy
