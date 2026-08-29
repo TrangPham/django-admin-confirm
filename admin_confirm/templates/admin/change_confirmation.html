@@ -32,7 +32,9 @@
 
 {% block content %}
 
-    {% if add or save_as_new %}
+    {% if confirmation_message %}
+        <p>{{ confirmation_message }}</p>
+    {% elif add or save_as_new %}
         <p>{% blocktrans with escaped_object=object %}Are you sure you want to add the {{ model_name }}?{% endblocktrans %}</p>
     {% else %}
         <p>{% blocktrans with escaped_object=object %}Are you sure you want to change the {{ model_name }} "{{ object_name }}"?{% endblocktrans %}</p>

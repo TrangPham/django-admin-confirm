@@ -61,6 +61,36 @@ class BaseAdminConfirmMixin:
         log(f"[Admin fields are {admin_fields} and confirmation fields are {confirmation_fields}")
         return list(confirmation_fields & admin_fields)
 
+    def get_add_confirmation_message(self, request, obj=None):
+        """
+        Hook for customizing the message shown on the confirmation page
+        when adding an object.
+
+        Default is the built-in message (rendered by the template when
+        no custom message is provided).
+        """
+        return None
+
+    def get_change_confirmation_message(self, request, obj=None, changed_data=None):
+        """
+        Hook for customizing the message shown on the confirmation page
+        when changing an object.
+
+        Default is the built-in message (rendered by the template when
+        no custom message is provided).
+        """
+        return None
+
+    def get_action_confirmation_message(self, request, queryset):
+        """
+        Hook for customizing the message shown on the confirmation page
+        when performing an admin action.
+
+        Default is the built-in message (rendered by the template when
+        no custom message is provided).
+        """
+        return None
+
 
 class InlineAdminConfirmMixin(BaseAdminConfirmMixin):
     """InlineAdminConfirmMixin
@@ -455,6 +485,11 @@ class AdminConfirmMixin(BaseAdminConfirmMixin):
             "cleared_fields": cleared_fields,
             "formsets": formsets,
             "confirmation_fields": changed_confirmation_fields,
+            "confirmation_message": (
+                self.get_add_confirmation_message(request, obj)
+                if add_or_new
+                else self.get_change_confirmation_message(request, obj, changed_data)
+            ),
             **(extra_context or {}),
         }
         return self.render_change_confirmation(request, context)
@@ -497,6 +532,7 @@ def confirm_action(func):
             "action_display_name": action_display_name,
             "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
             "submit_name": "confirm_action",
+            "confirmation_message": modeladmin.get_action_confirmation_message(request, queryset),
         }
 
         # Display confirmation page

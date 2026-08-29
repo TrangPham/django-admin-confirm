@@ -26,7 +26,11 @@
 
 {% block content %}
 {% if has_perm %}
-  <p>{% trans 'Are you sure you want to perform action' %} {{ action_display_name }} {% trans 'on the following' %} {{ opts.verbose_name_plural|capfirst }}?</p>
+  {% if confirmation_message %}
+    <p>{{ confirmation_message }}</p>
+  {% else %}
+    <p>{% trans 'Are you sure you want to perform action' %} {{ action_display_name }} {% trans 'on the following' %} {{ opts.verbose_name_plural|capfirst }}?</p>
+  {% endif %}
   <ul>
     {% for obj in queryset %}
       <li>{{ obj }}</li>

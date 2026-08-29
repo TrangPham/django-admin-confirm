@@ -80,6 +80,9 @@ Note that setting `confirmation_fields` without setting `confirm_change` or `con
 If you want even more control over the confirmation, these methods can be overridden:
 
 - `get_confirmation_fields(self, request: HttpRequest, obj: Optional[Object]) -> List[str]`
+- `get_add_confirmation_message(self, request: HttpRequest, obj: Optional[Object]) -> Optional[str]` - returns the message shown on the confirmation page when adding. Default `None` renders the built-in message.
+- `get_change_confirmation_message(self, request: HttpRequest, obj: Optional[Object], changed_data: Optional[dict]) -> Optional[str]` - returns the message shown on the confirmation page when changing. Default `None` renders the built-in message.
+- `get_action_confirmation_message(self, request: HttpRequest, queryset: QuerySet) -> Optional[str]` - returns the message shown on the confirmation page for actions decorated with `@confirm_action`. Default `None` renders the built-in message.
 - `render_change_confirmation(self, request: HttpRequest, context: dict) -> TemplateResponse`
 - `render_action_confirmation(self, request: HttpRequest, context: dict) -> TemplateResponse`
 
@@ -132,6 +135,20 @@ Note: `confirmation_fields` apply to both add/change confirmations.
 This would confirm `action2` but not `action1`.
 
 Action confirmation will respect `allowed_permissions` and the `has_xxx_permission` methods.
+
+**Custom Confirmation Message:**
+
+```py
+    from admin_confirm import AdminConfirmMixin
+
+    class MyModelAdmin(AdminConfirmMixin, ModelAdmin):
+        confirm_change = True
+
+        def get_change_confirmation_message(self, request, obj=None, changed_data=None):
+            return f"Please double-check the price changes for {obj}"
+```
+
+The confirmation page will show the returned message instead of the built-in one. Returning `None` (the default) keeps the built-in message. The same can be done for adds with `get_add_confirmation_message` and for actions with `get_action_confirmation_message`.
 
 > Note: AdminConfirmMixin does not confirm any changes on inlines
 
