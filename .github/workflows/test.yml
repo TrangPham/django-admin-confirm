@@ -79,7 +79,7 @@ jobs:
         run: |
           sudo chown -R $USER:$USER ${{ github.workspace }}
         # required because actions/checkout@2 wants to delete the localstack folder
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # Note: Github Runners no longer supports docker-compose, use docker compose instead
       #       see https://github.com/orgs/community/discussions/116610
       - name: Build Docker
