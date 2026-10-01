@@ -13,5 +13,5 @@ debugpy~=1.8.21
 
 ### S3 ###
 django-storages~=1.14.6
-boto3>=1.43.83
+boto3>=1.43.103
 ### END S3 ###
