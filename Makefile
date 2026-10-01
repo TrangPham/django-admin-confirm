@@ -1,3 +1,5 @@
+init: docker-build docker-up create-bucket docker-migrate create-default-superuser
+
 run:
 	./tests/manage.py runserver
 
@@ -44,6 +46,12 @@ docker-exec:
 
 create-bucket:
 	docker compose -f docker-compose.dev.yml exec -T localstack aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket
+
+create-superuser: 
+	docker compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser
+
+create-default-superuser:
+	DJANGO_SUPERUSER_PASSWORD=pass123 docker compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser --no-input --username=admin --email=admin@example.com
 
 check-readme:
 	python -m readme_renderer README.md -o /tmp/README.html

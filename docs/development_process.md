@@ -5,11 +5,13 @@
 Install docker-compose (or Docker Desktop which installs this for you)
 
 ```
-docker compose -f docker-compose.dev.yml build
-docker compose -f docker-compose.dev.yml up -d
+make init
 ```
 
 You should now be able to see the app running on `localhost:8000`
+The default superuser is:
+- username: admin
+- password: pass123
 
 > Note:
 > If you get NoSuchBucket error in the web container, execute `aws --endpoint-url http://localhost:4566 s3 mb s3://mybucket` in the localstack/floci container and restart web container.
@@ -18,17 +20,10 @@ You should now be able to see the app running on `localhost:8000`
 make create-bucket
 ```
 
-If you haven't already done migrations and created a superuser, you'll want to do it here
-
-```
-docker compose -f docker-compose.dev.yml exec web tests/manage.py migrate
-docker compose -f docker-compose.dev.yml exec web tests/manage.py createsuperuser
-```
-
 **Running tests:**
 
 ```
-docker compose -f docker-compose.dev.yml exec -T web make test-all
+make docker-test-all
 ```
 
 The integration tests are set up within docker. I recommend running the integration tests only in docker.
