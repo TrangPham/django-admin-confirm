@@ -9,7 +9,7 @@ test:
 
 test-all:
 	coverage run --source admin_confirm --branch -m pytest
-	run coverage report -m
+	coverage report -m
 
 dt:
 	docker compose -f docker-compose.dev.yml exec -T web python -m pytest --last-failed -x --pdb
