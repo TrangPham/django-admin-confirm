@@ -7,7 +7,7 @@ from django.urls import reverse
 from admin_confirm.tests.helpers import AdminConfirmTestCase
 from tests.market.admin import ShopAdmin
 from tests.market.models import Shop
-from admin_confirm import confirm_action
+from admin_confirm import confirm_action, AdminConfirmMixin
 
 
 class TestConfirmActions(AdminConfirmTestCase):
@@ -287,7 +287,7 @@ class TestConfirmActions(AdminConfirmTestCase):
 
         external_action.allowed_permissions = ("delete",)
 
-        class DummyAdmin:
+        class DummyAdmin(AdminConfirmMixin):
             admin_site = AdminSite()
             context = None
 
