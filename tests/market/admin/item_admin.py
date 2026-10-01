@@ -23,3 +23,6 @@ class ItemAdmin(AdminConfirmMixin, ModelAdmin):
     def image_preview(self, obj):
         if obj.image:
             return mark_safe('<img src="{obj.image.url}" />')
+
+    def get_add_confirmation_message(self, request, obj=None):
+        return "This is a overridden confirmation message"
