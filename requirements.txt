@@ -1,7 +1,7 @@
 Django>=1.7.0
 factory-boy~=3.3.3
 coverage~=7.16
-pytest>=9.0.3
+pytest>=9.2.0
 pytest-django>=4.8.0
 readme-renderer~=46.0
 twine~=6.2.0
