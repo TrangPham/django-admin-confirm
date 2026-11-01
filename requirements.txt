@@ -1,4 +1,4 @@
-Django>=1.7.0
+Django>=5.2.18
 factory-boy~=3.3.3
 coverage~=7.16
 pytest>=9.0.3
